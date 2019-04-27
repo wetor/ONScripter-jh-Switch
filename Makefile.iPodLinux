@@ -1,0 +1,40 @@
+# -*- Makefile -*-
+#
+# Makefile.iPodLinux - Makefile rules for uCLinux on iPod (photo/nano/video)
+#   Thanks Shiikuru-san
+#
+# Playing movie and audio is not supported.
+#
+
+PREF = /usr/local/arm-uclinux-tools/arm-uclinux-elf
+
+INCS = `$(PREF)/bin/sdl-config --cflags` `$(PREF)/bin/freetype-config --cflags`
+
+LIBS = `$(PREF)/bin/sdl-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lSDL -lfreetype -ljpeg -lbz2
+
+# for iPod 5G (video) : 320x240
+#DEFS = -DIPODLINUX -DLINUX -DPDA_WIDTH=320 -DBPP16
+# for iPod photo      : 220x176 -> 220x165
+#DEFS = -DIPODLINUX -DLINUX -DPDA_WIDTH=220 -DBPP16
+# for iPod nano       : 176x132
+#DEFS = -DIPODLINUX -DLINUX -DPDA_WIDTH=176 -DBPP16
+
+# for iPod (nano, photo, 4G color, 5G) : Auto
+DEFS = -DIPODLINUX -DLINUX -DPDA_AUTOSIZE -DBPP16
+
+EXESUFFIX =
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+CC = arm-uclinux-elf-g++ 
+LD = arm-uclinux-elf-g++ -Wl,-elf2flt -o
+
+CFLAGS = -O3 -Wall -fno-exceptions -fno-rtti -fno-check-new -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
+RM = rm -f
+
+TARGET = onscripter$(EXESUFFIX) nsaconv$(EXESUFFIX) sarconv$(EXESUFFIX) nsadec$(EXESUFFIX) sardec$(EXESUFFIX)
+EXT_OBJS = 
+
+include Makefile.onscripter

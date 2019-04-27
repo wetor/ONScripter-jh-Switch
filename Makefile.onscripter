@@ -1,0 +1,138 @@
+# -*- Makefile -*-
+#
+# Makefile.onscripter - General makefile rules for ONScripter
+#
+
+GUI_OBJS = ONScripter$(OBJSUFFIX) \
+	ONScripter_animation$(OBJSUFFIX) \
+	ONScripter_command$(OBJSUFFIX) \
+	ONScripter_effect$(OBJSUFFIX) \
+	ONScripter_effect_breakup$(OBJSUFFIX) \
+	ONScripter_event$(OBJSUFFIX) \
+	ONScripter_file$(OBJSUFFIX) \
+	ONScripter_file2$(OBJSUFFIX) \
+	ONScripter_image$(OBJSUFFIX) \
+	ONScripter_lut$(OBJSUFFIX) \
+	ONScripter_rmenu$(OBJSUFFIX) \
+	ONScripter_sound$(OBJSUFFIX) \
+	ONScripter_text$(OBJSUFFIX) \
+	AnimationInfo$(OBJSUFFIX) \
+	FontInfo$(OBJSUFFIX) \
+	DirtyRect$(OBJSUFFIX) \
+	resize_image$(OBJSUFFIX) \
+	ONScripter_directdraw$(OBJSUFFIX) \
+	builtin_dll/layer_snow$(OBJSUFFIX) \
+	builtin_dll/ONScripter_effect_cascade$(OBJSUFFIX) \
+	builtin_dll/ONScripter_effect_trig$(OBJSUFFIX) \
+	builtin_dll/layer_oldmovie$(OBJSUFFIX)
+
+DECODER_OBJS = DirectReader$(OBJSUFFIX) \
+	SarReader$(OBJSUFFIX) \
+	NsaReader$(OBJSUFFIX) \
+	sjis2utf16$(OBJSUFFIX) \
+	coding2utf16$(OBJSUFFIX) \
+	gbk2utf16$(OBJSUFFIX)
+	
+
+SARDEC_OBJS  = sardec$(OBJSUFFIX) \
+	DirectReader$(OBJSUFFIX) \
+	SarReader$(OBJSUFFIX) \
+	sjis2utf16$(OBJSUFFIX)
+
+SARCONV_OBJS = sarconv$(OBJSUFFIX) \
+	conv_shared$(OBJSUFFIX) \
+	resize_image$(OBJSUFFIX) \
+	DirectReader$(OBJSUFFIX) \
+	SarReader$(OBJSUFFIX) \
+	sjis2utf16$(OBJSUFFIX)
+
+NSADEC_OBJS  = nsadec$(OBJSUFFIX) \
+	$(DECODER_OBJS)
+
+NSACONV_OBJS = nsaconv$(OBJSUFFIX) \
+	conv_shared$(OBJSUFFIX) \
+	resize_image$(OBJSUFFIX) \
+	$(DECODER_OBJS)
+
+ONSCRIPTER_OBJS = onscripter_main$(OBJSUFFIX) \
+	$(DECODER_OBJS) \
+	ScriptHandler$(OBJSUFFIX) \
+	ScriptParser$(OBJSUFFIX) \
+	ScriptParser_command$(OBJSUFFIX) \
+	$(GUI_OBJS) $(EXT_OBJS)
+
+PARSER_HEADER = BaseReader.h \
+	ButtonLink.h \
+	DirectReader.h \
+	SarReader.h \
+	NsaReader.h \
+	ScriptHandler.h \
+	ScriptParser.h \
+	AnimationInfo.h \
+	FontInfo.h \
+	DirtyRect.h \
+	LUAHandler.h
+
+ONSCRIPTER_HEADER = ONScripter.h $(PARSER_HEADER)
+
+ALL: $(TARGET)
+
+sardec$(EXESUFFIX): $(SARDEC_OBJS)
+	$(LD) $(LDOUT)$@ $(SARDEC_OBJS) $(LIBS)
+
+sarconv$(EXESUFFIX): $(SARCONV_OBJS)
+	$(LD) $(LDOUT)$@ $(SARCONV_OBJS) $(LIBS)
+
+nsadec$(EXESUFFIX): $(NSADEC_OBJS)
+	$(LD) $(LDOUT)$@ $(NSADEC_OBJS) $(LIBS)
+
+nsaconv$(EXESUFFIX): $(NSACONV_OBJS)
+	$(LD) $(LDOUT)$@ $(NSACONV_OBJS) $(LIBS)
+
+simple_aviplay$(EXESUFFIX): simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX)
+	$(LD) $(LDOUT)$@ simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX) $(LIBS)
+
+onscripter$(EXESUFFIX): $(ONSCRIPTER_OBJS)
+	$(LD) $< $(ONSCRIPTER_OBJS) $(LIBS) $(EXT_FLAGS) -o onscripter$(EXESUFFIX)
+
+clean:
+	-$(RM) $(TARGET)
+	-$(RM) *$(OBJSUFFIX)
+	-$(RM) builtin_dll/*$(OBJSUFFIX)
+
+.cpp$(OBJSUFFIX):
+	$(CC) $(CFLAGS) -o $@ $<
+
+SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
+NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
+DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
+ScriptHandler$(OBJSUFFIX): ScriptHandler.h
+ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
+ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
+
+sardec$(OBJSUFFIX): BaseReader.h SarReader.h 
+sarconv$(OBJSUFFIX): BaseReader.h SarReader.h 
+nsadec$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
+nsaconv$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
+simple_aviplay$(OBJSUFFIX): AVIWrapper.h
+conv_shared$(OBJSUFFIX): resize_image.h
+
+onscripter_main$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
+ONScripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
+ONScripter_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_effect$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_effect_breakup$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_event$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_rmenu$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_animation$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_sound$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_file$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_file2$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripter_image$(OBJSUFFIX): $(ONSCRIPTER_HEADER) resize_image.h
+ONScripter_lut$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+AnimationInfo$(OBJSUFFIX): AnimationInfo.h
+FontInfo$(OBJSUFFIX): FontInfo.h
+DirtyRect$(OBJSUFFIX) : DirtyRect.h
+AVIWrapper$(OBJSUFFIX): AVIWrapper.h
+LUAHandler$(OBJSUFFIX): $(ONSCRIPTER_HEADER) LUAHandler.h

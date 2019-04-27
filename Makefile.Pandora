@@ -1,0 +1,85 @@
+# -*- Makefile -*-
+#
+# Makefile.Pandora - Makefile rules for Pandora
+#
+
+PNDSDK = $(HOME)/pandora-dev/arm-2011.09
+
+EXESUFFIX =
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+TARGET = onscripter$(EXESUFFIX)
+EXT_OBJS = 
+
+# mandatory: SDL, SDL_ttf, SDL_image, SDL_mixer, bzip2, libjpeg
+DEFS = -DPANDORA -DLINUX -DBPP16
+INCS = -I$(PNDSDK)/usr/include -I$(PNDSDK)/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT
+LIBS = -L$(PNDSDK)/usr/lib -Wl,-rpath-link,$(PNDSDK)/usr/lib -lSDL -lpthread -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm
+
+# recommended: smpeg
+DEFS += -DUSE_SMPEG
+INCS += -I$(PNDSDK)/usr/include/smpeg
+LIBS += -lsmpeg
+
+# recommended: fontconfig (to get default font)
+DEFS += -DUSE_FONTCONFIG
+LIBS += -lfontconfig
+
+# recommended: OggVorbis 
+#DEFS += -DUSE_OGG_VORBIS
+#LIBS += -logg -lvorbis -lvorbisfile
+
+# optional: Integer OggVorbis
+DEFS += -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS
+LIBS += -lvorbisidec
+
+# optional: support CD audio
+DEFS += -DUSE_CDROM
+
+# optional: avifile
+#DEFS += -DUSE_AVIFILE
+#INCS += `avifile-config --cflags`
+#LIBS += `avifile-config --libs`
+#TARGET += simple_aviplay$(EXESUFFIX)
+#EXT_OBJS += AVIWrapper$(OBJSUFFIX)
+
+# optional: lua
+DEFS += -DUSE_LUA
+INCS += -I$(PNDSDK)/usr/include
+LIBS += -llua -ldl
+EXT_OBJS += LUAHandler$(OBJSUFFIX)
+
+# optional: force screen width for PDA
+#DEFS += -DPDA_WIDTH=640
+DEFS += -DPDA_AUTOSIZE
+
+# optional: enable English mode
+#DEFS += -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR
+
+
+# for GNU g++
+CC = $(PNDSDK)/bin/arm-none-linux-gnueabi-g++
+LD = $(PNDSDK)/bin/arm-none-linux-gnueabi-g++ -o
+
+MFLAGS = -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -ftree-vectorize -fassociative-math -funsafe-math-optimizations
+#CFLAGS = -g -Wall $(MFLAGS) -pipe -c $(INCS) $(DEFS)
+CFLAGS = -Os -Wall -fomit-frame-pointer $(MFLAGS) -pipe -c $(INCS) $(DEFS)
+
+# for GCC on PowerPC specfied
+#CC = powerpc-unknown-linux-gnu-g++
+#LD = powerpc-unknown-linux-gnu-g++ -o
+
+#CFLAGS = -O3 -mtune=G4 -maltivec -mabi=altivec -mpowerpc-gfxopt -mmultiple -mstring -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
+
+# for Intel compiler
+#CC = icc
+#LD = icc -o
+
+#CFLAGS = -O3 -tpp6 -xK -c $(INCS) $(DEFS)
+
+RM = rm -f
+
+include Makefile.onscripter

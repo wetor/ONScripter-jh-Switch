@@ -1,0 +1,84 @@
+# -*- Makefile -*-
+#
+# Makefile.PSP - Makefile rules for Sony Play Station Portable Firmware version 1.0
+#   Thanks Shiikuru-san
+#
+
+PSPPRE = $(shell psp-config --psp-prefix)
+PSPDEV = $(shell psp-config --pspdev-path)
+PSPSDK = $(shell psp-config --pspsdk-path)
+
+INCS  = $(shell $(PSPPRE)/bin/sdl-config --cflags) $(shell $(PSPPRE)/bin/freetype-config --cflags)
+LIBS  = $(shell $(PSPPRE)/bin/sdl-config --libs)
+LIBS += -lSDL_ttf -lfreetype -lSDL_mixer -lSDL_image -lSDL -lSDLmain -lbz2 -ljpeg -lpng -lz -lmad -lvorbisidec
+
+# Include PSPSDK and Libc Headers
+INCS += -I$(PSPSDK)/include -I$(PSPDEV)/include -I$(PSPPRE)/include
+
+# Link PSPSDK and Libc Libraries
+LIBS += -L$(PSPSDK)/lib -L$(PSPDEV)/lib -lstdc++ -lc -lm -lpsppower -lpspnet_inet
+
+
+# with OggVorbis (Tremor) in PDA size (QVGA)
+#DEFS = -DPSP -DPDA_WIDTH=320 -DBPP16 -DMP3_MAD -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DUSE_RWOPS
+# with OggVorbis (Tremor) in PSP size (360x270)
+DEFS = -DPSP -DPDA_WIDTH=360 -DBPP16 -DMP3_MAD -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DUSE_RWOPS
+# with OggVorbis (Tremor) in PSP size (384x288)
+#DEFS = -DPSP -DPDA_WIDTH=384 -DBPP16 -DMP3_MAD -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DUSE_RWOPS
+
+EXESUFFIX = .elf
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+CC = psp-gcc 
+LD = psp-gcc -o
+
+CFLAGS = -g -G0 -O3 -Wall -Wpointer-arith -fno-exceptions -fno-rtti -fno-check-new -pipe -c $(INCS) $(DEFS)
+RM = rm -f
+
+TARGET = EBOOT.PBP
+EXT_OBJS = MadWrapper$(OBJSUFFIX)
+
+
+# onscripter.elf -> EBOOT.PBP for PSP Firmware version 1.0
+
+FIXUP_IMPORTS = psp-fixup-imports
+STRIP         = psp-strip
+MKSFO         = mksfo
+PACK_PBP      = pack-pbp
+
+PSP_TARGET       = onscripter$(EXESUFFIX)
+PSP_TARGET_FIXUP = onscripter_fixup$(EXESUFFIX)
+PSP_TARGET_STRIP = onscripter_strip$(EXESUFFIX)
+PSP_EBOOT_TITLE  = ONScripter for PSP
+PSP_EBOOT_SFO    = PARAM.SFO
+PSP_EBOOT_ICON   = NULL
+PSP_EBOOT_ICON1  = NULL
+PSP_EBOOT_UNKPNG = NULL
+PSP_EBOOT_PIC1   = NULL
+PSP_EBOOT_SND0   = NULL
+PSP_EBOOT_PSAR   = NULL
+
+EBOOT.PBP : $(PSP_TARGET_STRIP) $(PSP_EBOOT_SFO)
+	$(PACK_PBP) EBOOT.PBP $(PSP_EBOOT_SFO) $(PSP_EBOOT_ICON)  \
+		$(PSP_EBOOT_ICON1) $(PSP_EBOOT_UNKPNG) $(PSP_EBOOT_PIC1)  \
+		$(PSP_EBOOT_SND0)  $(PSP_TARGET_STRIP) $(PSP_EBOOT_PSAR)
+
+$(PSP_EBOOT_SFO) :
+	$(MKSFO) '$(PSP_EBOOT_TITLE)' $(PSP_EBOOT_SFO)
+
+$(PSP_TARGET_FIXUP) : $(PSP_TARGET)
+	$(FIXUP_IMPORTS) $(PSP_TARGET) -o $(PSP_TARGET_FIXUP)
+
+$(PSP_TARGET_STRIP) : $(PSP_TARGET_FIXUP)
+	$(STRIP) $(PSP_TARGET_FIXUP) -o $(PSP_TARGET_STRIP)
+
+include Makefile.onscripter
+
+# overriding
+clean :
+	$(RM) $(TARGET)
+	$(RM) $(PSP_TARGET) $(PSP_TARGET_FIXUP) $(PSP_TARGET_STRIP) $(PSP_EBOOT_SFO)
+	$(RM) *.o

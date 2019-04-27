@@ -1,0 +1,27 @@
+# -*- Makefile -*-
+#
+# Makefile.MacOSX - Makefile rules for MacOS X
+#   Thanks adas-san, Takano-san and tmkk-san
+#
+
+INCS = `sdl-config --cflags` `smpeg-config --cflags`
+
+LIBS = `sdl-config --libs` `smpeg-config --libs` `freetype-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -lm -ljpeg -framework QuickTime -framework CoreFoundation
+DEFS = -DMACOSX -DUSE_CDROM -DUTF8_CAPTION -DUTF8_FILESYSTEM
+
+EXESUFFIX =
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+CC = c++ 
+LD = c++ -o
+
+#CFLAGS = -g -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+CFLAGS = -O3 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+RM = rm -f
+
+TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
+
+include Makefile.onscripter

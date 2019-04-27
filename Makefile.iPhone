@@ -1,0 +1,39 @@
+# -*- Makefile -*-
+#
+# Makefile.iPhone - Makefile rules for iPhone & iPod touch
+# 
+
+PREF = /usr/local/arm-apple-darwin
+
+INCS = `$(PREF)/bin/sdl-config --cflags` `$(PREF)/bin/freetype-config --cflags`
+#LIBS = `$(PREF)/bin/sdl-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lSDL -lvorbisidec -lfreetype -ljpeg -lpng -lbz2 -lz
+LIBS = `$(PREF)/bin/sdl-config --libs` \
+	$(PREF)/lib/libSDL_ttf.a \
+	$(PREF)/lib/libSDL_image.a \
+	$(PREF)/lib/libSDL_mixer.a \
+	$(PREF)/lib/libSDL.a \
+	$(PREF)/lib/libvorbisidec.a \
+	$(PREF)/lib/libfreetype.a \
+	$(PREF)/lib/libjpeg.a \
+	$(PREF)/lib/libpng.a \
+	-lz -lbz2
+
+DEFS = -DIPHONE -DMACOSX -DPDA_WIDTH=424 -DBPP16 -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DUTF8_CAPTION -DUTF8_FILESYSTEM
+
+EXESUFFIX =
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+CC = arm-apple-darwin-g++ 
+LD = arm-apple-darwin-g++ -o
+
+#CFLAGS = -g -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+CFLAGS = -O3 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+RM = rm -f
+
+TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
+EXT_OBJS = 
+
+include Makefile.onscripter
