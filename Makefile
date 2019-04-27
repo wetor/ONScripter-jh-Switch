@@ -1,7 +1,3 @@
-CUR_DIR  = .
-OBJDIR   = $(CUR_DIR)
-BUILDDIR = $(CUR_DIR)/build
-
 GUI_OBJS = ONScripter.o \
 	ONScripter_animation.o \
 	ONScripter_command.o \
@@ -22,10 +18,10 @@ GUI_OBJS = ONScripter.o \
 	LUAHandler.o \
 	ONScripter_directdraw.o \
 	Parallel.o \
-	builtin_dll/layer_snow.o \
-	builtin_dll/ONScripter_effect_cascade.o \
-	builtin_dll/ONScripter_effect_trig.o \
-	builtin_dll/layer_oldmovie.o 
+	layer_snow.o \
+	ONScripter_effect_cascade.o \
+	ONScripter_effect_trig.o \
+	layer_oldmovie.o 
 
 DECODER_OBJS = DirectReader.o \
 	SarReader.o \
@@ -42,90 +38,203 @@ ONSCRIPTER_OBJS = \
 	ScriptParser.o \
 	ScriptParser_command.o \
 	$(GUI_OBJS)
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
+endif
+
+TOPDIR ?= $(CURDIR)
+include $(DEVKITPRO)/libnx/switch_rules
+
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing header files
+# EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
+#
+# NO_ICON: if set to anything, do not use icon.
+# NO_NACP: if set to anything, no .nacp file is generated.
+# APP_TITLE is the name of the app stored in the .nacp file (Optional)
+# APP_AUTHOR is the author of the app stored in the .nacp file (Optional)
+# APP_VERSION is the version of the app stored in the .nacp file (Optional)
+# APP_TITLEID is the titleID of the app stored in the .nacp file (Optional)
+# ICON is the filename of the icon (.jpg), relative to the project folder.
+#   If not set, it attempts to use one of the following (in this order):
+#     - <Project name>.jpg
+#     - icon.jpg
+#     - <libnx folder>/default_icon.jpg
+#---------------------------------------------------------------------------------
+VERSION_MAJOR := 1
+VERSION_MINOR := 0
+VERSION_MICRO := 1
+
+APP_TITLE	:=	Onscripter
+APP_AUTHOR	:=	SeekingFunChild
+APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+
+TARGET		:=	$(notdir $(CURDIR))
+BUILD		:=	build
+SOURCES		:=	.
+DATA		:=	data
+INCLUDES	:=	.
+EXEFS_SRC	:=	exefs_src
+
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+
+CFLAGS	:=	-Wall -O2 -ffunction-sections \
+			$(ARCH) $(DEFINES)
+
+CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	-DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
+CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
+CFLAGS	+= -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
+CFLAGS	+= -DUSE_PARALLEL
+
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+ASFLAGS	:=	$(ARCH)
+LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+
+LIBS	:= \
+	-lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 \
+	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lnx -lmikmod \
+	-lbz2 -lm -lFLAC -lmpg123 -lmodplug \
+	-lvorbisfile -lvorbis -logg -ljpeg -llua \
+	-lfreetype -lpng -lz
+
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
 
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
 
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
 
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
-TARGET   = onscripter
-TITLE_ID = ONSJHVITB
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-PREFIX   = arm-vita-eabi
-LDFLAGS = \
-#DMOVIE
-DEFS = -DPSV -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
-DEFS += -DUSE_SIMD_ARM_NEON -DUSE_SIMD
-DEFS += -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
-DEFS += -DUSE_PARALLEL
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
 
-CCFLAGS  = -Wl,-q -O3 -g $(DEFS) -I. -I.. -I$(VITASDK)/$(PREFIX)/include/SDL2
-CXXFLAGS = $(CCFLAGS) -fno-rtti -fno-exceptions -fno-optimize-sibling-calls -std=c++11
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-# -lsmpeg
-LDFLAGS  += -liniparser -lSceLibKernel_stub \
-	-lSDL2_mixer -lSDL2_ttf -lSDL2_image -lSDL2 -lmikmod \
-	-lvita2d -lvita2d_ext -lScePgf_stub -lSceHid_stub \
-	-lbz2 -lm -lFLAC -lFLAC++ -lmpg123\
-	-lvorbisfile -lvorbis -logg -ljpeg -lluajit\
-	-lfreetype -lpng -lz -lSceNetCtl_stub -lSceNet_stub\
-	-lSceAudio_stub  -lSceCommonDialog_stub \
-	-lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lScePower_stub \
-	-lSceTouch_stub -ldl -lSceSysmodule_stub -ltaihen_stub \
-	-lSceShellSvc_stub -lSceAppMgr_stub -lSceAppUtil_stub \
-	-lScePromoterUtil_stub
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
 
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-#include Makefile.onscripter
-all: $(TARGET).vpk
+export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
-$(TARGET).vpk: eboot.bin
-	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "$(TARGET)" $(BUILDDIR)/param.sfo
-	vita-pack-vpk -s $(BUILDDIR)/param.sfo -b $(BUILDDIR)/eboot.bin \
-	-a $(BUILDDIR)/ons.bin=ons.bin \
-	-a res/default.ttf=default.ttf \
-	-a res/icon0.png=sce_sys/icon0.png \
-	-a res/bg.png=sce_sys/livearea/contents/bg.png \
-	-a res/startup.png=sce_sys/livearea/contents/startup.png \
-	-a res/template.xml=sce_sys/livearea/contents/template.xml $(BUILDDIR)/$@
+ifeq ($(strip $(ICON)),)
+	icons := $(wildcard *.jpg)
+	ifneq (,$(findstring $(TARGET).jpg,$(icons)))
+		export APP_ICON := $(TOPDIR)/$(TARGET).jpg
+	else
+		ifneq (,$(findstring icon.jpg,$(icons)))
+			export APP_ICON := $(TOPDIR)/icon.jpg
+		endif
+	endif
+else
+	export APP_ICON := $(TOPDIR)/$(ICON)
+endif
 
-eboot.bin: $(TARGET).velf
-	vita-make-fself -c -s $(BUILDDIR)/gui.velf $(BUILDDIR)/eboot.bin
-	vita-make-fself -c -s $(BUILDDIR)/$< $(BUILDDIR)/ons.bin
+ifeq ($(strip $(NO_ICON)),)
+	export NROFLAGS += --icon=$(APP_ICON)
+endif
 
-%.velf: %.elf
-	vita-elf-create $(BUILDDIR)/$< $(BUILDDIR)/$@
-	vita-elf-create $(BUILDDIR)/gui.elf $(BUILDDIR)/gui.velf
+ifeq ($(strip $(NO_NACP)),)
+	export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
+endif
 
-$(TARGET).elf: $(ONSCRIPTER_OBJS) $(GUI_W_OBJS)
-	@echo $@
-	@$(PREFIX)-g++ $(CXXFLAGS)  -MMD -MT -MF $(ONSCRIPTER_OBJS) -o $(BUILDDIR)/$@ $(LDFLAGS)
-	@$(PREFIX)-g++ $(CXXFLAGS)  -MMD -MT -MF $(GUI_W_OBJS) -o $(BUILDDIR)/gui.elf $(LDFLAGS)
+ifneq ($(APP_TITLEID),)
+	export NACPFLAGS += --titleid=$(APP_TITLEID)
+endif
 
-	
+.PHONY: $(BUILD) clean all
 
-%.o : %.cpp
-	@echo [CC] $<
-	@$(PREFIX)-g++ $(CXXFLAGS) -c $(OBJDIR)/$< -o $(OBJDIR)/$@
-	
+#---------------------------------------------------------------------------------
+all: $(BUILD)
 
-vpksend: $(TARGET).vpk
-	curl -T $(BUILDDIR)/$(TARGET).vpk ftp://$(VITAIP):1337/ux0:/
-	@echo "Sent."
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@ 
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-send: eboot.bin
-	curl -T $(BUILDDIR)/eboot.bin ftp://$(VITAIP):1337/ux0:/app/$(TITLE_ID)/
-	@echo "Sent."
-
+#---------------------------------------------------------------------------------
 clean:
-	@rm -rf $(BUILDDIR)/$(TARGET).velf $(BUILDDIR)/$(TARGET).elf $(BUILDDIR)/$(TARGET).vpk $(BUILDDIR)/eboot.bin $(BUILDDIR)/param.sfo
-	@rm -rf $(BUILDDIR)/$(TARGET)
-	@rm -rf $(OBJDIR)/*.o
-	@rm -rf $(OBJDIR)/builtin_dll/*.o
-	@rm -rf *.o
-	@rm -rf builtin_dll/*.o
-	@rm -rf vpkinstall/*.o
-#mymv:
-#	mv *.o $(OBJDIR)/
-#	mv builtin_dll/*.o $(OBJDIR)/builtin_dll/
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
+
+#---------------------------------------------------------------------------------
+else
+.PHONY:	all
+
+DEPENDS	:=	$(OFILES:.o=.d)
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
+
+$(OUTPUT).pfs0	:	$(OUTPUT).nso
+
+$(OUTPUT).nso	:	$(OUTPUT).elf
+
+ifeq ($(strip $(NO_NACP)),)
+$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
+else
+$(OUTPUT).nro	:	$(OUTPUT).elf
+endif
+
+$(OUTPUT).elf	:	$(ONSCRIPTER_OBJS)
+
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+-include $(DEPENDS)
+
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
