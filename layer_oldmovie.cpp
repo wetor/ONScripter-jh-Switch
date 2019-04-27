@@ -23,8 +23,8 @@
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #ifdef USE_BUILTIN_LAYER_EFFECTS
-#include "../builtin_layer.h"
-#include "../ONScripter.h"
+#include "builtin_layer.h"
+#include "ONScripter.h"
 #include <stdlib.h>
 
 #define MAX_NOISE          8

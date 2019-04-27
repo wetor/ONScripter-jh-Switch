@@ -26,12 +26,13 @@
 
 namespace simd {
   class uint8x16 {
+  public:
 #ifdef USE_SIMD_X86_SSE2
     __m128i v_;
 #elif USE_SIMD_ARM_NEON
     uint8x16_t v_;
 #endif
-  public:
+  
     uint8x16() = default;
     uint8x16(const uint8x16&) = default;
     uint8x16 &operator=(const uint8x16&) = default;

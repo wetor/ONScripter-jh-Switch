@@ -24,8 +24,8 @@
 */
 
 #ifdef USE_BUILTIN_LAYER_EFFECTS
-#include "../builtin_layer.h"
-#include "../ONScripter.h"
+#include "builtin_layer.h"
+#include "ONScripter.h"
 #include <math.h>
 #include <stdlib.h>
 #include <SDL_image.h>

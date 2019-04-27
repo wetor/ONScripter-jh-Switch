@@ -112,7 +112,11 @@ namespace simd {
     _mm_store_ss(reinterpret_cast<float*>(m), _mm_castsi128_ps(a));
 #endif
 #elif USE_SIMD_ARM_NEON
-    vst1q_lane_u32(reinterpret_cast<uint32_t*>(m), a, 1);
+#if defined(SWITCH)
+	  vst1q_lane_u32(reinterpret_cast<uint32_t*>(m), reinterpret_cast<uint32x4_t>(a.v_), 1);
+#else
+	  vst1q_lane_u32(reinterpret_cast<uint32_t*>(m), a, 1);
+#endif
 #endif
   }
 
