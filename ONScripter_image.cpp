@@ -293,7 +293,7 @@ static void alphaBlendPixelCore32(Uint32 *src1_buffer, Uint32 *src2_buffer, Uint
 
 static void alphaBlend32(Uint32 *src1_buffer, Uint32 *src2_buffer, Uint32 *dst_buffer, const Uint32 *mask_buffer,
     Uint32 mask_value, Uint32 overflow_mask, Uint32 mask_surface_w, int rect_x, int rect_w) {
-    int j2 = rect_x;
+	unsigned int j2 = rect_x;
 #ifdef USE_SIMD
     using namespace simd;
 #ifdef USE_SIMD_X86_AVX2

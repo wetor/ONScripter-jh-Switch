@@ -133,7 +133,8 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CPPFILES	:=	$(ONSCRIPTER_OBJS:.o=.cpp)
+# $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
@@ -223,7 +224,7 @@ else
 $(OUTPUT).nro	:	$(OUTPUT).elf
 endif
 
-$(OUTPUT).elf	:	$(ONSCRIPTER_OBJS)
+$(OUTPUT).elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
