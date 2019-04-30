@@ -292,7 +292,7 @@ void parseOption(int argc, char *argv[]) {
 			else if (!strcmp(argv[0]+1, "-no-vsync")){
 			    ons.setVsyncOff();
 			}
-#if defined(ANDROID)
+#if defined(ANDROID) || defined(SWITCH)
             else if ( !strcmp(argv[0]+1, "-compatible") ){
                 ons.setCompatibilityMode();
             }
@@ -316,10 +316,23 @@ void parseOption(int argc, char *argv[]) {
 
 int main(int argc, char *argv[])
 {
+#if defined(SWITCH)
+	twiliInitialize();
+#endif
     utils::printInfo("ONScripter-Jh version %s (%s, %d.%02d)\n", ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
-	optionHelp();
 
-#if defined(PSP)
+#if defined(SWITCH)
+	argc = 6;
+	argv[0] = (char*)"ons";
+	argv[1] = (char*)"--root";
+	argv[2] = (char*)"sdmc:/onsemu/star_dream";
+	argv[3] = (char*)"--compatible";
+	argv[4] = (char*)"--fullscreen";	
+	argv[5] = (char*)"--debug:1";
+	ons.setCompatibilityMode();
+	ons.disableRescale();
+	ons.enableButtonShortCut();
+#elif defined(PSP)
     ons.disableRescale();
     ons.enableButtonShortCut();
     SetupCallbacks();
@@ -408,5 +421,10 @@ int main(int argc, char *argv[])
     if (ons.openScript()) exit(-1);
     if (ons.init()) exit(-1);
     ons.executeLabel();
+	
+#if defined(SWITCH)
+	twiliExit();
+#endif
     exit(0);
+
 }

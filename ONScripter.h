@@ -37,6 +37,8 @@
 #endif    
 #include "direct_draw.h"
 #if defined(SWITCH)
+#include <switch.h>
+#include <twili.h>
 #undef NULL
 #define NULL 0
 #endif
@@ -563,7 +565,7 @@ private:
     void keyUpEvent( SDL_KeyboardEvent *event );
     bool keyPressEvent( SDL_KeyboardEvent *event );
     void timerEvent(bool init_flag);
-#if (defined(IOS) || defined(ANDROID) || defined(WINRT))
+#if (defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(SWITCH))
     bool convTouchKey(SDL_TouchFingerEvent &finger);
 #endif
     void runEventLoop();

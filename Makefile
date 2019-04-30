@@ -74,7 +74,7 @@ VERSION_MINOR := 0
 VERSION_MICRO := 1
 
 APP_TITLE	:=	Onscripter
-APP_AUTHOR	:=	SeekingFunChild
+APP_AUTHOR	:=	Wetor
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	$(notdir $(CURDIR))
@@ -105,10 +105,10 @@ LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.ma
 
 LIBS	:= \
 	-lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 \
-	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lnx -lmikmod \
+	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod \
 	-lbz2 -lm -lFLAC -lmpg123 -lmodplug \
 	-lvorbisfile -lvorbis -logg -ljpeg -llua \
-	-lfreetype -lpng -lz
+	-lfreetype -lpng -lz -ltwili -lnx 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -133,23 +133,70 @@ ONS_Key transKey(ONS_Key key)
 
 ONS_Key transJoystickButton(Uint8 button)
 {
-#if defined(PSP)    
-    SDLKey button_map[] = { SDLK_ESCAPE, /* TRIANGLE */
-                            SDLK_RETURN, /* CIRCLE   */
-                            SDLK_SPACE,  /* CROSS    */
-                            SDLK_RCTRL,  /* SQUARE   */
-                            SDLK_o,      /* LTRIGGER */
-                            SDLK_s,      /* RTRIGGER */
-                            SDLK_DOWN,   /* DOWN     */
-                            SDLK_LEFT,   /* LEFT     */
-                            SDLK_UP,     /* UP       */
-                            SDLK_RIGHT,  /* RIGHT    */
-                            SDLK_0,      /* SELECT   */
-                            SDLK_a,      /* START    */
-                            SDLK_UNKNOWN,/* HOME     */ /* kernel mode only */
-                            SDLK_UNKNOWN,/* HOLD     */};
-    return button_map[button];
-#elif defined(__PS3__)    
+
+	/*static const HidControllerKeys pad_mapping[] = {
+    KEY_A,
+	KEY_B,
+	KEY_X,
+	KEY_Y,
+    KEY_LSTICK,
+	KEY_RSTICK,
+    KEY_L,
+	KEY_R,
+    KEY_ZL, 
+	KEY_ZR,
+    KEY_PLUS, 
+	KEY_MINUS,
+    KEY_DLEFT, 
+	KEY_DUP, 
+	KEY_DRIGHT,
+	KEY_DDOWN,
+    KEY_LSTICK_LEFT, KEY_LSTICK_UP, KEY_LSTICK_RIGHT, KEY_LSTICK_DOWN,
+    KEY_RSTICK_LEFT, KEY_RSTICK_UP, KEY_RSTICK_RIGHT, KEY_RSTICK_DOWN,
+    KEY_SL_LEFT, 
+	KEY_SR_LEFT, 
+	KEY_SL_RIGHT,
+	KEY_SR_RIGHT
+};*/
+#if defined(SWITCH)    
+	SDL_Keycode button_map[] = {
+		SDLK_RETURN, /* A   确认*/
+		SDLK_RCTRL,  /* B   按住快进*/
+		SDLK_a,		 /* X   开启自动*/
+		SDLK_ESCAPE, /* Y	菜单*/
+		SDLK_UNKNOWN,/* KEY_LSTICK*/
+		SDLK_UNKNOWN,/* KEY_RSTICK*/
+		SDLK_o,      /* L	显示当前页*/
+		SDLK_s,      /* R	开启/关闭快进*/
+		SDLK_UNKNOWN,/* ZL */
+		SDLK_UNKNOWN,/* ZR */
+		SDLK_SPACE,  /* +	START*/
+		SDLK_0,      /* -	SELECT*/
+		SDLK_LEFT,   /* LEFT     */
+		SDLK_UP,     /* UP       */
+		SDLK_RIGHT,  /* RIGHT    */
+		SDLK_DOWN,   /* DOWN     */
+		SDLK_UNKNOWN,/* HOME     */ /* kernel mode only */
+		SDLK_UNKNOWN /* HOLD     */
+	};
+	return button_map[button];
+#elif defined(PSP)    
+	SDL_Keycode button_map[] = { SDLK_ESCAPE, /* TRIANGLE */
+							SDLK_RETURN, /* CIRCLE   */
+							SDLK_SPACE,  /* CROSS    */
+							SDLK_RCTRL,  /* SQUARE   */
+							SDLK_o,      /* LTRIGGER */
+							SDLK_s,      /* RTRIGGER */
+							SDLK_DOWN,   /* DOWN     */
+							SDLK_LEFT,   /* LEFT     */
+							SDLK_UP,     /* UP       */
+							SDLK_RIGHT,  /* RIGHT    */
+							SDLK_0,      /* SELECT   */
+							SDLK_a,      /* START    */
+							SDLK_UNKNOWN,/* HOME     */ /* kernel mode only */
+							SDLK_UNKNOWN,/* HOLD     */ };
+	return button_map[button];
+#elif defined(__PS3__)
     SDLKey button_map[] = {
         SDLK_0,      /* SELECT   */
         SDLK_UNKNOWN,/* L3       */
@@ -1172,7 +1219,7 @@ void ONScripter::timerEvent(bool init_flag)
     }
 }
 
-#if (defined(IOS) || defined(ANDROID) || defined(WINRT))
+#if (defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(SWITCH))
 //TODO: 上下左右键模拟
 SDL_MouseWheelEvent transTouchKey(SDL_TouchFingerEvent &finger) {
     static struct FingerPoint {
@@ -1227,7 +1274,7 @@ void ONScripter::runEventLoop()
         }
 
         switch (event.type) {
-#if defined(IOS) || defined(ANDROID) || defined(WINRT)
+#if defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(SWITCH) 
         case SDL_FINGERMOTION:
         {
             if (!btndown_flag && convTouchKey(event.tfinger)) return;
@@ -1426,7 +1473,7 @@ void ONScripter::runEventLoop()
               case SDL_WINDOWEVENT_FOCUS_GAINED:
                   Mix_ResumeMusic();
                   Mix_Resume(-1);
-#ifdef ANDROID
+#if defined(ANDROID) || defined(SWITCH)
                   if (compatibilityMode) repaintCommand();
                   SDL_SetWindowSize( window, screen_device_width, screen_device_height);
                   repaintCommand();

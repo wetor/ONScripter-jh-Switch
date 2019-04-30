@@ -67,6 +67,7 @@ extern "C" Uint32 SDLCALL bgmfadeCallback( Uint32 interval, void *param );
 
 int ONScripter::playSound(const char *filename, int format, bool loop_flag, int channel)
 {
+	return 0;
     if ( !audio_open_flag ) return SOUND_NONE;
 
     long length = script_h.cBR->getFileLength( filename );
@@ -152,6 +153,7 @@ int ONScripter::playSound(const char *filename, int format, bool loop_flag, int 
 
 void ONScripter::playCDAudio()
 {
+	return;
     if ( cdaudio_flag ){
 #ifdef USE_CDROM
         if ( cdrom_info ){
@@ -178,6 +180,7 @@ void ONScripter::playCDAudio()
 
 int ONScripter::playWave(Mix_Chunk *chunk, int format, bool loop_flag, int channel)
 {
+	return 0;
     if (!chunk) return -1;
 
     Mix_Pause( channel );
@@ -196,6 +199,7 @@ int ONScripter::playWave(Mix_Chunk *chunk, int format, bool loop_flag, int chann
 
 int ONScripter::playMIDI(bool loop_flag)
 {
+	return 0;
     Mix_SetMusicCMD(midi_cmd);
     
     char midi_filename[256];

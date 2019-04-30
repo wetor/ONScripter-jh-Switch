@@ -122,7 +122,7 @@ void ONScripter::initSDL()
 
     screen_bpp = 32;
     
-#if (defined(IOS) || defined(ANDROID) || defined(WINRT))
+#if (defined(IOS) || defined(ANDROID) || defined(WINRT)  || defined(SWITCH))
     SDL_DisplayMode mode;
     SDL_GetDisplayMode(0, 0, &mode);
     int width;
@@ -137,6 +137,7 @@ void ONScripter::initSDL()
 
     screen_device_width  = screen_width;
     screen_device_height = screen_height;
+	
 
     // use hardware scaling
     screen_ratio1 = 1;
@@ -167,12 +168,29 @@ void ONScripter::initSDL()
 
     int window_x = SDL_WINDOWPOS_UNDEFINED, window_y = SDL_WINDOWPOS_UNDEFINED;
 
-    window = SDL_CreateWindow(NULL, window_x, window_y, screen_device_width, screen_device_height, window_flag);
+    window = SDL_CreateWindow(NULL, window_x, window_y, 1920, 1080, window_flag);
     if (window == NULL) {
         utils::printError("Could not create window: %s\n", SDL_GetError());
         exit(-1);
     }
     SDL_GetWindowSize(window, &device_width, &device_height);
+
+#if defined(SWITCH)
+	screen_device_width = device_width;
+	screen_device_height = device_height;
+	device_width = 1280;
+	device_height = 720;
+
+	utils::printInfo("device_width:%d\ndevice_height:%d\nscreen_device_width:%d\nscreen_device_height:%d\nscreen_width:%d\nscreen_height:%d\n",
+		device_width, 
+		device_height,
+		screen_device_width, 
+		screen_device_height,
+		screen_width, 
+		screen_height);
+#endif
+
+
     Uint32 render_flag = SDL_RENDERER_ACCELERATED;
     if (vsync) render_flag |= SDL_RENDERER_PRESENTVSYNC;
     renderer = SDL_CreateRenderer(window, -1, render_flag);
@@ -722,22 +740,36 @@ void ONScripter::flushDirect( SDL_Rect &rect, int refresh_mode )
     //utils::printInfo("flush %d: %d %d %d %d\n", refresh_mode, rect.x, rect.y, rect.w, rect.h );
     
     SDL_Rect dst_rect = rect;
+#if defined(SWITCH)
+	dst_rect = {
+			0,
+			0 ,
+			screen_width,
+			screen_height
+	};
+	//utils::printInfo("xxx %d %d %d    %d %d %d %d\n", fullscreen_mode,screen_device_width, screen_width,dst_rect.x, dst_rect.y, dst_rect.w,dst_rect.h);
+#else
     --dst_rect.x; --dst_rect.y; dst_rect.w += 2; dst_rect.h += 2;
     if (AnimationInfo::doClipping(&dst_rect, &screen_rect) || (dst_rect.w == 2 && dst_rect.h == 2)) return;
+#endif
     refreshSurface(accumulation_surface, &rect, refresh_mode);
     SDL_LockSurface(accumulation_surface);
     SDL_UpdateTexture(texture, &rect, (unsigned char*)accumulation_surface->pixels+accumulation_surface->pitch*rect.y+rect.x*sizeof(ONSBuf), accumulation_surface->pitch);
     SDL_UnlockSurface(accumulation_surface);
 
     screen_dirty_flag = false;
-    #ifdef ANDROID      
-        if (compatibilityMode) {
-            SDL_RenderClear(renderer);
-        }
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-    #else
-        SDL_RenderCopy(renderer, texture, &dst_rect, &dst_rect);
-    #endif
+#if defined(ANDROID) || defined(SWITCH)      
+	if (compatibilityMode) {
+		SDL_RenderClear(renderer);
+	}
+#if defined(SWITCH)
+	SDL_RenderCopy(renderer, texture, NULL, &dst_rect);
+#else
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+#endif
+#else
+	SDL_RenderCopy(renderer, texture, &dst_rect, &dst_rect);
+#endif
     SDL_RenderPresent(renderer);
 }
 
