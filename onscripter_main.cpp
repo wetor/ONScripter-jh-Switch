@@ -325,11 +325,11 @@ int main(int argc, char *argv[])
 	argc = 5;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
-	argv[2] = (char*)"sdmc:/onsemu/star_dream";
+	argv[2] = (char*)"sdmc:/onsemu/Rewrite";
 	argv[3] = (char*)"--compatible";
 	argv[4] = (char*)"--fontcache";
 	
-	//argv[4] = (char*)"--fullscreen";	
+	//argv[5] = (char*)"--fullscreen";	
 	//argv[4] = (char*)"--debug:1";
 	ons.setCompatibilityMode();
 	ons.disableRescale();

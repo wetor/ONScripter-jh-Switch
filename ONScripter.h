@@ -554,7 +554,7 @@ public:
 private:
     bool waitEvent(int count);
     bool trapHandler();
-    bool mouseMoveEvent( SDL_MouseMotionEvent *event );
+    bool mouseMoveEvent( SDL_MouseMotionEvent *event , bool mouse = false);
     bool mousePressEvent( SDL_MouseButtonEvent *event );
 
     bool mouseWheelEvent(SDL_MouseWheelEvent *event);

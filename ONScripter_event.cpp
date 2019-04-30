@@ -166,8 +166,8 @@ ONS_Key transJoystickButton(Uint8 button)
 		SDLK_ESCAPE, /* Y	菜单*/
 		SDLK_UNKNOWN,/* KEY_LSTICK*/
 		SDLK_UNKNOWN,/* KEY_RSTICK*/
-		SDLK_o,      /* L	显示当前页*/
-		SDLK_s,      /* R	开启/关闭快进*/
+		SDLK_o,      /* L	开启/关闭 整句出现*/
+		SDLK_s,      /* R	开启/关闭 快进*/
 		SDLK_UNKNOWN,/* ZL */
 		SDLK_UNKNOWN,/* ZR */
 		SDLK_SPACE,  /* +	START*/
@@ -484,11 +484,18 @@ bool ONScripter::trapHandler()
 /* **************************************** *
  * Event handlers
  * **************************************** */
-bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event)
+bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 {
 #if defined(SWITCH)
-	current_button_state.x = (event->x / scale_ratio - render_view_rect.x)* screen_scale_ratio1;
-	current_button_state.y = (event->y / scale_ratio - render_view_rect.y)* screen_scale_ratio2;
+	if (!mouse) {
+		current_button_state.x = (event->x / scale_ratio - render_view_rect.x)* screen_scale_ratio1;
+		current_button_state.y = (event->y / scale_ratio - render_view_rect.y)* screen_scale_ratio2;
+	}
+	else {
+		current_button_state.x = event->x;
+		current_button_state.y = event->y;
+	}
+	
 	/*utils::printInfo("mouseMoveEvent\nx:%d  y:%d\n",
 		current_button_state.x,
 		current_button_state.y
@@ -817,7 +824,7 @@ void ONScripter::shiftCursorOnButton(int diff)
 		if (y < 0)              y = 0;
 		else if (y >= screen_height) y = screen_height - 1;
 		x = x * screen_device_width / screen_width;
-		y = y * screen_device_width / screen_width;
+		y = y * screen_device_height / screen_height;
 		shift_over_button = button->no;
 		warpMouse(x, y);
 	}
@@ -1029,7 +1036,6 @@ bool ONScripter::keyPressEvent(SDL_KeyboardEvent *event)
 			(event_mode & WAIT_TEXT_MODE ||
 			(usewheel_flag && !getcursor_flag && event_mode & WAIT_BUTTON_MODE) ||
 				system_menu_mode == SYSTEM_LOOKBACK)) {
-			utils::printInfo("LEFT\n");
 			current_button_state.button = -2;
 			sprintf(current_button_state.str, "WHEELUP");
 			if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
@@ -1039,7 +1045,6 @@ bool ONScripter::keyPressEvent(SDL_KeyboardEvent *event)
 			((enable_wheeldown_advance_flag && event_mode & WAIT_TEXT_MODE) ||
 			(usewheel_flag && event_mode & WAIT_BUTTON_MODE) ||
 				system_menu_mode == SYSTEM_LOOKBACK)) {
-			utils::printInfo("RIGHT\n");
 			if (event_mode & WAIT_TEXT_MODE)
 				current_button_state.button = 0;
 			else
@@ -1050,7 +1055,6 @@ bool ONScripter::keyPressEvent(SDL_KeyboardEvent *event)
 			event->keysym.sym == SDLK_k ||
 			event->keysym.sym == SDLK_p) &&
 			event_mode & WAIT_BUTTON_MODE) {
-			utils::printInfo("UP\n");
 			shiftCursorOnButton(1);
 			return false;
 		}
@@ -1058,7 +1062,6 @@ bool ONScripter::keyPressEvent(SDL_KeyboardEvent *event)
 			event->keysym.sym == SDLK_j ||
 			event->keysym.sym == SDLK_n) &&
 			event_mode & WAIT_BUTTON_MODE) {
-			utils::printInfo("DOWN\n");
 			shiftCursorOnButton(-1);
 			return false;
 		}
@@ -1396,7 +1399,7 @@ void ONScripter::runEventLoop()
 #endif
 #if !defined(ANDROID) && !defined(IOS) && !defined(WINRT)
 		case SDL_MOUSEMOTION:
-			if (mouseMoveEvent(&event.motion)) return;
+			if (mouseMoveEvent(&event.motion,true)) return;
 			if (btndown_flag) {
 				if (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
 					tmp_event.button.button = SDL_BUTTON_LEFT;
@@ -1532,7 +1535,7 @@ void ONScripter::runEventLoop()
 				Mix_Resume(-1);
 #if defined(ANDROID) || defined(SWITCH)
 				if (compatibilityMode) repaintCommand();
-				SDL_SetWindowSize(window, screen_device_width, screen_device_height);
+				SDL_SetWindowSize(window, 1920, 1080);
 				repaintCommand();
 #endif //ANDROID
 				break;

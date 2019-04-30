@@ -64,8 +64,8 @@ void ONScripter::calcRenderRect() {
 	int swdh = screen_width * renderh;
 	int dwsh = renderw * screen_height;
 	if (swdh == dwsh) {
-		vieww = renderw;
-		viewh = renderh;
+		vieww = screen_width;
+		viewh = screen_height;
 	}
 	else if (swdh > dwsh) {
 		vieww = screen_width;
@@ -202,8 +202,8 @@ void ONScripter::initSDL()
 	SDL_GetWindowSize(window, &device_width, &device_height);
 
 #if defined(SWITCH)
-	screen_device_width = device_width;
-	screen_device_height = device_height;
+	//screen_device_width = device_width;
+	//screen_device_height = device_height;
 	device_width = 1280;
 	device_height = 720;
 	if (screen_width * device_height > device_width * screen_height) 
