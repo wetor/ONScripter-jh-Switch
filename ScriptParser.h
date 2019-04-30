@@ -272,6 +272,10 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
+#if defined(SWITCH)
+	float scale_ratio;
+	int hd_mode;
+#endif
     int screen_ratio1, screen_ratio2;
     int screen_width, screen_height;
     int screen_device_width, screen_device_height;
