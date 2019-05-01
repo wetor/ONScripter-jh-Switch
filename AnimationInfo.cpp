@@ -491,7 +491,7 @@ void AnimationInfo::blendOnSurface( SDL_Surface *dst_surface, int dst_x, int dst
     if (alpha == 0) return;
 
     /* ---------------------------------------- */
-    
+
     SDL_mutexP(mutex);
     SDL_LockSurface( dst_surface );
     SDL_LockSurface( image_surface );

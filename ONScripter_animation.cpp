@@ -434,7 +434,7 @@ void ONScripter::drawTaggedSurface( SDL_Surface *dst_surface, AnimationInfo *ani
         poly_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
         poly_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
     }
-
+	
     if (!anim->affine_flag)
         anim->blendOnSurface( dst_surface, poly_rect.x, poly_rect.y, clip, anim->trans );
     else
