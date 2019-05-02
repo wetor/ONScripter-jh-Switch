@@ -460,7 +460,9 @@ private:
            ALPHA_BLEND_FADE_MASK      = 3,
            ALPHA_BLEND_CROSSFADE_MASK = 4
     };
-
+#ifdef SWITCH
+	AnimationInfo mouse_info;
+#endif
     AnimationInfo btndef_info, bg_info, cursor_info[2];
     AnimationInfo tachi_info[3]; // 0 ... left, 1 ... center, 2 ... right
     AnimationInfo *sprite_info, *sprite2_info;
@@ -561,6 +563,9 @@ private:
 
     void variableEditMode( SDL_KeyboardEvent *event );
     void shiftCursorOnButton( int diff );
+#if defined(SWITCH)
+	bool axisMouseMoveEvent(int key);
+#endif
     bool keyDownEvent( SDL_KeyboardEvent *event );
     void keyUpEvent( SDL_KeyboardEvent *event );
     bool keyPressEvent( SDL_KeyboardEvent *event );
@@ -594,7 +599,8 @@ private:
            REFRESH_SAYA_MODE        = 2,
            REFRESH_SHADOW_MODE      = 4,
            REFRESH_TEXT_MODE        = 8,
-           REFRESH_CURSOR_MODE      = 16
+           REFRESH_CURSOR_MODE      = 16,
+		   REFRESH_MOUSE_MODE		= 32
     };
     int  refresh_shadow_text_mode;
 
@@ -608,6 +614,9 @@ private:
     // format = SDL_PIXELFORMAT_ARGB8888 for OpenGL, Direct3D (Windows, Linux, MacOSX) or for any 32bit surface without SDL_Renderer
     // format = SDL_PIXELFORMAT_RGB565 for any 16bit surface without SDL_Renderer (Android, Zaurus)
     Uint32 texture_format;
+#ifdef SWITCH
+	SDL_Surface *mouse_surface;
+#endif
     SDL_Surface *accumulation_surface; // Final image, i.e. picture_surface (+ shadow + text_surface)
     SDL_Surface *backup_surface; // Final image w/o (shadow + text_surface) used in leaveTextDisplayMode()
     SDL_Surface *screen_surface; // Text + Select_image + Tachi image + background

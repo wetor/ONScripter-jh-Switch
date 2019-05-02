@@ -1263,9 +1263,15 @@ int ONScripter::playCommand()
 
 int ONScripter::ofscopyCommand()
 {
-    SDL_Surface *tmp_surface = AnimationInfo::alloc32bitSurface(render_view_rect.w, render_view_rect.h, texture_format);
+	//TODO: resizeSurface 会导致颜色失真
+	SDL_Rect temp_view_rect = { (int)((float)render_view_rect.x * screen_device_width / screen_width),
+								(int)((float)render_view_rect.y * screen_device_height / screen_height),
+								screen_device_width ,
+								screen_device_height};
+	//printf("ofscopyCommand %d %d %d %d    %d %d\n", temp_view_rect.x, temp_view_rect.y, temp_view_rect.w, temp_view_rect.h, accumulation_surface->w, accumulation_surface->h);
+    SDL_Surface *tmp_surface = AnimationInfo::alloc32bitSurface(temp_view_rect.w, temp_view_rect.h, texture_format);
     SDL_LockSurface(tmp_surface);
-    SDL_RenderReadPixels(renderer, &render_view_rect, tmp_surface->format->format, tmp_surface->pixels, tmp_surface->pitch);
+    SDL_RenderReadPixels(renderer, &temp_view_rect, tmp_surface->format->format, tmp_surface->pixels, tmp_surface->pitch);
     SDL_UnlockSurface(tmp_surface);
     resizeSurface( tmp_surface, accumulation_surface );
     SDL_FreeSurface(tmp_surface);
@@ -3666,6 +3672,13 @@ int ONScripter::bltCommand()
         }
         src_rect.x -= blt_texture_src_rect.x;
         src_rect.y -= blt_texture_src_rect.y;
+#if defined(SWITCH)
+
+		dst_rect.x += render_view_rect.x;
+		dst_rect.y += render_view_rect.y;
+		dst_rect.w /= screen_scale_ratio1;
+		dst_rect.h /= screen_scale_ratio2;
+#endif
         screen_dirty_flag = true;
         SDL_RenderCopy(renderer, blt_texture, &src_rect, &dst_rect);
         SDL_RenderPresent(renderer);

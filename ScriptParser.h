@@ -275,6 +275,8 @@ protected:
 #if defined(SWITCH)
 	float scale_ratio;
 	int hd_mode;
+	int curent_mouse_x, curent_mouse_y;
+	bool show_mouse_flag;
 #endif
     int screen_ratio1, screen_ratio2;
     int screen_width, screen_height;

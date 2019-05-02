@@ -130,7 +130,14 @@ ONS_Key transKey(ONS_Key key)
 #endif
 	return key;
 }
-
+#ifdef SWITCH
+enum {
+	AXIS_LEFT	= 1,
+	AXIS_UP		= 2,
+	AXIS_RIGHT	= 4,
+	AXIS_DOWN	= 8
+};
+#endif
 ONS_Key transJoystickButton(Uint8 button)
 {
 
@@ -164,28 +171,29 @@ ONS_Key transJoystickButton(Uint8 button)
 		SDLK_RCTRL,  /* B   按住快进*/
 		SDLK_a,		 /* X   开启自动*/
 		SDLK_ESCAPE, /* Y	菜单*/
-		SDLK_UNKNOWN,/* KEY_LSTICK*/
-		SDLK_UNKNOWN,/* KEY_RSTICK*/
+		SDLK_F2,	 /* LSTICK*/
+		SDLK_UNKNOWN,/* RSTICK*/
 		SDLK_o,      /* L	开启/关闭 整句出现*/
 		SDLK_s,      /* R	开启/关闭 快进*/
 		SDLK_UNKNOWN,/* ZL */
 		SDLK_UNKNOWN,/* ZR */
 		SDLK_SPACE,  /* +	START*/
 		SDLK_0,      /* -	SELECT*/
+
 		SDLK_LEFT,   /* LEFT     */
 		SDLK_UP,     /* UP       */
 		SDLK_RIGHT,  /* RIGHT    */
 		SDLK_DOWN,   /* DOWN     */
 
-		SDLK_LEFT,   /* L LEFT     */
-		SDLK_UP,     /* L UP       */
-		SDLK_RIGHT,  /* L RIGHT    */
-		SDLK_DOWN,   /* L DOWN     */
+		SDLK_UNKNOWN,	 /* L LEFT     */
+		SDLK_UNKNOWN,     /* L UP       */
+		SDLK_UNKNOWN,	 /* L RIGHT    */
+		SDLK_UNKNOWN,	 /* L DOWN     */
 
-		SDLK_LEFT,   /* R LEFT     */
-		SDLK_UP,     /* R UP       */
-		SDLK_RIGHT,  /* R RIGHT    */
-		SDLK_DOWN,   /* R DOWN     */
+		SDLK_UNKNOWN,   /* R LEFT     */
+		SDLK_UNKNOWN,     /* R UP       */
+		SDLK_UNKNOWN,  /* R RIGHT    */
+		SDLK_UNKNOWN,   /* R DOWN     */
 
 		SDLK_UNKNOWN,/* SL_LEFT     */
 		SDLK_UNKNOWN,/* SR_LEFT     */
@@ -262,21 +270,62 @@ ONS_Key transJoystickButton(Uint8 button)
 SDL_KeyboardEvent transJoystickAxis(SDL_JoyAxisEvent &jaxis)
 {
 	static int old_axis = -1;
-
+	static int m_old_axis = -1;
+	//utils::printInfo("SDL_Joystick axis:%d\n", jaxis.axis);
 	SDL_KeyboardEvent event;
 
 	ONS_Key axis_map[] = { SDLK_LEFT,  /* AL-LEFT  */
 						 SDLK_RIGHT, /* AL-RIGHT */
 						 SDLK_UP,    /* AL-UP    */
 						 SDLK_DOWN   /* AL-DOWN  */ };
-
+	ONS_Key m_axis_map[] = { AXIS_LEFT,  /* AL-LEFT  */
+						 AXIS_UP, /* AL-UP */
+						 AXIS_RIGHT,    /* AL-RIGHT    */
+						 AXIS_DOWN   /* AL-DOWN  */ };
 	int axis = -1;
+	int m_axis = -1;
 	/* rerofumi: Jan.15.2007 */
 	/* ps3's pad has 0x1b axis (with analog button) */
+#if defined(SWITCH)
+	/* switch's left axis */
+	if (jaxis.axis < 2) {
+		if ((3200 > jaxis.value) && (jaxis.value > -3200)) {
+			m_axis = -1;
+			event.keysym.sym = 0;
+		}
+		else if (jaxis.axis == 0) {
+			if (jaxis.value > 0) m_axis = 2;/*RIGHT*/
+			else m_axis = 0;/*LEFT*/
+		}
+		else if (jaxis.axis == 1) {
+			if (jaxis.value > 0) m_axis = 3;/*DOWN*/
+			else m_axis = 1;/*UP*/
+		}
+		
+		if (m_axis != m_old_axis) {
+			if (m_axis == -1) {
+				event.type = SDL_KEYUP;
+				event.keysym.sym |= m_axis_map[m_old_axis];
+			}
+			else {
+				event.type = SDL_KEYDOWN;
+				event.keysym.sym |= m_axis_map[m_axis];
+			}
+			m_old_axis = m_axis;
+		}
+		else {
+			event.keysym.sym = SDLK_UNKNOWN;
+		}
+		event.state = 255;
+		return event;
+	}else
+		jaxis.axis -= 2;
+#endif
 	if (jaxis.axis < 2) {
 		axis = ((3200 > jaxis.value) && (jaxis.value > -3200) ? -1 :
 			(jaxis.axis * 2 + (jaxis.value > 0 ? 1 : 0)));
 	}
+	
 
 	if (axis != old_axis) {
 		if (axis == -1) {
@@ -487,6 +536,8 @@ bool ONScripter::trapHandler()
 bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 {
 #if defined(SWITCH)
+	
+	
 	if (!mouse) {
 		current_button_state.x = (event->x / scale_ratio - render_view_rect.x)* screen_scale_ratio1;
 		current_button_state.y = (event->y / scale_ratio - render_view_rect.y)* screen_scale_ratio2;
@@ -495,11 +546,19 @@ bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 		current_button_state.x = event->x;
 		current_button_state.y = event->y;
 	}
-	
+	curent_mouse_x = current_button_state.x;
+	curent_mouse_y = current_button_state.y;
+	/*curent_mouse_x = current_button_state.x;
+	curent_mouse_y = current_button_state.y;*/
+	SDL_Rect dst_rect = { current_button_state.x,current_button_state.y ,mouse_surface->w,  mouse_surface->h };
+	//mouse_info.pos = dst_rect;
+	flushDirect(dst_rect, REFRESH_MOUSE_MODE);
 	/*utils::printInfo("mouseMoveEvent\nx:%d  y:%d\n",
 		current_button_state.x,
 		current_button_state.y
 	);*/
+	
+	
 #else
 	current_button_state.x = event->x * screen_scale_ratio1;
 	current_button_state.y = event->y * screen_scale_ratio2;
@@ -517,7 +576,34 @@ bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 
 	return false;
 }
+#if defined(SWITCH)
+bool ONScripter::axisMouseMoveEvent(int key) {
 
+	//utils::printInfo("MOUSE MOVE \n\tx:%d y:%d\n", curent_mouse_x, curent_mouse_y);
+
+	if ((key & AXIS_LEFT) && (key & AXIS_UP))
+		warpMouse((curent_mouse_x - 2) * screen_device_width / screen_width, (curent_mouse_y - 2) *screen_device_height / screen_height);
+	else if ((key & AXIS_RIGHT) && (key & AXIS_UP))
+		warpMouse((curent_mouse_x + 3.5) * screen_device_width / screen_width, (curent_mouse_y - 2) *screen_device_height / screen_height);
+	else if ((key & AXIS_LEFT) && (key & AXIS_DOWN))
+		warpMouse((curent_mouse_x - 2) * screen_device_width / screen_width, (curent_mouse_y + 3.5) *screen_device_height / screen_height);
+	else if ((key & AXIS_RIGHT) && (key & AXIS_DOWN))
+		warpMouse((curent_mouse_x + 3.5) * screen_device_width / screen_width, (curent_mouse_y + 3.5) *screen_device_height / screen_height);
+	else {
+		if (key & AXIS_LEFT)
+			warpMouse((curent_mouse_x - 3) * screen_device_width / screen_width, curent_mouse_y *screen_device_height / screen_height);
+		if (key & AXIS_UP)
+			warpMouse(curent_mouse_x * screen_device_width / screen_width, (curent_mouse_y - 3) * screen_device_height / screen_height);
+		if (key & AXIS_RIGHT)
+			warpMouse((curent_mouse_x + 4.5) * screen_device_width / screen_width, curent_mouse_y * screen_device_height / screen_height);
+		if (key & AXIS_DOWN)
+			warpMouse(curent_mouse_x * screen_device_width / screen_width, (curent_mouse_y + 4.5) * screen_device_height / screen_height);
+	}
+
+	return false;
+}
+
+#endif
 bool ONScripter::mousePressEvent(SDL_MouseButtonEvent *event)
 {
 	if (variable_edit_mode) return false;
@@ -819,10 +905,6 @@ void ONScripter::shiftCursorOnButton(int diff)
 	if (button) {
 		int x = button->select_rect.x + button->select_rect.w / 2;
 		int y = button->select_rect.y + button->select_rect.h / 2;
-		if (x < 0)             x = 0;
-		else if (x >= screen_width) x = screen_width - 1;
-		if (y < 0)              y = 0;
-		else if (y >= screen_height) y = screen_height - 1;
 		x = x * screen_device_width / screen_width;
 		y = y * screen_device_height / screen_height;
 		shift_over_button = button->no;
@@ -832,6 +914,7 @@ void ONScripter::shiftCursorOnButton(int diff)
 
 bool ONScripter::keyDownEvent(SDL_KeyboardEvent *event)
 {
+	
 	if (event->keysym.sym == SDLK_ESCAPE) {
 		current_button_state.event_type = SDL_MOUSEBUTTONDOWN;
 		current_button_state.event_button = SDL_BUTTON_RIGHT;
@@ -850,7 +933,15 @@ bool ONScripter::keyDownEvent(SDL_KeyboardEvent *event)
 		current_button_state.event_button = SDL_MOUSEWHEEL;
 		current_button_state.y = -1;
 	}
-
+#ifdef SWITCH
+	else if (event->keysym.sym == SDLK_F2) {
+		show_mouse_flag = !show_mouse_flag;
+		utils::printInfo("toggle show mouse to %s\n", (show_mouse_flag ? "true" : "false"));
+		SDL_Rect dst_rect = { current_button_state.x,current_button_state.y ,mouse_surface->w,  mouse_surface->h };
+		flushDirect(dst_rect, REFRESH_MOUSE_MODE);
+		return false;
+	}
+#endif
 	switch (event->keysym.sym) {
 	case SDLK_RCTRL:
 		ctrl_pressed_status |= 0x01;
@@ -1461,6 +1552,10 @@ void ONScripter::runEventLoop()
 			SDL_KeyboardEvent ke = transJoystickAxis(event.jaxis);
 			if (ke.keysym.sym != SDLK_UNKNOWN) {
 				if (ke.type == SDL_KEYDOWN) {
+#ifdef SWITCH
+					if (ke.state == 255)
+						axisMouseMoveEvent(ke.keysym.sym);
+#endif
 					keyDownEvent(&ke);
 					if (btndown_flag)
 						keyPressEvent(&ke);

@@ -449,7 +449,7 @@ int ONScripter::loadSaveFile2( int file_version )
     display_mode = shelter_display_mode = DISPLAY_MODE_TEXT;
     clickstr_state = CLICK_NONE;
     draw_cursor_flag = false;
-    
+
     return 0;
 }
 

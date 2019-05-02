@@ -73,21 +73,22 @@ VERSION_MAJOR := 1
 VERSION_MINOR := 0
 VERSION_MICRO := 1
 
-APP_TITLE	:=	Onscripter
+APP_TITLE	:=	ONScripter
+APP_TITLEID :=	010FF000AE9A2C1B
 APP_AUTHOR	:=	Wetor
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	ONScripter
 BUILD		:=	build
 SOURCES		:=	.
 DATA		:=	data
 INCLUDES	:=	.
 EXEFS_SRC	:=	exefs_src
-
+CONFIG_JSON :=	ONScripter.json
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE 
 
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
@@ -104,11 +105,11 @@ ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:= \
-	-lSDL2_mixer -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 \
-	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod \
-	-lbz2 -lm -lFLAC -lmpg123 -lmodplug \
-	-lvorbisfile -lvorbis -logg -ljpeg -llua \
-	-lfreetype -lpng -lz -ltwili -lnx 
+	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lSDL2main -lSDL2 \
+	-lfreetype -lbz2 -lpng -lz -ljpeg -lFLAC \
+	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
+	-lvorbisidec -logg -lmpg123 -lmodplug  -lstdc++  \
+	-ltwili -lnx -lm 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -134,7 +135,6 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(ONSCRIPTER_OBJS:.o=.cpp)
-# $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
@@ -151,9 +151,11 @@ else
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES 	:=	$(OFILES_BIN) $(OFILES_SRC)
+export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -162,6 +164,19 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
+
+ifeq ($(strip $(CONFIG_JSON)),)
+	jsons := $(wildcard *.json)
+	ifneq (,$(findstring $(TARGET).json,$(jsons)))
+		export APP_JSON := $(TOPDIR)/$(TARGET).json
+	else
+		ifneq (,$(findstring config.json,$(jsons)))
+			export APP_JSON := $(TOPDIR)/config.json
+		endif
+	endif
+else
+	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
+endif
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.jpg)
@@ -212,9 +227,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
 
-$(OUTPUT).pfs0	:	$(OUTPUT).nso
+
+all	:	$(OUTPUT).nsp $(OUTPUT).nro
+
+$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
 
 $(OUTPUT).nso	:	$(OUTPUT).elf
 
@@ -224,12 +241,19 @@ else
 $(OUTPUT).nro	:	$(OUTPUT).elf
 endif
 
+
 $(OUTPUT).elf	:	$(OFILES)
 
+$(OFILES_SRC)	: $(HFILES_BIN)
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-%.bin.o	:	%.bin
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+#---------------------------------------------------------------------------------
+%.png.o	%_png.h :	%.png
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)

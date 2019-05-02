@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 	argc = 5;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
-	argv[2] = (char*)"sdmc:/onsemu/Rewrite";
+	argv[2] = (char*)"sdmc:/onsemu/Ever17";
 	argv[3] = (char*)"--compatible";
 	argv[4] = (char*)"--fontcache";
 	

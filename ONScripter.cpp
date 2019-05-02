@@ -32,7 +32,9 @@
 #include "simd/simd.h"
 #endif
 #include <stdlib.h>
-
+#ifdef SWITCH
+#include "cursor_png.h"
+#endif
 extern Coding2UTF16 *coding2utf16;
 extern "C" void waveCallback(int channel);
 
@@ -92,12 +94,11 @@ void ONScripter::calcRenderRect() {
 		screen_scale_ratio2 = (float)screen_height / viewh;
 	}
 
-	utils::printInfo("render_view_rect.x:%d\nrender_view_rect.y:%d\nrender_view_rect.w:%d\nrender_view_rect.h:%d\n%d %d\n",
+	utils::printInfo("render_view_rect.x:%d\nrender_view_rect.y:%d\nrender_view_rect.w:%d\nrender_view_rect.h:%d\n",
 		render_view_rect.x,
 		render_view_rect.y,
 		render_view_rect.w,
-		render_view_rect.h,
-		swdh, dwsh);
+		render_view_rect.h);
 }
 
 void ONScripter::setCaption(const char *title, const char *iconstr) {
@@ -138,6 +139,8 @@ void ONScripter::initSDL()
 		utils::printInfo("Initialize JOYSTICK\n");
 #endif
 	hd_mode = 0;
+
+	
 	/* ---------------------------------------- */
 	/* Initialize SDL */
 	if (TTF_Init() < 0) {
@@ -211,7 +214,7 @@ void ONScripter::initSDL()
 	else 
 		scale_ratio = (float)device_height / screen_height;
 	
-
+	show_mouse_flag = true;
 	utils::printInfo("device_width:%d\ndevice_height:%d\nscreen_device_width:%d\nscreen_device_height:%d\nscreen_width:%d\nscreen_height:%d\n",
 		device_width,
 		device_height,
@@ -453,7 +456,12 @@ int ONScripter::init()
 {
 	initSDL();
 	openAudio();
-
+#ifdef SWITCH
+	mouse_surface = IMG_Load_RW(SDL_RWFromConstMem((const void*)cursor_png, cursor_png_size), 1);
+	/*mouse_info.setImage(mouse_surface, texture_format);
+	mouse_info.abs_flag = 1;
+	mouse_info.trans = 255;*/
+#endif
 	image_surface = AnimationInfo::alloc32bitSurface(1, 1, texture_format);
 	accumulation_surface = AnimationInfo::allocSurface(screen_width, screen_height, texture_format);
 	backup_surface = AnimationInfo::allocSurface(screen_width, screen_height, texture_format);
@@ -640,7 +648,6 @@ void ONScripter::reset()
 	new_line_skip_flag = false;
 	text_on_flag = true;
 	draw_cursor_flag = false;
-
 	setStr(&getret_str, NULL);
 	getret_int = 0;
 
@@ -708,6 +715,9 @@ void ONScripter::resetSub()
 
 	// ----------------------------------------
 	// reset AnimationInfo
+#ifdef SWITCH
+	mouse_info.reset();
+#endif
 	btndef_info.reset();
 	bg_info.reset();
 	setStr(&bg_info.file_name, "black");
@@ -782,7 +792,7 @@ void ONScripter::flushDirect(SDL_Rect &rect, int refresh_mode)
 	SDL_LockSurface(accumulation_surface);
 	SDL_UpdateTexture(texture, &rect, (unsigned char*)accumulation_surface->pixels + accumulation_surface->pitch*rect.y + rect.x * sizeof(ONSBuf), accumulation_surface->pitch);
 	SDL_UnlockSurface(accumulation_surface);
-
+	
 	screen_dirty_flag = false;
 #if defined(ANDROID) || defined(SWITCH)      
 	if (compatibilityMode) {
@@ -929,6 +939,10 @@ void ONScripter::mouseOverCheck(int x, int y)
 }
 
 void ONScripter::warpMouse(int x, int y) {
+	if (x < 0)             x = 0;
+	else if (x >= screen_device_width) x = screen_device_width - 1;
+	if (y < 0)              y = 0;
+	else if (y >= screen_device_height) y = screen_device_height - 1;
 	SDL_WarpMouseInWindow(NULL, x, y);
 }
 
