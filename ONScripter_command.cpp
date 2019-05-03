@@ -1100,7 +1100,6 @@ int ONScripter::resetCommand()
 
 int ONScripter::repaintCommand()
 {
-	printf("repaintCommand\n");
     dirty_rect.fill( screen_width, screen_height );
     flush( refreshMode() );
     return RET_CONTINUE;
@@ -3651,7 +3650,7 @@ int ONScripter::bltCommand()
         else if (dy + dh < 0) dh = -dy;
         SDL_Rect src_rect = {sx,sy,sw,sh};
         SDL_Rect dst_rect = {dx,dy,dw,dh};
-#if !defined(SWITCH)
+
         if (blt_texture == NULL) {
           if (btndef_info.image_surface->w > max_texture_width || btndef_info.image_surface->h > max_texture_height) {
             blt_texture = createMaximumTexture(renderer, blt_texture_src_rect, src_rect, btndef_info.image_surface,
@@ -3673,41 +3672,35 @@ int ONScripter::bltCommand()
         }
         src_rect.x -= blt_texture_src_rect.x;
         src_rect.y -= blt_texture_src_rect.y;
+#if defined(SWITCH)
+
+		SDL_Surface * temp_src_surface = AnimationInfo::alloc32bitSurface(src_rect.w, src_rect.h, texture_format);
+		if (dst_rect.w == accumulation_surface->w && dst_rect.h == accumulation_surface->h) {
+			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
+			resizeSurface(temp_src_surface, accumulation_surface);
+	}
+		else {
+			SDL_Surface * temp_dst_surface = AnimationInfo::alloc32bitSurface(dst_rect.w, dst_rect.h, texture_format);
+			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
+			resizeSurface(temp_src_surface, temp_dst_surface);
+			SDL_BlitSurface(temp_dst_surface, NULL, accumulation_surface, &dst_rect);
+			SDL_FreeSurface(temp_dst_surface);
+		}
+		SDL_FreeSurface(temp_src_surface);
+
 
 		dst_rect.x += render_view_rect.x;
 		dst_rect.y += render_view_rect.y;
 		dst_rect.w /= screen_scale_ratio1;
 		dst_rect.h /= screen_scale_ratio2;
-
+#endif
 		screen_dirty_flag = true;
 
 		SDL_RenderCopy(renderer, blt_texture, &src_rect, &dst_rect);
 		SDL_RenderPresent(renderer);
+		dirty_rect.clear();
 
-#else
-
-		SDL_Surface * temp_src_surface = AnimationInfo::alloc32bitSurface(src_rect.w, src_rect.h, texture_format);
-		if (dst_rect.w == bg_info.image_surface->w && dst_rect.h == bg_info.image_surface->h) {
-			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
-			resizeSurface(temp_src_surface, bg_info.image_surface);
-		}
-		else {
-			SDL_Surface * temp_dst_surface = AnimationInfo::alloc32bitSurface(dst_rect.w, dst_rect.h, texture_format);
-			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
-			resizeSurface(temp_src_surface, temp_dst_surface);
-			SDL_BlitSurface(temp_dst_surface, NULL, bg_info.image_surface, &dst_rect);
-			SDL_FreeSurface(temp_dst_surface);
-		}
-		SDL_FreeSurface(temp_src_surface);
-
-		screen_dirty_flag = true;
-
-		flushDirect(dst_rect, refreshMode());
-		
-
-#endif
-
-        dirty_rect.clear();
+ 
     } else {
       utils::printError("blt:Wrong arguments.");
     }

@@ -325,12 +325,12 @@ int main(int argc, char *argv[])
 	argc = 6;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
-	argv[2] = (char*)"sdmc:/onsemu/Ever17";
+	argv[2] = (char*)"sdmc:/onsemu/hanchan";
 	argv[3] = (char*)"--compatible";
 	argv[4] = (char*)"--fontcache";
 	
-	//argv[5] = (char*)"--fullscreen";	
-	argv[5] = (char*)"--debug:1";
+	argv[5] = (char*)"--fullscreen";	
+	//argv[5] = (char*)"--debug:1";
 	ons.setCompatibilityMode();
 	ons.disableRescale();
 	ons.enableButtonShortCut();
