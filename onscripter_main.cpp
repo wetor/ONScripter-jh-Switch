@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
     utils::printInfo("ONScripter-Jh version %s (%s, %d.%02d)\n", ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
 
 #if defined(SWITCH)
-	argc = 5;
+	argc = 6;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
 	argv[2] = (char*)"sdmc:/onsemu/Ever17";
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 	argv[4] = (char*)"--fontcache";
 	
 	//argv[5] = (char*)"--fullscreen";	
-	//argv[4] = (char*)"--debug:1";
+	argv[5] = (char*)"--debug:1";
 	ons.setCompatibilityMode();
 	ons.disableRescale();
 	ons.enableButtonShortCut();

@@ -1100,9 +1100,9 @@ int ONScripter::resetCommand()
 
 int ONScripter::repaintCommand()
 {
+	printf("repaintCommand\n");
     dirty_rect.fill( screen_width, screen_height );
     flush( refreshMode() );
-    
     return RET_CONTINUE;
 }
 
@@ -1263,19 +1263,21 @@ int ONScripter::playCommand()
 
 int ONScripter::ofscopyCommand()
 {
-	//TODO: resizeSurface 会导致颜色失真
+	return RET_CONTINUE;
+	//TODO: RenderReadPixels 取得为空白图
 	SDL_Rect temp_view_rect = { (int)((float)render_view_rect.x * screen_device_width / screen_width),
 								(int)((float)render_view_rect.y * screen_device_height / screen_height),
 								screen_device_width ,
 								screen_device_height};
-	//printf("ofscopyCommand %d %d %d %d    %d %d\n", temp_view_rect.x, temp_view_rect.y, temp_view_rect.w, temp_view_rect.h, accumulation_surface->w, accumulation_surface->h);
     SDL_Surface *tmp_surface = AnimationInfo::alloc32bitSurface(temp_view_rect.w, temp_view_rect.h, texture_format);
     SDL_LockSurface(tmp_surface);
     SDL_RenderReadPixels(renderer, &temp_view_rect, tmp_surface->format->format, tmp_surface->pixels, tmp_surface->pitch);
     SDL_UnlockSurface(tmp_surface);
+	//SDL_SaveBMP(tmp_surface, "sdmc:/onsemu/00.bmp");
+
     resizeSurface( tmp_surface, accumulation_surface );
     SDL_FreeSurface(tmp_surface);
-
+	
     return RET_CONTINUE;
 }
 
@@ -3507,7 +3509,6 @@ int ONScripter::btndefCommand()
     }
     else{
         const char *buf = script_h.readStr();
-
         btndef_info.remove();
         if (blt_texture != NULL) SDL_DestroyTexture(blt_texture);
         blt_texture = NULL;
@@ -3650,7 +3651,7 @@ int ONScripter::bltCommand()
         else if (dy + dh < 0) dh = -dy;
         SDL_Rect src_rect = {sx,sy,sw,sh};
         SDL_Rect dst_rect = {dx,dy,dw,dh};
-
+#if !defined(SWITCH)
         if (blt_texture == NULL) {
           if (btndef_info.image_surface->w > max_texture_width || btndef_info.image_surface->h > max_texture_height) {
             blt_texture = createMaximumTexture(renderer, blt_texture_src_rect, src_rect, btndef_info.image_surface,
@@ -3672,16 +3673,40 @@ int ONScripter::bltCommand()
         }
         src_rect.x -= blt_texture_src_rect.x;
         src_rect.y -= blt_texture_src_rect.y;
-#if defined(SWITCH)
 
 		dst_rect.x += render_view_rect.x;
 		dst_rect.y += render_view_rect.y;
 		dst_rect.w /= screen_scale_ratio1;
 		dst_rect.h /= screen_scale_ratio2;
+
+		screen_dirty_flag = true;
+
+		SDL_RenderCopy(renderer, blt_texture, &src_rect, &dst_rect);
+		SDL_RenderPresent(renderer);
+
+#else
+
+		SDL_Surface * temp_src_surface = AnimationInfo::alloc32bitSurface(src_rect.w, src_rect.h, texture_format);
+		if (dst_rect.w == bg_info.image_surface->w && dst_rect.h == bg_info.image_surface->h) {
+			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
+			resizeSurface(temp_src_surface, bg_info.image_surface);
+		}
+		else {
+			SDL_Surface * temp_dst_surface = AnimationInfo::alloc32bitSurface(dst_rect.w, dst_rect.h, texture_format);
+			SDL_BlitSurface(btndef_info.image_surface, &src_rect, temp_src_surface, NULL);
+			resizeSurface(temp_src_surface, temp_dst_surface);
+			SDL_BlitSurface(temp_dst_surface, NULL, bg_info.image_surface, &dst_rect);
+			SDL_FreeSurface(temp_dst_surface);
+		}
+		SDL_FreeSurface(temp_src_surface);
+
+		screen_dirty_flag = true;
+
+		flushDirect(dst_rect, refreshMode());
+		
+
 #endif
-        screen_dirty_flag = true;
-        SDL_RenderCopy(renderer, blt_texture, &src_rect, &dst_rect);
-        SDL_RenderPresent(renderer);
+
         dirty_rect.clear();
     } else {
       utils::printError("blt:Wrong arguments.");
@@ -3693,14 +3718,12 @@ int ONScripter::bltCommand()
 int ONScripter::bgcopyCommand()
 {
     ofscopyCommand();
-    
     setStr( &bg_info.file_name, "*bgcpy" );
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;
     bg_info.pos.x = 0;
     bg_info.pos.y = 0;
     bg_info.copySurface( accumulation_surface, NULL );
-
     return RET_CONTINUE;
 }
 
