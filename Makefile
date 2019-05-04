@@ -30,9 +30,11 @@ DECODER_OBJS = DirectReader.o \
 	gbk2utf16.o \
 	coding2utf16.o 
 
+PLAYER_OBJS = Player.o
 
 ONSCRIPTER_OBJS = \
 	onscripter_main.o \
+	$(PLAYER_OBJS) \
 	$(DECODER_OBJS) \
 	ScriptHandler.o \
 	ScriptParser.o \
@@ -93,7 +95,7 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	$(INCLUDE) -DUSE_FFMPEG -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
 CFLAGS	+=	-DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
 CFLAGS	+= -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
@@ -104,9 +106,10 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= \
+LIBS	:= -lmpv -lavformat -lavcodec -lswresample -lswscale -lavutil \
 	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lSDL2main -lSDL2 \
-	-lfreetype -lbz2 -lpng -lz -ljpeg -lFLAC \
+	-lbz2 -lass -ltheora -lvorbis \
+	-lfreetype -lpng -lz -ljpeg -lFLAC \
 	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
 	-lvorbisidec -logg -lmpg123 -lmodplug  -lstdc++  \
 	-ltwili -lnx -lm 

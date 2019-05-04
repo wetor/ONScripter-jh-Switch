@@ -313,8 +313,58 @@ void parseOption(int argc, char *argv[]) {
         argv++;
     }
 }
+#include "Player.h"
 
-int main(int argc, char *argv[])
+
+using namespace std;
+
+int main(int argc, const char *argv[]) {
+	twiliInitialize();
+
+	argc = 2;
+	argv[0] = (char*)"ons";
+	argv[1] = (char*)"/onsemu/Rewrite/mov/op00.mp4";
+
+
+	cout << "test\n" << endl;
+	if (argc != 2) {
+		cout << "Usage: ./player video_addr" << endl;
+		return 0;
+	}
+
+
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
+		utils::printError("Couldn't initialize SDL: %s\n", SDL_GetError());
+		exit(-1);
+	}
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != NULL)
+		utils::printInfo("Initialize JOYSTICK\n");
+	Player * player = new Player(argv[1]);
+
+	int res = player->alocarMemoria();
+	if (res < 0) {
+		cout << "Fatal Error";
+		delete(player);
+		twiliExit();
+		return 0;
+	}
+
+	res = player->criarDisplay();
+
+	res = player->lerFramesVideo();
+	if (res < 0) {
+		cout << "Shit happens" << endl;
+		delete(player);
+		twiliExit();
+		return 0;
+	}
+
+	delete(player);
+	twiliExit();
+	return 0;
+}
+
+int main1(int argc, char *argv[])
 {
 #if defined(SWITCH)
 	twiliInitialize();
@@ -322,14 +372,14 @@ int main(int argc, char *argv[])
     utils::printInfo("ONScripter-Jh version %s (%s, %d.%02d)\n", ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
 
 #if defined(SWITCH)
-	argc = 6;
+	argc = 5;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
-	argv[2] = (char*)"sdmc:/onsemu/hanchan";
+	argv[2] = (char*)"sdmc:/onsemu/yuanzhikong";
 	argv[3] = (char*)"--compatible";
 	argv[4] = (char*)"--fontcache";
 	
-	argv[5] = (char*)"--fullscreen";	
+	//argv[5] = (char*)"--fullscreen";	
 	//argv[5] = (char*)"--debug:1";
 	ons.setCompatibilityMode();
 	ons.disableRescale();

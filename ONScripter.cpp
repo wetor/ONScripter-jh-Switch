@@ -815,6 +815,9 @@ void ONScripter::flushDirectYUV(SDL_Overlay *overlay)
 	SDL_Rect dst_rect = { (device_width - screen_device_width) / 2,
 						 (device_height - screen_device_height) / 2,
 						 screen_device_width, screen_device_height };
+#if defined(SWITCH)
+	dst_rect = render_view_rect;
+#endif
 	SDL_UpdateTexture(texture, &screen_rect, overlay->pixels[0], overlay->pitches[0]);
 	SDL_RenderCopy(renderer, texture, &screen_rect, &dst_rect);
 	SDL_RenderPresent(renderer);
