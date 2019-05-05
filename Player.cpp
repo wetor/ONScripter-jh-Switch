@@ -43,9 +43,10 @@ int mainplayer(int argc, char *argv[])
 		die("context init failed");
 
 
-	mpv_set_option_string(mpv, "config-dir", "/onsemu");
+
+	/*mpv_set_option_string(mpv, "config-dir", "/onsemu");
 	mpv_set_option_string(mpv, "terminal", "yes");
-	mpv_set_option_string(mpv, "msg-level", "all=v");
+	mpv_set_option_string(mpv, "msg-level", "all=v");*/
 	mpv_set_option_string(mpv, "vd-lavc-threads", "4");
 	mpv_set_option_string(mpv, "vd-lavc-dr", "yes");
 	mpv_set_option_string(mpv, "vd-lavc-fast", "yes");
@@ -60,7 +61,7 @@ int mainplayer(int argc, char *argv[])
 		die("SDL init failed");
 
 	SDL_Window *window =
-		SDL_CreateWindow("hi", 0,0,
+		SDL_CreateWindow("hi", 100,-360,
 			1280, 720, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS);
 	if (!window)
 		die("failed to create SDL window");
