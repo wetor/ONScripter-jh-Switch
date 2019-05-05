@@ -323,43 +323,11 @@ int main(int argc, const char *argv[]) {
 
 	argc = 2;
 	argv[0] = (char*)"ons";
-	argv[1] = (char*)"/onsemu/Rewrite/mov/op00.mp4";
+	argv[1] = (char*)"/media/op.mp4";
+	//argv[1] = (char*)"/onsemu/Rewrite/mov/op00.mp4";
 
-
-	cout << "test\n" << endl;
-	if (argc != 2) {
-		cout << "Usage: ./player video_addr" << endl;
-		return 0;
-	}
-
-
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
-		utils::printError("Couldn't initialize SDL: %s\n", SDL_GetError());
-		exit(-1);
-	}
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != NULL)
-		utils::printInfo("Initialize JOYSTICK\n");
-	Player * player = new Player(argv[1]);
-
-	int res = player->alocarMemoria();
-	if (res < 0) {
-		cout << "Fatal Error";
-		delete(player);
-		twiliExit();
-		return 0;
-	}
-
-	res = player->criarDisplay();
-
-	res = player->lerFramesVideo();
-	if (res < 0) {
-		cout << "Shit happens" << endl;
-		delete(player);
-		twiliExit();
-		return 0;
-	}
-
-	delete(player);
+	mainplayer(argc, (char**)argv);
+	
 	twiliExit();
 	return 0;
 }

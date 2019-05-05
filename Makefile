@@ -106,7 +106,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lmpv -lavformat -lavcodec -lswresample -lswscale -lavutil \
+LIBS	:= -lmpv -lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil -lass -lfreetype -lpng -lbz2 -lfribidi -lpthread -lm -lz -lmbedtls -lmbedcrypto -lmbedx509 \
 	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lSDL2main -lSDL2 \
 	-lbz2 -lass -ltheora -lvorbis \
 	-lfreetype -lpng -lz -ljpeg -lFLAC \
