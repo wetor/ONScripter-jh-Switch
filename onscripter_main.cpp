@@ -313,24 +313,8 @@ void parseOption(int argc, char *argv[]) {
         argv++;
     }
 }
-#include "Player.h"
 
 
-using namespace std;
-
-int main(int argc, const char *argv[]) {
-	twiliInitialize();
-
-	argc = 2;
-	argv[0] = (char*)"ons";
-	//argv[1] = (char*)"/media/op.mp4";
-	argv[1] = (char*)"/onsemu/Rewrite/mov/op00.mp4";
-
-	mainplayer(argc, (char**)argv);
-	
-	twiliExit();
-	return 0;
-}
 
 int main1(int argc, char *argv[])
 {

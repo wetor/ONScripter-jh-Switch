@@ -30,7 +30,7 @@ DECODER_OBJS = DirectReader.o \
 	gbk2utf16.o \
 	coding2utf16.o 
 
-PLAYER_OBJS = Player.o
+PLAYER_OBJS = Player.o \
 
 ONSCRIPTER_OBJS = \
 	onscripter_main.o \
