@@ -236,17 +236,20 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
 
     int ret = 0;
 #if defined(SWITCH)
+	utils::printInfo("Play Video %s\n", filename);
 	if (length > 16 * 1024 * 1024) {//大于16MB的视频，文件名
-		char videofile[256];
-	//sdmc:
-		sprintf(videofile, "%s%s", archive_path, filename);
+		char *videofile = new char[256];
+		strncpy(videofile, archive_path + 5, strlen(archive_path) - 5);
+		videofile[strlen(archive_path) - 5] = '\0';
+		sprintf(videofile, "%s%s", videofile, filename);
 		ret = PlayVideo(NULL,videofile);
+		delete [] videofile;
 	}
 	else {
 		layer_smpeg_buffer = new unsigned char[length];
 		script_h.cBR->getFile(filename, layer_smpeg_buffer);
 		ret = PlayVideo(SDL_RWFromMem(layer_smpeg_buffer, length), NULL);
-		delete layer_smpeg_buffer;
+		delete [] layer_smpeg_buffer;
 	}
 #elif !defined(WINRT) && (defined(WIN32) || defined(_WIN32))
     char filename2[256];
