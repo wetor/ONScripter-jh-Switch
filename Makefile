@@ -230,11 +230,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 
 
-all	:	$(OUTPUT).nsp $(OUTPUT).nro
+all	:	$(OUTPUT).nro
 
-$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
+#$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
 
-$(OUTPUT).nso	:	$(OUTPUT).elf
+#$(OUTPUT).nso	:	$(OUTPUT).elf
 
 ifeq ($(strip $(NO_NACP)),)
 $(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp

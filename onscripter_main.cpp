@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
 #if defined(SWITCH)
 	twiliInitialize();
 #endif
-    utils::printInfo("ONScripter-Jh version %s (%s, %d.%02d)\n", ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+	utils::printInfo("ONScripter-Jh for Nintendo Switch\n  Version %s (%s, %s, %d.%02d)\n", ONS_NX_VERSION, ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
 
 	//ons.MPV_VideoPlayer((char*)"/onsemu/yuanzhikong/mov/opening.mp4",true);
 #if defined(SWITCH)
