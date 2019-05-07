@@ -44,12 +44,7 @@ extern "C" void playVideoIOS(const char *filename, bool click_flag, bool loop_fl
 #include "AVIWrapper.h"
 #endif
 
-#if defined(USE_SMPEG)
-extern "C" void mp3callback( void *userdata, Uint8 *stream, int len )
-{
-    SMPEG_playAudio( (SMPEG*)userdata, stream, len );
-}
-#endif
+
 
 extern bool ext_music_play_once_flag;
 
@@ -217,30 +212,7 @@ int ONScripter::playMIDI(bool loop_flag)
     return 0;
 }
 
-#if defined(USE_SMPEG)
-struct OverlayInfo{
-    SDL_Overlay overlay;
-    SDL_mutex *mutex;
-};
-static void smpeg_filter_callback( SDL_Overlay * dst, SDL_Overlay * src, SDL_Rect * region, SMPEG_FilterInfo * filter_info, void * data )
-{
-    if (dst){
-        dst->w = 0;
-        dst->h = 0;
-    }
 
-    OverlayInfo *oi = (OverlayInfo*)data;
-
-    SDL_mutexP(oi->mutex);
-    memcpy(oi->overlay.pixels[0], src->pixels[0],
-           oi->overlay.w*oi->overlay.h + (oi->overlay.w/2)*(oi->overlay.h/2)*2);
-    SDL_mutexV(oi->mutex);
-}
-
-static void smpeg_filter_destroy( struct SMPEG_Filter * filter )
-{
-}
-#endif
 
 int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
 {
@@ -263,103 +235,19 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
 #endif
 
     int ret = 0;
-#if defined(USE_SMPEG)
-    stopSMPEG();
-    layer_smpeg_buffer = new unsigned char[length];
-    script_h.cBR->getFile( filename, layer_smpeg_buffer );
-    SMPEG_Info info;
-    layer_smpeg_sample = SMPEG_new_rwops( SDL_RWFromMem( layer_smpeg_buffer, length ), &info, 0 );
-    if (SMPEG_error( layer_smpeg_sample )){
-        stopSMPEG();
-        return ret;
-    }
-
-    SMPEG_enableaudio( layer_smpeg_sample, 0 );
-    if (audio_open_flag){
-        int mpegversion, frequency, layer, bitrate;
-        char mode[10];
-        sscanf(info.audio_string,
-               "MPEG-%d Layer %d %dkbit/s %dHz %s",
-               &mpegversion, &layer, &bitrate, &frequency, mode);
-        printf("MPEG-%d Layer %d %dkbit/s %dHz %s\n",
-               mpegversion, layer, bitrate, frequency, mode);
-        
-        openAudio(frequency);
-
-        SMPEG_actualSpec( layer_smpeg_sample, &audio_format );
-        SMPEG_enableaudio( layer_smpeg_sample, 1 );
-    }
-    SMPEG_enablevideo( layer_smpeg_sample, 1 );
-    
-    SMPEG_setdisplay( layer_smpeg_sample, accumulation_surface, NULL,  NULL );
-
-    OverlayInfo oi;
-    Uint16 pitches[3];
-    Uint8 *pixels[3];
-    oi.overlay.format = SDL_YV12_OVERLAY;
-    oi.overlay.w = info.width;
-    oi.overlay.h = info.height;
-    oi.overlay.planes = 3;
-    pitches[0] = info.width;
-    pitches[1] = info.width/2;
-    pitches[2] = info.width/2;
-    oi.overlay.pitches = pitches;
-    Uint8 *pixel_buf = new Uint8[info.width*info.height + (info.width/2)*(info.height/2)*2];
-    pixels[0] = pixel_buf;
-    pixels[1] = pixel_buf + info.width*info.height;
-    pixels[2] = pixel_buf + info.width*info.height + (info.width/2)*(info.height/2);
-    oi.overlay.pixels = pixels;
-    oi.mutex = SDL_CreateMutex();
-
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_YV12, SDL_TEXTUREACCESS_TARGET, info.width, info.height);
-
-    layer_smpeg_filter.data = &oi;
-    layer_smpeg_filter.callback = smpeg_filter_callback;
-    layer_smpeg_filter.destroy = smpeg_filter_destroy;
-    SMPEG_filter( layer_smpeg_sample, &layer_smpeg_filter );
-    SMPEG_setvolume( layer_smpeg_sample, music_volume );
-    SMPEG_loop( layer_smpeg_sample, loop_flag?1:0 );
-
-    if (info.has_audio) Mix_HookMusic( mp3callback, layer_smpeg_sample );
-    SMPEG_play( layer_smpeg_sample );
-
-    bool done_flag = false;
-    while( !(done_flag & click_flag) && SMPEG_status(layer_smpeg_sample) == SMPEG_PLAYING ){
-        SDL_Event event;
-
-        while( SDL_PollEvent( &event ) ){
-            switch (event.type){
-              case SDL_KEYUP:
-                if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_RETURN ||
-                     ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_SPACE ||
-                     ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_ESCAPE )
-                    done_flag = true;
-                if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_RCTRL)
-                    ctrl_pressed_status &= ~0x01;
-                    
-                if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_LCTRL)
-                    ctrl_pressed_status &= ~0x02;
-                break;
-              case SDL_QUIT:
-                ret = 1;
-              case SDL_MOUSEBUTTONUP:
-                done_flag = true;
-                break;
-              default:
-                break;
-            }
-        }
-        SDL_mutexP(oi.mutex);
-        flushDirectYUV(&oi.overlay);
-        SDL_mutexV(oi.mutex);
-        SDL_Delay( 1 );
-    }
-    Mix_HookMusic( NULL, NULL );
-    stopSMPEG();
-    openAudio();
-    delete[] pixel_buf;
-    SDL_DestroyMutex(oi.mutex);
-    texture = SDL_CreateTextureFromSurface(renderer, accumulation_surface);
+#if defined(SWITCH)
+	if (length > 16 * 1024 * 1024) {//大于16MB的视频，文件名
+		char videofile[256];
+	//sdmc:
+		sprintf(videofile, "%s%s", archive_path, filename);
+		ret = PlayVideo(NULL,videofile);
+	}
+	else {
+		layer_smpeg_buffer = new unsigned char[length];
+		script_h.cBR->getFile(filename, layer_smpeg_buffer);
+		ret = PlayVideo(SDL_RWFromMem(layer_smpeg_buffer, length), NULL);
+		delete layer_smpeg_buffer;
+	}
 #elif !defined(WINRT) && (defined(WIN32) || defined(_WIN32))
     char filename2[256];
     strcpy(filename2, filename);

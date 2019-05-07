@@ -151,9 +151,6 @@ public:
     void setImage( SDL_Surface *surface, Uint32 texture_format );
     unsigned char getAlpha(int x, int y);
 
-#ifdef USE_SMPEG
-    void convertFromYUV(SDL_Overlay *src);
-#endif
 };
 
 #endif // __ANIMATION_INFO_H__

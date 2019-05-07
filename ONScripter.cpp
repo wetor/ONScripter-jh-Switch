@@ -57,12 +57,7 @@ void ONScripter::calcRenderRect() {
 	int vieww, viewh;
 	int renderw, renderh;
 	SDL_GetRendererOutputSize(renderer, &renderw, &renderh);//1920*1080
-#if defined(SWITCH)
-	if (!hd_mode) {
-		renderw = 1280;
-		renderh = 720;
-	}
-#endif
+
 	int swdh = screen_width * renderh;
 	int dwsh = renderw * screen_height;
 	if (swdh == dwsh) {
@@ -138,7 +133,6 @@ void ONScripter::initSDL()
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != NULL)
 		utils::printInfo("Initialize JOYSTICK\n");
 #endif
-	hd_mode = 0;
 
 	
 	/* ---------------------------------------- */
@@ -204,7 +198,12 @@ void ONScripter::initSDL()
 	}
 	SDL_GetWindowSize(window, &device_width, &device_height);
 
+
+	mutex = SDL_CreateMutex();
+	cond = SDL_CreateCond();
 #if defined(SWITCH)
+
+	
 	//screen_device_width = device_width;
 	//screen_device_height = device_height;
 	device_width = 1280;
@@ -556,9 +555,7 @@ int ONScripter::init()
 
 	layer_smpeg_buffer = NULL;
 	layer_smpeg_loop_flag = false;
-#if defined(USE_SMPEG)
-	layer_smpeg_sample = NULL;
-#endif
+
 
 	loop_bgm_name[0] = NULL;
 	loop_bgm_name[1] = NULL;
@@ -779,7 +776,7 @@ void ONScripter::flush(int refresh_mode, SDL_Rect *rect, bool clear_dirty_flag, 
 void ONScripter::flushDirect(SDL_Rect &rect, int refresh_mode)
 {
 	//utils::printInfo("flush %d: %d %d %d %d\n", refresh_mode, rect.x, rect.y, rect.w, rect.h );
-
+	SDL_CondWait(cond, mutex);
 	SDL_Rect dst_rect = rect;
 #if defined(SWITCH)
 	dst_rect = render_view_rect;
@@ -809,20 +806,7 @@ void ONScripter::flushDirect(SDL_Rect &rect, int refresh_mode)
 	SDL_RenderPresent(renderer);
 }
 
-#ifdef USE_SMPEG
-void ONScripter::flushDirectYUV(SDL_Overlay *overlay)
-{
-	SDL_Rect dst_rect = { (device_width - screen_device_width) / 2,
-						 (device_height - screen_device_height) / 2,
-						 screen_device_width, screen_device_height };
-#if defined(SWITCH)
-	dst_rect = render_view_rect;
-#endif
-	SDL_UpdateTexture(texture, &screen_rect, overlay->pixels[0], overlay->pitches[0]);
-	SDL_RenderCopy(renderer, texture, &screen_rect, &dst_rect);
-	SDL_RenderPresent(renderer);
-}
-#endif
+
 
 void ONScripter::mouseOverCheck(int x, int y)
 {

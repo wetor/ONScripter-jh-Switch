@@ -1913,26 +1913,7 @@ int ONScripter::ldCommand()
 
     return RET_CONTINUE;
 }
-#if defined(USE_SMPEG)
-static void smpeg_filter_callback( SDL_Overlay * dst, SDL_Overlay * src, SDL_Rect * region, SMPEG_FilterInfo * filter_info, void * data )
-{
-    if (dst){
-        dst->w = 0;
-        dst->h = 0;
-    }
 
-    ONScripter *ons = (ONScripter*)data;
-    AnimationInfo *ai = ons->getSMPEGInfo();
-    if (!ai) return;
-
-    ai->convertFromYUV(src);
-    ons->updateEffectDst();
-}
-
-static void smpeg_filter_destroy( struct SMPEG_Filter * filter )
-{
-}
-#endif
 
 #ifdef USE_BUILTIN_LAYER_EFFECTS
 #include "builtin_layer.h"
@@ -4138,15 +4119,5 @@ void ONScripter::NSDSetSpriteCommand(int spnum, int texnum, const char *tag)
 
 void ONScripter::stopSMPEG()
 {
-#if defined(USE_SMPEG)
-    if (layer_smpeg_sample){
-        SMPEG_stop( layer_smpeg_sample );
-        SMPEG_delete( layer_smpeg_sample );
-        layer_smpeg_sample = NULL;
-    }
-    if (layer_smpeg_buffer){
-        delete[] layer_smpeg_buffer;
-        layer_smpeg_buffer = NULL;
-    }
-#endif        
+
 }

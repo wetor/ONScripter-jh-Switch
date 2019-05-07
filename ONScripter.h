@@ -32,9 +32,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
-#if defined(USE_SMPEG)
-#include <smpeg.h>
-#endif    
+
 #include "direct_draw.h"
 #if defined(SWITCH)
 #include <switch.h>
@@ -82,6 +80,9 @@ public:
     ONScripter();
     ~ONScripter();
 
+#if defined(SWITCH)
+	int	PlayVideo(SDL_RWops *file_rw, char* filename = NULL ,bool debug = false);
+#endif
     // ----------------------------------------
     // start-up options
     void enableCDAudio();
@@ -423,9 +424,7 @@ private:
     void resetSentenceFont();
     void flush( int refresh_mode, SDL_Rect *rect=NULL, bool clear_dirty_flag=true, bool direct_flag=false );
     void flushDirect( SDL_Rect &rect, int refresh_mode );
-    #ifdef USE_SMPEG
-    void flushDirectYUV(SDL_Overlay *overlay);
-    #endif
+
     void mouseOverCheck( int x, int y );
     void warpMouse(int x, int y);
     void setFullScreen(bool fullscreen);
@@ -608,6 +607,10 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 
+	SDL_mutex *mutex;//互斥量
+	SDL_cond *cond;//条件量
+
+
     void setCaption(const char *title, const char *iconstr = NULL);
     void setScreenDirty(bool screen_dirty);
     // format = SDL_PIXELFORMAT_ABGR8888 for OpenGL ES 1.x, OpenGL ES 2.x (Android, iOS)
@@ -734,10 +737,7 @@ private:
     unsigned char *layer_smpeg_buffer;
     bool layer_smpeg_loop_flag;
     AnimationInfo *smpeg_info;
-#if defined(USE_SMPEG)
-    SMPEG* layer_smpeg_sample;
-    SMPEG_Filter layer_smpeg_filter;
-#endif
+
     
     int playSound(const char *filename, int format, bool loop_flag, int channel=0);
     void playCDAudio();

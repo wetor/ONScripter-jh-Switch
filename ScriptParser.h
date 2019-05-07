@@ -274,7 +274,6 @@ protected:
     /* Global definitions */
 #if defined(SWITCH)
 	float scale_ratio;
-	int hd_mode;
 	int curent_mouse_x, curent_mouse_y;
 	bool show_mouse_flag;
 #endif

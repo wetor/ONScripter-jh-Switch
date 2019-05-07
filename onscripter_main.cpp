@@ -316,18 +316,20 @@ void parseOption(int argc, char *argv[]) {
 
 
 
-int main1(int argc, char *argv[])
+
+int main(int argc, char *argv[])
 {
 #if defined(SWITCH)
 	twiliInitialize();
 #endif
     utils::printInfo("ONScripter-Jh version %s (%s, %d.%02d)\n", ONS_JH_VERSION, ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
 
+	//ons.MPV_VideoPlayer((char*)"/onsemu/yuanzhikong/mov/opening.mp4",true);
 #if defined(SWITCH)
 	argc = 5;
 	argv[0] = (char*)"ons";
 	argv[1] = (char*)"--root";
-	argv[2] = (char*)"sdmc:/onsemu/yuanzhikong";
+	argv[2] = (char*)"sdmc:/onsemu/Rewrite";
 	argv[3] = (char*)"--compatible";
 	argv[4] = (char*)"--fontcache";
 	
