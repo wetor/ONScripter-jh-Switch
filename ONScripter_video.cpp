@@ -125,16 +125,18 @@ int ONScripter::PlayVideo(SDL_RWops *file_rw, char* filename, bool debug) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			case SDL_QUIT:
-				run = false;
-				break;
+				goto end;
 			case SDL_JOYBUTTONDOWN:
 				if (event.jbutton.button == JKEY_X || event.jbutton.button == JKEY_Y) {//Ìø¹ý
-					run = false;
-					continue;
+					goto end;
+				}
+				if (event.jbutton.button == JKEY_B ) {
+					double aaa = Kit_GetPlayerPosition(player);
+					printf("%lf\n", aaa);
+					Kit_PlayerSeek(player,  aaa+ 10);
 				}
 				break;
 			}
-
 		}
 
 		// Refresh audio
@@ -175,7 +177,7 @@ int ONScripter::PlayVideo(SDL_RWops *file_rw, char* filename, bool debug) {
 		// Render to screen + wait for vsync
 		SDL_RenderPresent(renderer);
 	}
-
+end:
 	Kit_ClosePlayer(player);
 	Kit_CloseSource(src);
 	Kit_Quit();
