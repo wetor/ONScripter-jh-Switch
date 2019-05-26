@@ -939,9 +939,10 @@ void ONScripter::setFullScreen(bool fullscreen) {
 		SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 		SDL_GetWindowSize(window, &device_width, &device_height);
 #endif
+		fullscreen_mode = fullscreen;
 		calcRenderRect();
 		flushDirect(screen_rect, refreshMode());
-		fullscreen_mode = fullscreen;
+		
 	}
 }
 

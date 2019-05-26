@@ -36,7 +36,6 @@
 #include "direct_draw.h"
 #if defined(SWITCH)
 #include <switch.h>
-#include <twili.h>
 #undef NULL
 #define NULL 0
 #endif

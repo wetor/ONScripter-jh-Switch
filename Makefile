@@ -32,6 +32,7 @@ DECODER_OBJS = DirectReader.o \
 	coding2utf16.o 
 
 ONSCRIPTER_OBJS = \
+	main.o \
 	onscripter_main.o \
 	$(DECODER_OBJS) \
 	ScriptHandler.o \

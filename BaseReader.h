@@ -37,7 +37,7 @@ extern "C" int mkdir_ons(const char *pathname, mode_t mode);
 #define SEEK_END 2
 #endif
 
-#if defined(LINUX) || defined(MACOSX)
+#if defined(LINUX) || defined(MACOSX) || defined(SWITCH)
 #define DELIMITER '/'
 #elif defined(WIN32) || defined(_WIN32)
 #define DELIMITER '\\'
