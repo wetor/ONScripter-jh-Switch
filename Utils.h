@@ -22,23 +22,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#ifdef ANDROID
-#include <android/log.h>
-#elif defined(WINRT)
-#include "debugapi.h"
-#include "windows.h"
-static BOOL MByteToWChar(LPCSTR lpcszStr, LPWSTR lpwszStr, DWORD dwSize)
-{
-	DWORD dwMinSize;
-	dwMinSize = MultiByteToWideChar(CP_ACP, 0, lpcszStr, -1, NULL, 0);
-	if (dwSize < dwMinSize)
-	{
-		return FALSE;
-	}
-	MultiByteToWideChar(CP_ACP, 0, lpcszStr, -1, lpwszStr, dwMinSize);
-	return TRUE;
-}
-#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 

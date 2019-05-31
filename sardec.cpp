@@ -28,17 +28,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+//#include "ONScripter.h"
 #include "SarReader.h"
-#ifdef _WIN32
-#include <direct.h>
-inline int mkdir(const char *pathname, int unused){
-  return _mkdir(pathname);
-}
-#endif
+
+
 
 extern int errno;
 
-int main( int argc, char **argv )
+int sardec_main( int argc, char **argv )
 {
     SarReader cSR;
     unsigned long length, buffer_length = 0;

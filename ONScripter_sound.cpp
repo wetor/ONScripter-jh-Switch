@@ -25,24 +25,13 @@
 #include "ONScripter.h"
 #include "Utils.h"
 #include <new>
-#if defined(LINUX)
+
 #include <signal.h>
-#endif
-#if !defined(WINRT) && (defined(WIN32) || defined(_WIN32))
+
 #include <stdlib.h>
-#endif
 
-#ifdef ANDROID
-extern "C" void playVideoAndroid(const char *filename);
-#endif
 
-#if defined(IOS)
-extern "C" void playVideoIOS(const char *filename, bool click_flag, bool loop_flag);
-#endif
 
-#if defined(USE_AVIFILE)
-#include "AVIWrapper.h"
-#endif
 
 
 
@@ -222,17 +211,7 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
         return 0;
     }
 
-#ifdef ANDROID
-    playVideoAndroid(filename);
-    return 0;
-#endif
 
-#ifdef IOS
-    char *absolute_filename = new char[ strlen(archive_path) + strlen(filename) + 1 ];
-    sprintf( absolute_filename, "%s%s", archive_path, filename );
-    playVideoIOS(absolute_filename, click_flag, loop_flag);
-    delete[] absolute_filename;
-#endif
 
     int ret = 0;
 #if defined(SWITCH)
@@ -251,15 +230,6 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
 		ret = PlayVideo(SDL_RWFromMem(layer_smpeg_buffer, length), NULL);
 		delete [] layer_smpeg_buffer;
 	}
-#elif !defined(WINRT) && (defined(WIN32) || defined(_WIN32))
-    char filename2[256];
-    strcpy(filename2, filename);
-    for (unsigned int i=0; i<strlen(filename2); i++)
-        if (filename2[i] == '/' || filename2[i] == '\\')
-            filename2[i] = DELIMITER;
-    system(filename2);
-#elif !defined(IOS)
-    utils::printError( "mpegplay command is disabled.\n" );
 #endif
 
     return ret;
@@ -272,17 +242,25 @@ int ONScripter::playAVI( const char *filename, bool click_flag )
         utils::printError( " *** can't find file [%s] ***\n", filename );
         return 0;
     }
-
-#ifdef ANDROID
-    playVideoAndroid(filename);
-    return 0;
+	int ret = 0;
+#if defined(SWITCH)
+	utils::printInfo("Play Video %s\n", filename);
+	if (length > 16 * 1024 * 1024) {//大于16MB的视频，文件名
+		char *videofile = new char[256];
+		strncpy(videofile, archive_path + 5, strlen(archive_path) - 5);
+		videofile[strlen(archive_path) - 5] = '\0';
+		sprintf(videofile, "%s%s", videofile, filename);
+		ret = PlayVideo(NULL, videofile);
+		delete[] videofile;
+}
+	else {
+		layer_smpeg_buffer = new unsigned char[length];
+		script_h.cBR->getFile(filename, layer_smpeg_buffer);
+		ret = PlayVideo(SDL_RWFromMem(layer_smpeg_buffer, length), NULL);
+		delete[] layer_smpeg_buffer;
+	}
 #endif
 
-#if !defined(WINRT) && (defined(WIN32) || defined(_WIN32))
-    system(filename);
-#else
-    utils::printError( "avi command is disabled.\n" );
-#endif
 
     return 0;
 }

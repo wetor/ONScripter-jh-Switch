@@ -27,9 +27,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "NsaReader.h"
-#include "gbk2utf16.h"
+//#include "gbk2utf16.h"
 
-Coding2UTF16 *coding2utf16 = new GBK2UTF16();
+//Coding2UTF16 *coding2utf16 = new GBK2UTF16();
 
 extern int scale_ratio_upper;
 extern int scale_ratio_lower;
@@ -38,10 +38,6 @@ extern size_t rescaleJPEG( unsigned char *original_buffer, size_t length, unsign
                            int quality );
 extern size_t rescaleBMP( unsigned char *original_buffer, unsigned char **rescaled_buffer,
                           bool output_jpeg_flag, int quality );
-
-#ifdef main
-#undef main
-#endif
 
 void help()
 {
@@ -52,7 +48,7 @@ void help()
     exit(-1);
 }
 
-int main( int argc, char **argv )
+int nsaconv_main( int argc, char **argv )
 {
     NsaReader cSR;
     unsigned int nsa_offset = 0;

@@ -26,12 +26,7 @@
 #define __BASE_READER_H__
 
 #include <stdio.h>
-#ifdef ANDROID
-extern "C" FILE *fopen_ons(const char *str, const char *mode);
-#define fopen fopen_ons
-extern "C" int mkdir_ons(const char *pathname, mode_t mode);
-#define mkdir mkdir_ons
-#endif
+
 
 #ifndef SEEK_END
 #define SEEK_END 2
@@ -39,12 +34,6 @@ extern "C" int mkdir_ons(const char *pathname, mode_t mode);
 
 #if defined(LINUX) || defined(MACOSX) || defined(SWITCH)
 #define DELIMITER '/'
-#elif defined(WIN32) || defined(_WIN32)
-#define DELIMITER '\\'
-#elif defined(MACOS9)
-#define DELIMITER ':'
-#define RELATIVEPATH ":"
-#define RELATIVEPATHLENGTH 1
 #else
 #define DELIMITER '/'
 #endif

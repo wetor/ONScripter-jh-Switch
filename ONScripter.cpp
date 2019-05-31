@@ -46,12 +46,6 @@ extern "C" void waveCallback(int channel);
 #define DEFAULT_ENV_FONT "ËÎÌו"
 #define DEFAULT_AUTOMODE_TIME 1000
 
-#ifdef __OS2__
-static void SDL_Quit_Wrapper()
-{
-	SDL_Quit();
-}
-#endif
 
 void ONScripter::calcRenderRect() {
 	int vieww, viewh;
@@ -178,13 +172,9 @@ void ONScripter::initSDL()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-#if defined(_WIN32) || defined(WIN32)
-	int window_flag = SDL_WINDOW_SHOWN;
-#elif defined(MACOSX) || (defined(LINUX) && !defined(ANDROID))
-	int window_flag = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
-#else
+
 	int window_flag = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS;
-#endif //_WIN32
+
 #if SDL_VERSION_ATLEAST(2,0,1)
 	window_flag |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif

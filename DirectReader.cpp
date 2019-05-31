@@ -26,9 +26,9 @@
 #include "Utils.h"
 #include "coding2utf16.h"
 #include <bzlib.h>
-#if !defined(WIN32) && !defined(_WIN32) && !defined(MACOS9) && !defined(PSP) && !defined(__OS2__)
+
 #include <dirent.h>
-#endif
+
 
 #define IS_TWO_BYTE(x) \
         ( ((unsigned char)(x) > (unsigned char)0x80) && ((unsigned char)(x) !=(unsigned char) 0xff) )
@@ -120,7 +120,7 @@ FILE *DirectReader::fopen(const char *path, const char *mode)
     FILE *fp = ::fopen( file_full_path, mode );
     if (fp) return fp;
 
-#if !defined(WIN32) && !defined(_WIN32) && !defined(MACOS9) && !defined(PSP) && !defined(__OS2__)
+
     char *cur_p = NULL;
     DIR *dp = NULL;
     len = strlen(archive_path);
@@ -163,7 +163,7 @@ FILE *DirectReader::fopen(const char *path, const char *mode)
     }
 
     fp = ::fopen( file_full_path, mode );
-#endif
+
 
     return fp;
 }

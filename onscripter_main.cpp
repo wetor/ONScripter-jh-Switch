@@ -44,9 +44,7 @@ Coding2UTF16 *coding2utf16 = NULL;
 #include <unistd.h>
 #endif
 
-#ifdef WINRT
-#include "ScriptSelector.h"
-#endif
+
 
 void optionHelp()
 {

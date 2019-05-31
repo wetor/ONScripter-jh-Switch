@@ -31,14 +31,16 @@ DECODER_OBJS = DirectReader.o \
 	gbk2utf16.o \
 	coding2utf16.o 
 
+
 ONSCRIPTER_OBJS = \
 	main.o \
+	Common.o \
 	onscripter_main.o \
 	$(DECODER_OBJS) \
 	ScriptHandler.o \
 	ScriptParser.o \
 	ScriptParser_command.o \
-	$(GUI_OBJS)
+	$(GUI_OBJS) \
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------

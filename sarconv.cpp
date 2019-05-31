@@ -36,9 +36,7 @@ extern size_t rescaleJPEG( unsigned char *original_buffer, size_t length, unsign
 extern size_t rescaleBMP( unsigned char *original_buffer, unsigned char **rescaled_buffer,
                           bool output_jpeg_flag, int quality );
 
-#ifdef main
-#undef main
-#endif
+
 
 void help()
 {
@@ -49,7 +47,7 @@ void help()
     exit(-1);
 }
 
-int main( int argc, char **argv )
+int sarconv_main( int argc, char **argv )
 {
     SarReader cSR;
     unsigned long length, offset = 0, buffer_length = 0;

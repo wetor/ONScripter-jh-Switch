@@ -23,18 +23,14 @@
  */
 
 #include "ONScripter.h"
-#if defined(LINUX) || defined(MACOSX) || defined(IOS)
+
 #include <sys/types.h>
 #include <sys/stat.h>
-#elif defined(WIN32)
-#include <direct.h>
-#endif
+
 #include "version.h"
 #include "Utils.h"
 
-#if defined(MACOSX) && (SDL_COMPILEDVERSION >= 1208)
-#include <CoreFoundation/CoreFoundation.h>
-#endif
+
 
 extern SDL_TimerID timer_bgmfade_id;
 extern "C" Uint32 SDLCALL bgmfadeCallback( Uint32 interval, void *param );
@@ -2699,10 +2695,8 @@ int ONScripter::exec_dllCommand()
             c += 7;
             char *dir = new char[strlen(archive_path) + strlen(buf+c) + 1];
             sprintf(dir, "%s%s", archive_path, buf+c);
-#if defined(LINUX) || defined(MACOSX) || defined(IOS)
+#if defined(LINUX) || defined(MACOSX) || defined(IOS) || defined(SWITCH)
             mkdir(dir, 0755);
-#elif defined(WIN32)
-            _mkdir(dir);
 #endif
             delete[] dir;
         }

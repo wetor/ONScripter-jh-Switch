@@ -28,20 +28,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include "NsaReader.h"
-#include "coding2utf16.h"
-#include "gbk2utf16.h"
-#ifdef _WIN32
-#include <direct.h>
-inline int mkdir(const char *pathname, int unused){
-	return _mkdir(pathname);
-}
-#endif
+#include "ONScripter.h"
+//#include "NsaReader.h"
+//#include "coding2utf16.h"
+//#include "gbk2utf16.h"
+
 
 extern int errno;
-Coding2UTF16 *coding2utf16;
+//Coding2UTF16 *coding2utf16;
 
-int main( int argc, char **argv )
+int nsadec_main( int argc, char **argv )
 {
     NsaReader cNR;
     unsigned int nsa_offset = 0;
