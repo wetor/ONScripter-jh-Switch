@@ -336,4 +336,6 @@ ASALocalRun/
 /word
 *.nsp
 *.npdm
-/BUGList.md
+BUGList.md
+010ff000ae9a2c1b.nsp
+.gitignore
