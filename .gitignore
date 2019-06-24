@@ -328,9 +328,12 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-/ONScripter.nso
-/ONScripter.nro
-/ONScripter.nacp
-/ONScripter.elf
+*.nso
+*.nro
+*.nacp
+*.elf
 /build
 /word
+*.nsp
+*.npdm
+/BUGList.md
