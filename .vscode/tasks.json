@@ -30,6 +30,23 @@
                 "clean"
             ],
             "type": "shell"
+        },
+        {
+            "label": "push-nro",
+            "command": "echo",
+            "args": [
+                "841990",
+                "|",
+                "sudo",
+                "-S",
+                "-p",
+                "''",
+                "/home/li/twib_linux64",
+                "push",
+                "ONScripter.nro",
+                "/onsemu/ONS.nro"
+            ],
+            "type": "shell"
         }
     ]
 }
