@@ -96,7 +96,7 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	$(INCLUDE) -DSWITCH -DMOUSEX -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
 CFLAGS	+= -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
 CFLAGS	+= -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
@@ -107,12 +107,12 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil -lass -lfreetype -lpng -lbz2 -lfribidi -lpthread -lm -lz -lmbedtls -lmbedcrypto -lmbedx509 \
-	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lSDL2main -lSDL2 \
-	-lbz2 -lass -ltheora -lvorbis \
-	-lfreetype -lpng -lz -ljpeg -lFLAC \
+LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil -lpthread \
+	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lopusfile -lopus -lSDL2main -lSDL2 \
+	-lbz2 -lass -lfribidi -ltheora -lvorbis \
+	-lfreetype -lpng -lz -ljpeg -lwebp \
 	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
-	-lvorbisidec -logg -lmpg123 -lmodplug  -lstdc++  \
+	-lvorbisidec -logg -lopus -lvpx -lmpg123 -lmodplug -lFLAC -lstdc++  \
 	-ltwili -lnx -lm 
 
 #---------------------------------------------------------------------------------

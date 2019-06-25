@@ -792,7 +792,7 @@ void ONScripter::refreshSurface( SDL_Surface *surface, SDL_Rect *clip_src, int r
     }
 	if(show_mouse_flag)
 		if (refresh_mode & REFRESH_MOUSE_MODE) {
-			
+			//MOUSE
 			//SDL_BlitSurface(mouse_surface, NULL, surface, clip_src);
 
 			/*mouse_info.blendOnSurface(mouse_info.image_surface, mouse_info.pos.x, mouse_info.pos.y, *clip_src, 255);

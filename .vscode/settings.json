@@ -30,6 +30,7 @@
   "C_Cpp.default.defines": [
     "SWITCH",
     "__SWITCH__",
+    "MOUSE",
     "USE_SDL_RENDERER",
     "NDEBUG",
     "USE_OGG_VORBIS",

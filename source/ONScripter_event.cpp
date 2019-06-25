@@ -167,14 +167,14 @@ ONS_Key transJoystickButton(Uint8 button)
 };*/
 #if defined(SWITCH)    
 	SDL_Keycode button_map[] = {
-		SDLK_RETURN, /* A   È·ÈÏ*/
-		SDLK_RCTRL,  /* B   °´×¡¿ì½ø*/
-		SDLK_a,		 /* X   ¿ªÆô×Ô¶¯*/
-		SDLK_ESCAPE, /* Y	²Ëµ¥*/
+		SDLK_RETURN, /* A   È·ï¿½ï¿½*/
+		SDLK_RCTRL,  /* B   ï¿½ï¿½×¡ï¿½ï¿½ï¿½*/
+		SDLK_a,		 /* X   ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½*/
+		SDLK_ESCAPE, /* Y	ï¿½Ëµï¿½*/
 		SDLK_F2,	 /* LSTICK*/
 		SDLK_UNKNOWN,/* RSTICK*/
-		SDLK_o,      /* L	¿ªÆô/¹Ø±Õ Õû¾ä³öÏÖ*/
-		SDLK_s,      /* R	¿ªÆô/¹Ø±Õ ¿ì½ø*/
+		SDLK_o,      /* L	ï¿½ï¿½ï¿½ï¿½/ï¿½Ø±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
+		SDLK_s,      /* R	ï¿½ï¿½ï¿½ï¿½/ï¿½Ø±ï¿½ ï¿½ï¿½ï¿½*/
 		SDLK_UNKNOWN,/* ZL */
 		SDLK_UNKNOWN,/* ZR */
 		SDLK_SPACE,  /* +	START*/
@@ -530,6 +530,7 @@ bool ONScripter::trapHandler()
 	return true;
 }
 
+
 /* **************************************** *
  * Event handlers
  * **************************************** */
@@ -578,7 +579,7 @@ bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 
 	return false;
 }
-#if defined(SWITCH)
+#if defined(MOUSE)
 bool ONScripter::axisMouseMoveEvent(int key) {
 
 	//utils::printInfo("MOUSE MOVE \n\tx:%d y:%d\n", curent_mouse_x, curent_mouse_y);
@@ -939,8 +940,10 @@ bool ONScripter::keyDownEvent(SDL_KeyboardEvent *event)
 	else if (event->keysym.sym == SDLK_F2) {
 		show_mouse_flag = !show_mouse_flag;
 		utils::printInfo("toggle show mouse to %s\n", (show_mouse_flag ? "true" : "false"));
+	#ifdef MOUSE
 		SDL_Rect dst_rect = { current_button_state.x,current_button_state.y ,mouse_surface->w,  mouse_surface->h };
-		//flushDirect(dst_rect, REFRESH_MOUSE_MODE);
+		flushDirect(dst_rect, REFRESH_MOUSE_MODE);
+	#endif
 		return false;
 	}
 #endif
@@ -1340,7 +1343,7 @@ void ONScripter::timerEvent(bool init_flag)
 }
 
 #if (defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(SWITCH))
-//TODO: ÉÏÏÂ×óÓÒ¼üÄ£Äâ
+//TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½Ä£ï¿½ï¿½
 SDL_MouseWheelEvent transTouchKey(SDL_TouchFingerEvent &finger) {
 	static struct FingerPoint {
 		float x, y;
@@ -1544,12 +1547,13 @@ void ONScripter::runEventLoop()
 			if (ret) return;
 			break;
 
+			
 		case SDL_JOYAXISMOTION:
 		{
 			SDL_KeyboardEvent ke = transJoystickAxis(event.jaxis);
 			if (ke.keysym.sym != SDLK_UNKNOWN) {
 				if (ke.type == SDL_KEYDOWN) {
-#ifdef SWITCH
+#ifdef MOUSE
 					if (ke.state == 255)
 						axisMouseMoveEvent(ke.keysym.sym);
 #endif

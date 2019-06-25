@@ -202,7 +202,7 @@ void ONScripter::initSDL()
 	else 
 		scale_ratio = (float)device_height / screen_height;
 	
-	show_mouse_flag = true;
+	show_mouse_flag = false;
 	utils::printInfo("device_width:%d\ndevice_height:%d\nscreen_device_width:%d\nscreen_device_height:%d\nscreen_width:%d\nscreen_height:%d\n",
 		device_width,
 		device_height,
