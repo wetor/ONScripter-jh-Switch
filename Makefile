@@ -83,9 +83,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	ONScripter
 BUILD		:=	build
-SOURCES		:=	source source/builtin_dll source/player
+SOURCES		:=	source source/builtin_dll source/player source/reader source/onscripter
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include SDL_kitchensink/Output/include
 EXEFS_SRC	:=	exefs_src
 CONFIG_JSON :=	ONScripter.json
 #---------------------------------------------------------------------------------
@@ -96,10 +96,10 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DSWITCH -DMOUSEX -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
 CFLAGS	+= -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
-CFLAGS	+= -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
+CFLAGS	+= -DUSE_BUILTIN_EFFECTSX -DUSE_BUILTIN_LAYER_EFFECTSX
 CFLAGS	+= -DUSE_PARALLEL
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
@@ -119,7 +119,7 @@ LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/SDL_kitchensink/Output
 
 
 #---------------------------------------------------------------------------------
@@ -214,11 +214,13 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@ 
+	@cd SDL_kitchensink && mkdir -p build && cd build && cmake ..  && make -j8 install && cd ../..
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@cd SDL_kitchensink && rm -fr build && rm -fr Output && cd ..
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 

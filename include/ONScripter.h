@@ -563,7 +563,7 @@ private:
     void variableEditMode( SDL_KeyboardEvent *event );
     void shiftCursorOnButton( int diff );
 #if defined(SWITCH)
-	bool axisMouseMoveEvent(int key);
+	bool axisMouseMoveEvent(SDL_JoyAxisEvent jaxis);
 #endif
     bool keyDownEvent( SDL_KeyboardEvent *event );
     void keyUpEvent( SDL_KeyboardEvent *event );
@@ -607,8 +607,8 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 
-	SDL_mutex *mutex;//»¥³âÁ¿
-	SDL_cond *cond;//Ìõ¼þÁ¿
+	SDL_mutex *mutex;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	SDL_cond *cond;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
     void setCaption(const char *title, const char *iconstr = NULL);
@@ -617,9 +617,6 @@ private:
     // format = SDL_PIXELFORMAT_ARGB8888 for OpenGL, Direct3D (Windows, Linux, MacOSX) or for any 32bit surface without SDL_Renderer
     // format = SDL_PIXELFORMAT_RGB565 for any 16bit surface without SDL_Renderer (Android, Zaurus)
     Uint32 texture_format;
-#ifdef SWITCH
-	SDL_Surface *mouse_surface;
-#endif
     SDL_Surface *accumulation_surface; // Final image, i.e. picture_surface (+ shadow + text_surface)
     SDL_Surface *backup_surface; // Final image w/o (shadow + text_surface) used in leaveTextDisplayMode()
     SDL_Surface *screen_surface; // Text + Select_image + Tachi image + background

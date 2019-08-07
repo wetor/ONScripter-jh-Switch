@@ -9,6 +9,7 @@
   ],
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/include",
+    "${workspaceFolder}/build",
     "/opt/devkitpro/portlibs/switch/include/SDL2",
     "/opt/devkitpro/portlibs/switch/include",
     "/opt/devkitpro/libnx/include",

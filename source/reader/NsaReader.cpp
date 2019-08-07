@@ -77,12 +77,12 @@ int NsaReader::open( const char *nsa_path )
             ArchiveInfo *ai;
         
             if (i == -1){
-                sprintf( archive_name, "%s%s.%s", nsa_path?nsa_path:"", NSA_ARCHIVE_NAME, nsa_archive_ext );
+                sprintf( archive_name,"%s%s.%s", nsa_path?nsa_path:"", NSA_ARCHIVE_NAME, nsa_archive_ext );
                 ai = &archive_info;
             }
             else{
                 sprintf( archive_name2, NSA_ARCHIVE_NAME2, i+1 );
-                sprintf( archive_name, "%s%s.%s", nsa_path?nsa_path:"", archive_name2, nsa_archive_ext );
+                sprintf( archive_name,"%s%s.%s", nsa_path?nsa_path:"", archive_name2, nsa_archive_ext );
                 ai = &archive_info2[i];
             }
         

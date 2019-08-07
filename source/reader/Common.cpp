@@ -70,12 +70,8 @@ int nsadec_main(char* file)
 	NsaReader cNR;
 	unsigned int nsa_offset = 0;
 	unsigned long length;
-	unsigned char *buffer;
-	char file_name[256], dir_name[256];
-	unsigned int i, j, count;
+	unsigned int i, count;
 	int archive_type = BaseReader::ARCHIVE_TYPE_NSA;
-	FILE *fp;
-	struct stat file_stat;
 	/*if (argc >= 2) {
 		while (argc > 2) {
 			if (!strcmp(argv[1], "-ns2")) {
@@ -112,7 +108,7 @@ int nsadec_main(char* file)
 
 		//strcpy(file_name, sFI.name);
 
-		//¶à¼¶Ä¿Â¼´´½¨
+		//ï¿½à¼¶Ä¿Â¼ï¿½ï¿½ï¿½ï¿½
 		/*for (j = 0; j < strlen(file_name); j++) {
 			if (file_name[j] == '\\') {
 				file_name[j] = '/';
@@ -127,7 +123,7 @@ int nsadec_main(char* file)
 		}*/
 
 		printf("%d   %lu   %s\n", i, length, sFI.name);
-		//Ð´³öÎÄ¼þ
+		//Ð´ï¿½ï¿½ï¿½Ä¼ï¿½
 		/*if ((fp = fopen(file_name, "wb"))) {
 			fwrite(buffer, 1, length, fp);
 			fclose(fp);

@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
 		argv[5] = (char*)"--window";
 
 	
-	/*argv[5] = (char*)"sdmc:/onsemu/hanchan/arc.nsa";
-	nsadec_main(argv[5]);*/
+	//argv[6] = (char*)"sdmc:/onsemu/hanchan/arc.nsa";
+	//nsadec_main(argv[6]);
 
 	OnsMain(argc, argv);
 
@@ -99,13 +99,10 @@ int main(int argc, char *argv[]) {
 	ons_exit(0);
 	
 
-	
 	//svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
 	//twiliExit();
 	return 0;
 }
-
-
 
 void ons_exit(int flag) {
 

@@ -83,7 +83,6 @@ int nsadec_main( int argc, char **argv )
             length = sFI.length;
             //continue;
         }
-
         strcpy( file_name, sFI.name );
         for ( j=0 ; j<strlen(file_name) ; j++ ){
             if ( file_name[j] == '\\' ){
