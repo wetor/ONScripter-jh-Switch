@@ -4,10 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-j4",
+            "label": "build",
             "command": "make",
             "args": [
-                "-j4"
+                "-j16"
             ],
             "type": "shell",
             "group": {
@@ -16,7 +16,7 @@
             }
         },
         {
-            "label": "build",
+            "label": "build-j1",
             "command": "make",
             "args": [
                 ""
@@ -33,15 +33,8 @@
         },
         {
             "label": "push-nro",
-            "command": "echo",
+            "command": "/home/li/twib",
             "args": [
-                "841990",
-                "|",
-                "sudo",
-                "-S",
-                "-p",
-                "''",
-                "/home/li/twib_linux64",
                 "push",
                 "ONScripter.nro",
                 "/onsemu/ONS.nro"

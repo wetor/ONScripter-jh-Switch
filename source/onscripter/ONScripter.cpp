@@ -471,7 +471,7 @@ int ONScripter::init()
 	//mouse_surface = IMG_Load_RW(SDL_RWFromConstMem((const void *)mouse_png, mouse_png_size), 1);
 	//SDL_RWwrite();
 
-	char *file = new char[256];
+	/*char *file = new char[256];
 	sprintf(file, "%s%s", archive_path, "mouse.png");
 	SDL_RWops *rw = SDL_RWFromFile(file, "w");
 	if (rw != NULL)
@@ -484,7 +484,7 @@ int ONScripter::init()
 	{
 		printf("write erroe\n");
 	}
-	delete file;
+	delete file;*/
 
 
 
