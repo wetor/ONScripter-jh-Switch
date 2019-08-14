@@ -4,6 +4,7 @@
  *
  *  Copyright (c) 2001-2016 Ogapee. All rights reserved.
  *            (C) 2014-2016 jh10001 <jh10001@live.cn>
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -620,10 +621,15 @@ bool ONScripter::mouseMoveEvent(SDL_MouseMotionEvent *event, bool mouse)
 }
 #if defined(SWITCH)
 //mouse move event
-bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent jaxis)
+bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent _jaxis)
 {
-	if (jaxis.axis >= 2) //right axis
+	SDL_Event event;
+	SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+	if (_jaxis.axis >= 2) //right axis
 		return false;
+	
+	SDL_JoyAxisEvent jaxis[2] = {_jaxis, event.jaxis};
+	//event.jaxis.axis
 	enum
 	{
 		AXIS_LEFT = 1,
@@ -636,39 +642,53 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent jaxis)
 						  AXIS_UP,	/* AL-UP */
 						  AXIS_RIGHT, /* AL-RIGHT    */
 						  AXIS_DOWN /* AL-DOWN  */};
-	int axis = 0;
 	float x, y;
+	bool axis = false;
 	x = (float)curent_mouse_x * screen_device_width / screen_width;
 	y = (float)curent_mouse_y * screen_device_height / screen_height;
-	// switch's left axis
-	//axis.value -32768 to 32767
-	if (jaxis.axis < 2)
+	for (int i = 0; i < 2; i++)
 	{
-		if ((3200 > jaxis.value) && (jaxis.value > -3200))
+		float level = jaxis[i].value >> 12; //-8 ~ 7
+		if (level >= 0)
+			level++; //-8 ~ 8
+		// switch's left axis
+		//axis.value -32768 to 32767
+
+		if (jaxis[i].axis < 2)
 		{
-			axis = 0;
-		}
-		else
-		{
-			if (jaxis.axis == 0)
+			if (level > 1 || level < -1)
 			{
-				if (jaxis.value > 0)
-					axis |= AXIS_RIGHT; /*RIGHT*/
-				else
-					axis |= AXIS_LEFT; /*LEFT*/
-			}
-			if (jaxis.axis == 1)
-			{
-				if (jaxis.value > 0)
-					axis |= AXIS_DOWN; /*DOWN*/
-				else
-					axis |= AXIS_UP; /*UP*/
+				if (jaxis[i].axis == 0) //L and R
+				{
+					x += 0.2f * abs(level) * level + 2.0; //2 ~ 6
+					axis = true;
+					if(level < 0) x-=0.5;
+					// level > 0  /*RIGHT*/
+					// level < 0  /*LEFT*/
+				}
+				if (jaxis[i].axis == 1) //D and U
+				{
+					y += 0.2f * abs(level) * level + 2; //2 ~ 6
+					axis = true;
+					if(level < 0) x-=0.5;
+					// level > 0  /*DOWN*/
+					// level < 0  /*UP*/
+				}
 			}
 		}
+		
 	}
+	if(axis)
+		warpMouse((int)(x + 0.5), (int)(y + 0.5));
 
+	printf("%f %f 'curr %d ;pre %d ;\n", x, y, jaxis[0].axis, jaxis[1].axis);
+	//SDL_Rect dst_rect = mouse_info.pos;
+	//mouse_info.pos.x = curent_mouse_x;
+	//mouse_info.pos.y = curent_mouse_y;
+	//flushDirect(dst_rect, refreshMode());
+	return true;
 	//utils::printInfo("MOUSE MOVE \n\tx:%d y:%d\n", curent_mouse_x, curent_mouse_y);
-
+/*
 	if ((axis & AXIS_LEFT) && (axis & AXIS_UP))
 		warpMouse((curent_mouse_x - 2) * screen_device_width / screen_width, (curent_mouse_y - 2) * screen_device_height / screen_height);
 	else if ((axis & AXIS_RIGHT) && (axis & AXIS_UP))
@@ -690,6 +710,7 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent jaxis)
 	}
 
 	return true;
+*/
 }
 #endif
 bool ONScripter::mousePressEvent(SDL_MouseButtonEvent *event)

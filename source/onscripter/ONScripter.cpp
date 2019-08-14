@@ -4,6 +4,7 @@
  *
  *  Copyright (c) 2001-2016 Ogapee. All rights reserved.
  *            (C) 2014-2019 jh10001 <jh10001@live.cn>
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -483,8 +484,14 @@ int ONScripter::init()
 	{
 		printf("write erroe\n");
 	}
-	loadCursor(-1, ":a;mouse.png", 0, 0);
 	delete file;
+
+
+
+
+	
+	loadCursor(-1, ":a;mouse.png", 0, 0);
+	
 
 #endif
 

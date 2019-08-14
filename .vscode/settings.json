@@ -9,21 +9,27 @@
   ],
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/include",
+    "${workspaceFolder}/SDL_kitchensink/include",
     "${workspaceFolder}/build",
     "/opt/devkitpro/portlibs/switch/include/SDL2",
     "/opt/devkitpro/portlibs/switch/include",
     "/opt/devkitpro/libnx/include",
     "/opt/devkitpro/devkitA64/aarch64-none-elf/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0/aarch64-none-elf",
     "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include",
     "/opt/devkitpro/devkitA64/aarch64-none-elf/include/machine",
     "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include-fixed"
   ],
   "C_Cpp.default.browse.path": [
     "${workspaceFolder}/include",
+    "${workspaceFolder}/SDL_kitchensink/include",
     "/opt/devkitpro/portlibs/switch/include/SDL2",
     "/opt/devkitpro/portlibs/switch/include",
     "/opt/devkitpro/libnx/include",
     "/opt/devkitpro/devkitA64/aarch64-none-elf/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0/aarch64-none-elf",
     "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include",
     "/opt/devkitpro/devkitA64/aarch64-none-elf/include/machine",
     "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include-fixed"

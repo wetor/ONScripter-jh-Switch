@@ -40,8 +40,7 @@ extern "C"
 
 
 
-
-static void *ghaddr;
+//static void *ghaddr;
 int main(int argc, char *argv[]) {
 	twiliInitialize();
 
@@ -67,7 +66,7 @@ int main(int argc, char *argv[]) {
 	//ons_exit(0);
 	//ons.MPV_VideoPlayer((char*)"/onsemu/yuanzhikong/mov/opening.mp4",true);
 	//char path[256];
-	
+
 	char path[256];
 	int fullmode = 0;
 	if (envHasArgv() && (argc > 1)) {
