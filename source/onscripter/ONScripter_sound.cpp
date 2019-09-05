@@ -216,7 +216,7 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
     int ret = 0;
 #if defined(SWITCH)
 	utils::printInfo("Play Video %s\n", filename);
-	if (length > 16 * 1024 * 1024) {//´óÓÚ16MBµÄÊÓÆµ£¬ÎÄ¼þÃû
+	if (length > 16 * 1024 * 1024) {//ï¿½ï¿½ï¿½ï¿½16MBï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 		char *videofile = new char[256];
 		strncpy(videofile, archive_path + 5, strlen(archive_path) - 5);
 		videofile[strlen(archive_path) - 5] = '\0';
@@ -245,7 +245,7 @@ int ONScripter::playAVI( const char *filename, bool click_flag )
 	int ret = 0;
 #if defined(SWITCH)
 	utils::printInfo("Play Video %s\n", filename);
-	if (length > 16 * 1024 * 1024) {//´óÓÚ16MBµÄÊÓÆµ£¬ÎÄ¼þÃû
+	if (length > 16 * 1024 * 1024) {//ï¿½ï¿½ï¿½ï¿½16MBï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 		char *videofile = new char[256];
 		strncpy(videofile, archive_path + 5, strlen(archive_path) - 5);
 		videofile[strlen(archive_path) - 5] = '\0';

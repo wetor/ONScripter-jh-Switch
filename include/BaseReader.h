@@ -32,11 +32,7 @@
 #define SEEK_END 2
 #endif
 
-#if defined(LINUX) || defined(MACOSX) || defined(SWITCH)
 #define DELIMITER '/'
-#else
-#define DELIMITER '/'
-#endif
 #ifndef RELATIVEPATH
 #define RELATIVEPATH ""
 #define RELATIVEPATHLENGTH 0

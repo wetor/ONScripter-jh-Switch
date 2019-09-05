@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
  *            (C) 2014-2019 jh10001 <jh10001@live.cn>
- *
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -30,18 +30,7 @@
 ONScripter ons;
 Coding2UTF16 *coding2utf16 = NULL;
 
-#if defined(IOS)
-#import <Foundation/NSArray.h>
-#import <UIKit/UIKit.h>
-#import "DataCopier.h"
-#import "DataDownloader.h"
-#import "ScriptSelector.h"
-#import "MoviePlayer.h"
-#endif
 
-#ifdef ANDROID
-#include <unistd.h>
-#endif
 
 
 
@@ -204,15 +193,7 @@ int mkdir_ons(const char *pathname, mode_t mode)
 }
 #endif
 
-#if defined(IOS)
-extern "C" void playVideoIOS(const char *filename, bool click_flag, bool loop_flag)
-{
-    NSString *str = [[NSString alloc] initWithUTF8String:filename];
-    id obj = [MoviePlayer alloc];
-    [[obj init] play:str click : click_flag loop : loop_flag];
-    [obj release];
-}
-#endif
+
 
 void parseOption(int argc, char *argv[]) {
     while (argc > 0) {
@@ -289,7 +270,6 @@ void parseOption(int argc, char *argv[]) {
 			else if (!strcmp(argv[0]+1, "-no-vsync")){
 			    ons.setVsyncOff();
 			}
-#if defined(ANDROID) || defined(SWITCH)
             else if ( !strcmp(argv[0]+1, "-compatible") ){
                 ons.setCompatibilityMode();
             }
@@ -298,7 +278,6 @@ void parseOption(int argc, char *argv[]) {
                 argv++;
                 ons.setSaveDir(argv[0]);
             }
-#endif
             else{
                 utils::printInfo(" unknown option %s\n", argv[0]);
             }
@@ -324,60 +303,9 @@ int OnsMain(int argc, char *argv[])
 	ons.setCompatibilityMode();
 	ons.disableRescale();
 	ons.enableButtonShortCut();
-#elif defined(PSP)
-    ons.disableRescale();
-    ons.enableButtonShortCut();
-    SetupCallbacks();
-#elif defined(WINRT)
-    {
-        ScriptSelector ss;
-        ons.setArchivePath(ss.selectedPath.c_str());
-    }
-    ons.disableRescale();
-#elif defined(ANDROID)
-    ons.enableButtonShortCut();
+
 #endif
 
-#if defined(IOS)
-#if defined(HAVE_CONTENTS)
-    if ([[[DataCopier alloc] init] copy]) exit(-1);
-#endif
-
-    // scripts and archives are stored under /Library/Caches
-    NSArray* cpaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString* cpath = [[cpaths objectAtIndex : 0] stringByAppendingPathComponent:@"ONS"];
-    char filename[256];
-    strcpy(filename, [cpath UTF8String]);
-    ons.setArchivePath(filename);
-
-    // output files are stored under /Documents
-    NSArray* dpaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString* dpath = [[dpaths objectAtIndex : 0] stringByAppendingPathComponent:@"ONS"];
-    strcpy(filename, [dpath UTF8String]);
-    ons.setSaveDir(filename);
-
-#if defined(ZIP_URL)
-    if ([[[DataDownloader alloc] init] download]) exit(-1);
-#endif
-
-#if defined(USE_SELECTOR)
-    // scripts and archives are stored under /Library/Caches
-    cpath = [[[ScriptSelector alloc] initWithStyle:UITableViewStylePlain] select];
-    strcpy(filename, [cpath UTF8String]);
-    ons.setArchivePath(filename);
-
-    // output files are stored under /Documents
-    dpath = [[dpaths objectAtIndex : 0] stringByAppendingPathComponent:[cpath lastPathComponent]];
-    NSFileManager *fm = [NSFileManager defaultManager];
-    [fm createDirectoryAtPath : dpath withIntermediateDirectories : YES attributes : nil error : nil];
-    strcpy(filename, [dpath UTF8String]);
-    ons.setSaveDir(filename);
-#endif
-
-#if defined(RENDER_FONT_OUTLINE)
-    ons.renderFontOutline();
-#endif
-#endif
 
     // ----------------------------------------
     // Parse options

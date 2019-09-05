@@ -1,11 +1,32 @@
+/* -*- C++ -*-
+ *
+ *  ONScripter_video.cpp - Player of ONScripter
+ *
+ *  Copyright    (C) 2019-2019 wetor <makisehoshimi@163.com>
+ *
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
+
 #include "ONScripter.h"
 #include "Utils.h"
 #include <kitchensink/kitchensink.h>
 #include <stdbool.h>
-/*
-* Note! This example does not do proper error handling etc.
-* It is for example use only!
-*/
+
 
 #define AUDIOBUFFER_SIZE (1024 * 64)
 #define ATLAS_WIDTH 4096
@@ -21,7 +42,7 @@ enum JoyKey
 int ONScripter::PlayVideo(SDL_RWops *file_rw, char *filename, bool debug)
 {
 
-	printf("-S-------------------------------%d\n", SDL_GetTicks());
+	utils::printInfo("-S-------------------------------%d\n", SDL_GetTicks());
 	Mix_CloseAudio();
 	int err = 0, ret = 0;
 	bool run = true;
@@ -146,7 +167,7 @@ int ONScripter::PlayVideo(SDL_RWops *file_rw, char *filename, bool debug)
 	// Make sure subtitle texture is in correct blendmode
 	SDL_SetTextureBlendMode(subtitle_tex, SDL_BLENDMODE_BLEND);
 
-	printf("-E-------------------------------%d\n", SDL_GetTicks());
+	utils::printInfo("-E-------------------------------%d\n", SDL_GetTicks());
 
 	// Start playback
 	Kit_PlayerPlay(player);
@@ -181,7 +202,7 @@ int ONScripter::PlayVideo(SDL_RWops *file_rw, char *filename, bool debug)
 				}
 				/*if (event.jbutton.button == JKEY_B ) {
 					double aaa = Kit_GetPlayerPosition(player);
-					printf("%lf / %lf\n", aaa, Kit_GetPlayerDuration(player));
+					utils::printInfo("%lf / %lf\n", aaa, Kit_GetPlayerDuration(player));
 					Kit_PlayerSeek(player,  aaa+ 30);
 				}*/
 				break;

@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
  *            (C) 2014-2019 jh10001 <jh10001@live.cn>
- *
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -474,14 +474,12 @@ int ONScripter::sp_rgb_gradationCommand()
     // replace pixels of the key-color with the specified color in gradation
     for (i=upper_bound ; i<=lower_bound ; i++){
         ONSBuf *buf = (ONSBuf *)surface->pixels + surface->w * i;
-#if defined(BPP16)    
-        unsigned char *alphap = ai->alpha_buf + surface->w * i;
-#else
+
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
         unsigned char *alphap = (unsigned char *)buf + 3;
 #else
         unsigned char *alphap = (unsigned char *)buf;
-#endif
+
 #endif
         Uint32 color = alpha << surface->format->Ashift;
         if (upper_bound != lower_bound){
@@ -500,11 +498,9 @@ int ONScripter::sp_rgb_gradationCommand()
                 *buf = color;
                 *alphap = alpha;
             }
-#if defined(BPP16)                
-            alphap++;
-#else
+
             alphap += 4;
-#endif                
+             
         }
     }
     
@@ -1259,7 +1255,7 @@ int ONScripter::playCommand()
 int ONScripter::ofscopyCommand()
 {
 	return RET_CONTINUE;
-	//TODO: RenderReadPixels È¡µÃÎª¿Õ°×Í¼
+	//TODO: RenderReadPixels È¡ï¿½ï¿½Îªï¿½Õ°ï¿½Í¼
 	SDL_Rect temp_view_rect = { (int)((float)render_view_rect.x * screen_device_width / screen_width),
 								(int)((float)render_view_rect.y * screen_device_height / screen_height),
 								screen_device_width ,
@@ -2172,7 +2168,7 @@ int ONScripter::gettagCommand()
 
     if (buf[0] == '[')
         buf++;
-    else if (zenkakko_flag && buf[0] == "¡Ú"[0] && buf[1] == "¡Ú"[1])
+    else if (zenkakko_flag && buf[0] == "ï¿½ï¿½"[0] && buf[1] == "ï¿½ï¿½"[1])
         buf += 2;
     else
         buf = NULL;
@@ -2194,7 +2190,7 @@ int ONScripter::gettagCommand()
             if (buf){
                 const char *buf_start = buf;
                 while(*buf != '/' && *buf != 0 && *buf != ']' && 
-                      (!zenkakko_flag || buf[0] != "¡Û"[0] || buf[1] != "¡Û"[1])){
+                      (!zenkakko_flag || buf[0] != "ï¿½ï¿½"[0] || buf[1] != "ï¿½ï¿½"[1])){
                     if (IS_TWO_BYTE(*buf))
                         buf += 2;
                     else
@@ -2218,7 +2214,7 @@ int ONScripter::gettagCommand()
     if (pretext_buf[0] == ']')
         pretext_buf++;
     else if (zenkakko_flag && 
-             pretext_buf[0] == "¡Û"[0] && pretext_buf[1] == "¡Û"[1])
+             pretext_buf[0] == "ï¿½ï¿½"[0] && pretext_buf[1] == "ï¿½ï¿½"[1])
         pretext_buf += 2;
 
     return RET_CONTINUE;
@@ -2695,9 +2691,9 @@ int ONScripter::exec_dllCommand()
             c += 7;
             char *dir = new char[strlen(archive_path) + strlen(buf+c) + 1];
             sprintf(dir, "%s%s", archive_path, buf+c);
-#if defined(LINUX) || defined(MACOSX) || defined(IOS) || defined(SWITCH)
+
             mkdir(dir, 0755);
-#endif
+
             delete[] dir;
         }
         return RET_CONTINUE;

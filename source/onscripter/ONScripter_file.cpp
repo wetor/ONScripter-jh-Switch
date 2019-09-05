@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
  *            (C) 2014-2018 jh10001 <jh10001@live.cn>
- *
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@ void ONScripter::searchSaveFile( SaveFileInfo &save_file_info, int no )
     char file_name[256];
 
     script_h.getStringFromInteger( save_file_info.sjis_no, no, (num_save_file >= 10)?2:1 );
-#if defined(LINUX) || defined(MACOSX) || defined(IOS)  || defined(SWITCH) 
+
     sprintf( file_name, "%ssave%d.dat", save_dir?save_dir:archive_path, no );
     struct stat buf;
     struct tm *tm;
@@ -58,20 +58,7 @@ void ONScripter::searchSaveFile( SaveFileInfo &save_file_info, int no )
     save_file_info.day    = tm->tm_mday;
     save_file_info.hour   = tm->tm_hour;
     save_file_info.minute = tm->tm_min;
-#else
-    sprintf( file_name, "save%d.dat", no );
-    FILE *fp;
-    if ( (fp = fopen( file_name, "rb", true )) == NULL ){
-        save_file_info.valid = false;
-        return;
-    }
-    fclose( fp );
 
-    save_file_info.month  = 1;
-    save_file_info.day    = 1;
-    save_file_info.hour   = 0;
-    save_file_info.minute = 0;
-#endif
     save_file_info.valid = true;
     script_h.getStringFromInteger( save_file_info.sjis_month,  save_file_info.month,  2 );
     script_h.getStringFromInteger( save_file_info.sjis_day,    save_file_info.day,    2 );

@@ -681,7 +681,7 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent _jaxis)
 	if(axis)
 		warpMouse((int)(x + 0.5), (int)(y + 0.5));
 
-	printf("%f %f 'curr %d ;pre %d ;\n", x, y, jaxis[0].axis, jaxis[1].axis);
+	utils::printInfo("%f %f 'curr %d ;pre %d ;\n", x, y, jaxis[0].axis, jaxis[1].axis);
 	//SDL_Rect dst_rect = mouse_info.pos;
 	//mouse_info.pos.x = curent_mouse_x;
 	//mouse_info.pos.y = curent_mouse_y;

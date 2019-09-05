@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
  *            (C) 2014-2018 jh10001 <jh10001@live.cn>
- *
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -558,7 +558,8 @@ void ONScripter::loadCursor(int no, const char *str, int x, int y, bool abs_flag
     ai->scalePosXY(screen_ratio1, screen_ratio2);
     parseTaggedString(ai);
     setupAnimationInfo(ai);
-    //printf("%s %d w:%d h:%d\n",ai->file_name,ai->image_surface!=NULL,ai->image_surface->w,ai->image_surface->h);
+    
+    //utils::printInfo("%s %d w:%d h:%d\n",ai->file_name,ai->image_surface!=NULL,ai->image_surface->w,ai->image_surface->h);
     if (filelog_flag)
         script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], ai->file_name, true); // a trick for save file
     ai->abs_flag = abs_flag;

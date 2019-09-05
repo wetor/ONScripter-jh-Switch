@@ -191,10 +191,7 @@ void ONScripter::drawChar( char* text, FontInfo *info, bool flush_flag, bool loo
 			ons_exit(-1);
         }
     }
-#if defined(PSP)
-    else
-        info->openFont( font_file, screen_ratio1, screen_ratio2 );
-#endif
+
 
     if ( info->isEndOfLine() ){
         info->newLine();

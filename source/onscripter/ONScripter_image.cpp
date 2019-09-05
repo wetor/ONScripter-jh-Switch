@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2001-2016 Ogapee. All rights reserved.
  *            (C) 2014-2019 jh10001 <jh10001@live.cn>
- *
+ *            (C) 2019-2019 wetor <makisehoshimi@163.com>
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -239,15 +239,7 @@ int ONScripter::resizeSurface(SDL_Surface *src, SDL_Surface *dst)
     return 0;
 }
 
-#if defined(BPP16)
-#define BLEND_PIXEL_MASK()                                             \
-    {                                                                  \
-        Uint32 s1 = (*src1_buffer | *src1_buffer << 16) & 0x07e0f81f;  \
-        Uint32 s2 = (*src2_buffer | *src2_buffer << 16) & 0x07e0f81f;  \
-        Uint32 mask_rb = (s1 + ((s2 - s1) * mask2 >> 5)) & 0x07e0f81f; \
-        *dst_buffer = mask_rb | mask_rb >> 16;                         \
-    }
-#else
+
 #define BLEND_PIXEL_MASK()                                                                        \
     {                                                                                             \
         Uint32 temp = *src1_buffer & 0xff00ff;                                                    \
@@ -477,7 +469,7 @@ inline static void alphaBlendConst32(Uint32 *src1_buffer, Uint32 *src2_buffer, U
     }
 #endif
 }
-#endif
+
 
 // alphaBlend
 // dst: accumulation_surface

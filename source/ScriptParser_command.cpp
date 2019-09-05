@@ -25,9 +25,7 @@
 #include "ScriptParser.h"
 #include "Utils.h"
 #include <math.h>
-#if defined(LINUX) || defined(MACOSX) || defined(IOS)
-#include <sys/stat.h>
-#endif
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -352,19 +350,7 @@ int ScriptParser::savedirCommand()
     if (!save_dir){
         // a workaround not to overwrite save_dir given in command line options
         save_dir = new char[ strlen(archive_path) + strlen(path) + 2 ];
-        sprintf( save_dir, "%s%s%c", archive_path, path, DELIMITER );
-
-#if defined(LINUX) || defined(MACOSX) || defined(IOS)
-        struct stat buf;
-        if ( stat( save_dir, &buf ) != 0 ){
-            fprintf(stderr, "savedir: %s doesn't exist.\n", save_dir);
-            delete[] save_dir;
-            save_dir = NULL;
-        
-            return RET_CONTINUE;
-        }
-#endif
-        
+        sprintf( save_dir, "%s%s%c", archive_path, path, DELIMITER );      
         script_h.setSaveDir(save_dir);
         setStr(&save_dir_envdata, path);
     }

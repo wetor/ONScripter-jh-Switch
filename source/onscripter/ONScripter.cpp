@@ -129,13 +129,8 @@ void ONScripter::initSDL()
 	}
 #endif
 
-#if !defined(IOS)
-#if defined(ANDROID)
-	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
-#endif
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != NULL)
 		utils::printInfo("Initialize JOYSTICK\n");
-#endif
 
 	/* ---------------------------------------- */
 	/* Initialize SDL */
@@ -147,7 +142,6 @@ void ONScripter::initSDL()
 
 	screen_bpp = 32;
 
-#if (defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(SWITCH))
 	SDL_DisplayMode mode;
 	SDL_GetDisplayMode(0, 0, &mode);
 	int width;
@@ -156,7 +150,6 @@ void ONScripter::initSDL()
 	else
 		width = mode.w;
 	screen_width = width;
-#endif
 
 	screen_height = screen_width * script_h.screen_height / script_h.screen_width;
 
@@ -318,11 +311,9 @@ ONScripter::ONScripter()
 		sprite2_info[i].affine_flag = true;
 
 		// External Players
-#if defined(WINCE) || defined(WINRT)
-	midi_cmd = NULL;
-#else
+
 	midi_cmd = getenv("MUSIC_CMD");
-#endif
+
 
 	makeFuncLUT();
 }
@@ -465,8 +456,6 @@ int ONScripter::init()
 
 	image_surface = AnimationInfo::alloc32bitSurface(1, 1, texture_format);
 
-
-
 #ifdef SWITCH
 	//mouse_surface = IMG_Load_RW(SDL_RWFromConstMem((const void *)mouse_png, mouse_png_size), 1);
 	//SDL_RWwrite();
@@ -477,25 +466,18 @@ int ONScripter::init()
 	if (rw != NULL)
 	{
 		SDL_RWwrite(rw, (const void *)mouse_png, 1, mouse_png_size);
-		printf("write over %s\n", file);
+		utils::printInfo("write over %s\n", file);
 		SDL_RWclose(rw);
 	}
 	else
 	{
-		printf("write erroe\n");
+		utils::printInfo("write erroe\n");
 	}
 	delete file;*/
 
-
-
-
-	
 	loadCursor(-1, ":a;mouse.png", 0, 0);
-	
 
 #endif
-
-
 
 	accumulation_surface = AnimationInfo::allocSurface(screen_width, screen_height, texture_format);
 	backup_surface = AnimationInfo::allocSurface(screen_width, screen_height, texture_format);
@@ -621,8 +603,6 @@ int ONScripter::init()
 		bar_info[i] = prnum_info[i] = NULL;
 	loadEnvData();
 	defineresetCommand(); //reset
-
-
 
 	readToken();
 
