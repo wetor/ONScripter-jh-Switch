@@ -1,0 +1,3 @@
+[submodule "SDL_kitchensink"]
+	path = SDL_kitchensink
+	url = https://github.com/wetor/SDL_kitchensink.git
