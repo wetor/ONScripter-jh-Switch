@@ -42,6 +42,7 @@
 **链接: https://pan.baidu.com/s/1lFaTjYLOPluEe8YFBPmW4w 提取码:e8q7**
 
 **微信支付宝扫一扫，你的支持就是我最大的动力。**
+
 <img src="http://www.wetor.top/pay.png" width="200" height="200"/>
 
 ## 安装说明
