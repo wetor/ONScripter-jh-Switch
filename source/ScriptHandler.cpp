@@ -26,6 +26,8 @@
 #include "Utils.h"
 #include "coding2utf16.h"
 
+#include <sys/stat.h>
+#include <dirent.h>
 extern Coding2UTF16 *coding2utf16;
 
 #define TMP_SCRIPT_BUF_LEN 4096
@@ -143,6 +145,18 @@ void ScriptHandler::setSaveDir(const char *path)
     if (save_dir) delete[] save_dir;
     save_dir = new char[ strlen(path)+1 ];
     strcpy(save_dir, path);
+
+    DIR *dir;
+    int ret=0;
+    if ((dir = opendir(save_dir)) == NULL)
+    {
+        ret=mkdir(save_dir, 777);
+    }
+    else
+    {
+        closedir(dir);
+    }
+
 }
 
 FILE *ScriptHandler::fopen( const char *path, const char *mode, bool use_save_dir )
@@ -156,7 +170,6 @@ FILE *ScriptHandler::fopen( const char *path, const char *mode, bool use_save_di
     for ( unsigned int i=0 ; i<strlen( filename ) ; i++ )
         if ( filename[i] == '/' || filename[i] == '\\' )
             filename[i] = DELIMITER;
-
     return ::fopen( filename, mode );
 }
 
