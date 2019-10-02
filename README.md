@@ -16,15 +16,12 @@
 至于那个ONSBrowser，是用Plutonium自己写的，用了很长时间...纯属娱乐
 
 [**下载地址**](#下载地址)
+
 [**安装说明**](#安装说明)
 
-**ONS for Switch演示视频：https://www.bilibili.com/video/av68622183/
-ONS for Switch项目：https://github.com/wetor/ONScripter-jh-Switch**
+**ONS for Switch演示视频：https://www.bilibili.com/video/av68622183/**
 
-<iframe id='video' width=50% src="//player.bilibili.com/player.html?aid=68622183&cid=118922655&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-<script type="text/javascript">
-document.getElementById("video").style.height=document.getElementById("video").scrollWidth*0.6+"px";
-</script>
+**ONS for Switch项目：https://github.com/wetor/ONScripter-jh-Switch**
 
 
 ## **截图**
@@ -39,34 +36,37 @@ document.getElementById("video").style.height=document.getElementById("video").s
 **请先查看安装说明**
 
 **github下载: https://github.com/wetor/ONScripter-jh-Switch/releases**
+
 或者
+
 **链接: https://pan.baidu.com/s/1lFaTjYLOPluEe8YFBPmW4w 提取码:e8q7**
+
 **微信支付宝扫一扫，你的支持就是我最大的动力。**
 <img src="http://www.wetor.top/pay.png" width="200" height="200"/>
 
 ## 安装说明
 ### **安装模拟器**
-```c++
-将下载到的压缩包文件解压，得到一个'onsemu'文件夹和一个'ONSBrowser.nsp'文件。
-将'onsemu'文件夹放到SD卡根目录。
-安装'ONSBrowser.nsp'，主界面会出现模拟器图标，安装完成。
-```
+
+- 将下载到的压缩包文件解压，得到一个'onsemu'文件夹和一个'ONSBrowser.nsp'文件。
+- 将'onsemu'文件夹放到SD卡根目录。
+- 安装'ONSBrowser.nsp'，主界面会出现模拟器图标，安装完成。
+
 ### **安装游戏**
-```c++
-从网上下载ONS游戏包，不区分平台，只要是ONScripter模拟器能运行的游戏资源就可以。
-检查游戏资源是否完整，简单的辨别方法：一定存在'0.txt'、'00.txt'、'nscript.dat'其中之一，可能存在'*.nsa'、'.sar'文件，大部分存在'icon0.png'。
-将游戏资源文件夹（不允许存在二级目录）用英文字符重命名，不能用中文字符，放至SD卡的'onsemu'文件夹中，如'SDCard:/onsemu/Rewrite/00.txt'，文件夹名称将作为选择游戏时的重要标志，安装游戏完成。
-注1：游戏文件夹不能存在中文字符！不能中文！不能中文！否则将无法正常识别。
-注2：如以上均无误，但是启动游戏后出错，可以使用其他平台的ONS模拟器运行同一资源包实验，如其他平台均无问题，可向我反馈，需提供游戏资源包。
-```
+
+- 从网上下载ONS游戏包，不区分平台，只要是ONScripter模拟器能运行的游戏资源就可以。
+- 检查游戏资源是否完整，简单的辨别方法：一定存在'0.txt'、'00.txt'、'nscript.dat'其中之一，可能存在'\*.nsa'、'\*.sar'文件，大部分存在'icon0.png'。
+- 将游戏资源文件夹（不允许存在二级目录）用英文字符重命名，不能用中文字符，放至SD卡的'onsemu'文件夹中，如'SDCard:/onsemu/Rewrite/00.txt'，文件夹名称将作为选择游戏时的重要标志，安装游戏完成。
+- 注1：游戏文件夹不能存在中文字符！不能中文！不能中文！否则将无法正常识别。
+- 注2：如以上均无误，但是启动游戏后出错，可以使用其他平台的ONS模拟器运行同一资源包实验，如其他平台均无问题，可向我反馈，需提供游戏资源包。
+
 ## **使用说明**
-```c++
-ONSBrowser中对快捷键均有说明，可在选择游戏前按下L键查看帮助。
-目前Y键的查看详细信息、X键的浏览游戏资源、R键的视频播放器功能均未实现，有生之年在加上，去掉了不好看，按钮就留着了= =。
-关于游戏名称显示问题，ONSBrowser显示的均是文件夹名称，实际名称由于编码问题无法正常显示。
-一旦选择游戏并开始，通过游戏内退出功能会导致退出后报错，忽视即可，不影响使用。建议返回主页，直接结束程序即可（就像退出游戏一样）。
-部分游戏由于脚本问题，按键效果可能不会太符合，但大多数都是没错的。
-```
+
+- ONSBrowser中对快捷键均有说明，可在选择游戏前按下L键查看帮助。
+- 目前Y键的查看详细信息、X键的浏览游戏资源、R键的视频播放器功能均未实现，有生之年在加上，去掉了不好看，按钮就留着了= =。
+- 关于游戏名称显示问题，ONSBrowser显示的均是文件夹名称，实际名称由于编码问题无法正常显示。
+- 一旦选择游戏并开始，通过游戏内退出功能会导致退出后报错，忽视即可，不影响使用。建议返回主页，直接结束程序即可（就像退出游戏一样）。
+- 部分游戏由于脚本问题，按键效果可能不会太符合，但大多数都是没错的。
+
 
 
 ## **快速启动游戏**
@@ -102,9 +102,11 @@ titlekek_source = 1edc7b3b60e6b4d878b81715985e629b
 修改模拟器源代码，将游戏资源打包进romfs，即可实现独立游戏的打包。
 ## **相关链接**
 原版ONScripter官网：https://onscripter.osdn.jp/onscripter.html
+
 ONScripter-Jh项目：https://bitbucket.org/jh10001/onscripter-jh
 
 ONS for PSVita：http://www.wetor.top/onscripter-psvita.html
+
 ONS for PSVita项目：https://github.com/wetor/ONScripter-jh-PSVita
 
 **ONS for Switch演示视频：https://www.bilibili.com/video/av68622183/**
