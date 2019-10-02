@@ -98,7 +98,7 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DDEBUG -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
 CFLAGS	+= -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
 CFLAGS	+= -DUSE_BUILTIN_EFFECTSX -DUSE_BUILTIN_LAYER_EFFECTSX
@@ -115,7 +115,7 @@ LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec
 	-lfreetype -lpng -lz -ljpeg -lwebp \
 	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
 	-lvorbisidec -logg -lopus -lvpx -lmpg123 -lmodplug -lFLAC -lstdc++  \
-	-ltwili -lnx -lm 
+	-lnx -lm 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
