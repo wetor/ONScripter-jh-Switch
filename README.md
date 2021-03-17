@@ -5,6 +5,11 @@
 - ONScripter-Jh for PSVita是wetor即本人移植的jh版的SDL2分支，用于在PSVita平台运行ONS游戏。
 - ONScripter-Jh for Switch是wetor即本人移植的jh版的SDL2分支，用于在Nintendo Switch平台运行ONS游戏。
 
+## 启动器源码
+如截图1 2所示  
+这个启动器的界面是我从零开始写的，借鉴了很多开源的ns自制程序，当时c++编码能力，代码逻辑比较乱  
+https://github.com/wetor/ONS-Switch-GUI  
+
 ## **关于Switch版**
 
   模拟器本体几个月前就完成了...做了个没什么用的浏览器，因为NS已经可以刷安卓了，这种模拟器当然不在话下，所以也没有继续完善的必要了。
