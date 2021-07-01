@@ -1,3 +1,6 @@
+
+# [2021.7.1 关于12.0无法运行的相关说明](https://github.com/wetor/ONScripter-jh-Switch/issues/5)
+
 # **ONSCripter-jh for Nintendo Switch**
 ## **简介**
 - ONScripter（Open Source Nscripter ）是一个用来解析NScripter脚本的第三方开源Galgame游戏引擎，可以在多种平台和设备上（Windows，Linux，FreeBSD，Android，iOS，Symbian……etc）上运行使用NScripter脚本编译的文字冒险类游戏。
