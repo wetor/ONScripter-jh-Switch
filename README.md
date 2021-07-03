@@ -94,6 +94,9 @@ https://github.com/wetor/ONS-Switch-GUI
 
 ### **修改源代码**
 修改模拟器源代码，将游戏资源打包进romfs，即可实现独立游戏的打包。
+
+**libnx版本：4.0.1-1**
+
 ## **相关链接**
 原版ONScripter官网：https://onscripter.osdn.jp/onscripter.html
 
