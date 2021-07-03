@@ -6,98 +6,52 @@
 #include "Utils.h"
 #include "Common.h"
 
-extern u32 __nx_applet_type;
-extern char *fake_heap_end;
-extern "C"
-{
-	void __nx_win_init(void);
-	void __libnx_init_time(void);
 
-	void __appInit(void)
-	{
-		Result rc = smInitialize();
-		if (R_FAILED(rc))
-			fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
+void *mouse_png;
+int mouse_png_size;
+char return_path[256];
 
-		rc = setsysInitialize();
-		if (R_SUCCEEDED(rc))
-		{
-			SetSysFirmwareVersion fw;
-			rc = setsysGetFirmwareVersion(&fw);
-			if (R_SUCCEEDED(rc))
-				hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
-			setsysExit();
-		}
 
-		rc = timeInitialize();
-		if (R_FAILED(rc))
-			fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_Time));
-
-		__libnx_init_time();
-
-		rc = fsInitialize();
-		if (R_FAILED(rc))
-			fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
-
-		fsdevMountSdmc();
-	}
-}
-
-//static void *ghaddr;
+// args:
+// 0 : self NRO program path
+// 1 : ONScripter game folder
+// 2 : mode: 0 default; mode&1 fullscreen stretch; mode&2 outline; mode&4 english
+// 3 : return nro path after game exit
 int main(int argc, char *argv[])
 {
 #ifdef DEBUG
 	twiliInitialize();
+	twiliBindStdio();
 #endif
 
 	srand(time(NULL));
-
-	//if (R_FAILED(svcSetHeapSize(&ghaddr, 0x10000000))) exit(1);
-	//fake_heap_end = (char*)ghaddr + 0x10000000;
-
-	if (R_FAILED(appletInitialize()))
-		printf("applet error!\n");
-	if (R_FAILED(hidInitialize()))
-		printf("hid error!\n");
-	if (R_FAILED(accountInitialize()))
-		printf("account error!\n");
-	if (R_FAILED(ncmInitialize()))
-		printf("ncm error!\n");
-	if (R_FAILED(nsInitialize()))
-		printf("ns error!\n");
-	if (R_FAILED(psmInitialize()))
-		printf("psm error!\n");
-	if (R_FAILED(setInitialize()))
-		printf("set error!\n");
-	if (R_FAILED(setsysInitialize()))
-		printf("setsys error!\n");
-	if (R_FAILED(splInitialize()))
-		printf("spl error!\n");
-	if (R_FAILED(bpcInitialize()))
-		printf("bpc error!\n");
-	if (R_FAILED(nifmInitialize()))
-		printf("nifm error!\n");
-
+	romfsInit();
+	strcpy(return_path, "sdmc:/onsemu/exefs/ONSBrowser.nro");
 	utils::printInfo("ONScripter-Jh for Nintendo Switch\n\n");
-	//ons_exit(0);
-	//char path[256];
 
+	// argc = 2;
+	// argv[1] = (char*)"sdmc:/onsemu/onsen";
+	// argv[2] = (char*)"0";
 	char path[256];
 	int fullmode = 0;
 	int outline = 0;
-	if (envHasArgv() && (argc > 1))
+	int english = 0;
+	if (envHasArgv() && argc > 1)
 	{
 		strcpy(path, argv[1]);
 		if (argc > 2)
 		{
-			if (!strcmp(argv[2], "1"))
+			int setting = atoi(argv[2]);
+			if(setting & 1)
 				fullmode = 1;
-			else if (!strcmp(argv[2], "2"))
+			if(setting & 2)
 				outline = 1;
-			else if (!strcmp(argv[2], "3"))
-				fullmode = outline = 1;
+			if(setting & 4)
+				english = 1;
 		}
 		argv[2] = path;
+		if (argc > 3)
+			strcpy(return_path, argv[3]);
 	}
 	else
 		ons_exit(0);
@@ -115,42 +69,44 @@ int main(int argc, char *argv[])
 	{
 		argv[argc++] = (char *)"--render-font-outline";
 	}
-
-	//argv[6] = (char*)"sdmc:/onsemu/hanchan/arc.nsa";
+	if (english)
+	{
+		// argv[argc++] = (char *)"--render-font-outline";
+	}
+	// argv[argc++] = (char *)"--debug:1";
+	
+	//argv[6] = (char*)"sdmc:/onsemu/hanchan";
 	//nsadec_main(argv[6]);
+
+	mouse_png_size = 1699;
+	mouse_png = (void *)malloc(mouse_png_size);
+	FILE* f = fopen("romfs:/cursor/mouse.png", "rb");
+    if (f)
+    {
+		fread(mouse_png, mouse_png_size, 1, f);
+        fclose(f);
+
+    } else {
+        printf("romfs:/cursor/mouse.png open fail\n");
+    }
 
 	OnsMain(argc, argv);
 
-	ons_exit(0);
-
-	//svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
-	//twiliExit();
+	ons_exit(EXIT_SUCCESS);
 	return 0;
 }
 
 void ons_exit(int flag)
 {
 
-	//printf("exit1 %d\n", flag);
+	
+    romfsExit();
 
-	//envSetNextLoad("sdmc:/onsemu/ONScripter.nro", "sdmc:/onsemu/ONScripter.nro sdmc:/onsemu/ONScripter.nro");
-
-	nifmExit();
-	bpcExit();
-	splExit();
-	setsysExit();
-	setExit();
-	psmExit();
-	nsExit();
-	ncmExit();
-	accountExit();
-	hidExit();
-	appletExit();
-
-	//svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
-	//printf("exit4 %d\n", flag);
-	//twiliExit();
-
-	//printf("exit5 %d\n", flag);
-	exit(flag);
+#ifdef DEBUG
+	twiliExit();
+#endif
+	char args[256];
+	sprintf(args, "\"%s\"", return_path);
+	envSetNextLoad(return_path, args);
+	exit(EXIT_SUCCESS);
 }

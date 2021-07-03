@@ -638,10 +638,10 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent _jaxis)
 		AXIS_DOWN = 8
 	};
 
-	ONS_Key axis_map[] = {AXIS_LEFT,  /* AL-LEFT  */
-						  AXIS_UP,	/* AL-UP */
-						  AXIS_RIGHT, /* AL-RIGHT    */
-						  AXIS_DOWN /* AL-DOWN  */};
+	// ONS_Key axis_map[] = {AXIS_LEFT,  /* AL-LEFT  */
+	// 					  AXIS_UP,	/* AL-UP */
+	// 					  AXIS_RIGHT, /* AL-RIGHT    */
+	// 					  AXIS_DOWN /* AL-DOWN  */};
 	float x, y;
 	bool axis = false;
 	x = (float)curent_mouse_x * screen_device_width / screen_width;

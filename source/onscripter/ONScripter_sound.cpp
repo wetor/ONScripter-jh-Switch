@@ -262,7 +262,7 @@ int ONScripter::playAVI( const char *filename, bool click_flag )
 #endif
 
 
-    return 0;
+    return ret;
 }
 
 void ONScripter::stopBGM( bool continue_flag )

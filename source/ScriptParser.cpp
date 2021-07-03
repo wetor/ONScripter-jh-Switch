@@ -600,16 +600,18 @@ void ScriptParser::readLog( ScriptHandler::LogInfo &info )
 
 void ScriptParser::errorAndExit( const char *str, const char *reason )
 {
-    if ( reason )
+    if ( reason ){
         utils::printError(" *** Parse error at %s:%d [%s]; %s ***\n",
                  current_label_info.name,
                  current_line,
                  str, reason );
-    else
+    }
+    else{
         utils::printError( " *** Parse error at %s:%d [%s] ***\n",
                  current_label_info.name,
                  current_line,
                  str );
+    }
 	ons_exit(-1);
 }
 

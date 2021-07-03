@@ -33,8 +33,9 @@
 #include "simd/simd.h"
 #endif
 #include <stdlib.h>
+#include <unistd.h>
 #ifdef SWITCH
-#include "mouse_png.h"
+#include "main.h"
 #endif
 extern Coding2UTF16 *coding2utf16;
 extern "C" void waveCallback(int channel);
@@ -460,6 +461,7 @@ int ONScripter::init()
 	//mouse_surface = IMG_Load_RW(SDL_RWFromConstMem((const void *)mouse_png, mouse_png_size), 1);
 	//SDL_RWwrite();
 
+
 	char *file = new char[256];
 	sprintf(file, "%s%s", archive_path, "mouse.png");
 	SDL_RWops *rw = SDL_RWFromFile(file, "w");
@@ -471,7 +473,7 @@ int ONScripter::init()
 	}
 	else
 	{
-		utils::printInfo("write erroe\n");
+		utils::printInfo("write error\n");
 	}
 	delete file;
 
@@ -1600,7 +1602,11 @@ void ONScripter::quit()
 		Mix_FreeMusic(music_info);
 		music_info = NULL;
 	}
-
+    TTF_Quit();
+    IMG_Quit();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
 void ONScripter::disableGetButtonFlag()

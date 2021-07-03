@@ -125,6 +125,7 @@ namespace simd {
 #ifdef USE_SIMD_X86_SSSE3
     return _mm_shuffle_epi8(a, mask);
 #endif
+    return uint8x16();
   }
 
   //Swizzle

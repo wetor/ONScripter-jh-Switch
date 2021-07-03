@@ -72,9 +72,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-VERSION_MAJOR := 1
+VERSION_MAJOR := 2
 VERSION_MINOR := 0
-VERSION_MICRO := 1
+VERSION_MICRO := 0
 
 APP_TITLE	:=	ONScripter
 APP_TITLEID :=	010FF000AE9A2C1B
@@ -88,6 +88,7 @@ DATA		:=	data
 INCLUDES	:=	include SDL_kitchensink/Output/include
 EXEFS_SRC	:=	exefs_src
 CONFIG_JSON :=	ONScripter.json
+ROMFS		:=	romfs
 
 ICON		:= Icon.jpg
 #---------------------------------------------------------------------------------
@@ -95,7 +96,7 @@ ICON		:= Icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE 
 
-CFLAGS	:=	-Wall -O2 -ffunction-sections \
+CFLAGS	:=	-O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
@@ -209,6 +210,10 @@ ifneq ($(APP_TITLEID),)
 	export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
 
+ifneq ($(ROMFS),)
+	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+endif
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
@@ -261,10 +266,6 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 	@echo $(notdir $<)
 	@$(bin2o)
 #---------------------------------------------------------------------------------
-%.png.o	%_png.h :	%.png
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
 
 -include $(DEPENDS)
 
