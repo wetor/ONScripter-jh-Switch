@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
 	strcpy(return_path, "sdmc:/onsemu/exefs/ONSBrowser.nro");
 	utils::printInfo("ONScripter-Jh for Nintendo Switch\n\n");
 
-	// argc = 2;
+	// argc = 3;
 	// argv[1] = (char*)"sdmc:/onsemu/onsen";
-	// argv[2] = (char*)"0";
+	// argv[2] = (char*)"4";
 	char path[256];
 	int fullmode = 0;
 	int outline = 0;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	}
 	if (english)
 	{
-		// argv[argc++] = (char *)"--render-font-outline";
+		argv[argc++] = (char *)"--enc:sjis";
 	}
 	// argv[argc++] = (char *)"--debug:1";
 	
