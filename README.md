@@ -10,7 +10,15 @@
 ## 博客链接
 https://blog.wetorx.cn/post/onscripter-ns.html
 
-## 更新日志
+## 更新日志 Update logs
+
+### 2021.7.5
+- Support English games
+- Usage : 
+  1. Put the "onsemu" in the "SDFile" folder into the root directory of the sd card
+  2. Install "ONSBrowser-install-05293394190000.nsp"
+  3. Put the ONS games folder in "onsemu"
+  4. Enjoy !
 
 ### 2021.7.3  GUI ver.2.0
 - **修复12.0以上系统无法打开的问题**
