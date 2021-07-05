@@ -666,6 +666,7 @@ private:
     SelectLink *shelter_select_link;
     ButtonState shelter_mouse_state;
     
+    void initMenuText();
     void enterSystemCall();
     void leaveSystemCall( bool restore_flag = true );
     int  executeSystemCall();

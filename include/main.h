@@ -10,6 +10,6 @@ extern void ons_exit(int flag);
 
 extern void *mouse_png;
 extern int mouse_png_size;
-
+extern int english;
 
 #endif

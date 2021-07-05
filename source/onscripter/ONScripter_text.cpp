@@ -276,42 +276,47 @@ void ONScripter::drawString( const char *str, uchar3 color, FontInfo *info, bool
         }
 #endif            
 
-#ifndef FORCE_1BYTE_CHAR            
-        if (cache_info && !cache_info->is_tight_region){
-            if (*str == '('){
-                startRuby(str+1, *info);
-                str++;
-                continue;
-            }
-            else if (*str == '/' && ruby_struct.stage == RubyStruct::BODY ){
-                info->addLineOffset(ruby_struct.margin);
-                str = ruby_struct.ruby_end;
-                if (*ruby_struct.ruby_end == ')'){
-                    endRuby(false, false, NULL, cache_info);
+        
+
+        
+// #ifndef FORCE_1BYTE_CHAR
+        if (english) {        
+            if (cache_info && !cache_info->is_tight_region){
+                if (*str == '('){
+                    startRuby(str+1, *info);
                     str++;
+                    continue;
                 }
-                continue;
-            }
-            else if (*str == ')' && ruby_struct.stage == RubyStruct::BODY ){
-                ruby_struct.stage = RubyStruct::NONE;
-                str++;
-                continue;
-            }
-            else if (*str == '<'){
-                str++;
-                int no = 0;
-                while(*str>='0' && *str<='9')
-                    no=no*10+(*str++)-'0';
-                in_textbtn_flag = true;
-                continue;
-            }
-            else if (*str == '>' && in_textbtn_flag){
-                str++;
-                in_textbtn_flag = false;
-                continue;
+                else if (*str == '/' && ruby_struct.stage == RubyStruct::BODY ){
+                    info->addLineOffset(ruby_struct.margin);
+                    str = ruby_struct.ruby_end;
+                    if (*ruby_struct.ruby_end == ')'){
+                        endRuby(false, false, NULL, cache_info);
+                        str++;
+                    }
+                    continue;
+                }
+                else if (*str == ')' && ruby_struct.stage == RubyStruct::BODY ){
+                    ruby_struct.stage = RubyStruct::NONE;
+                    str++;
+                    continue;
+                }
+                else if (*str == '<'){
+                    str++;
+                    int no = 0;
+                    while(*str>='0' && *str<='9')
+                        no=no*10+(*str++)-'0';
+                    in_textbtn_flag = true;
+                    continue;
+                }
+                else if (*str == '>' && in_textbtn_flag){
+                    str++;
+                    in_textbtn_flag = false;
+                    continue;
+                }
             }
         }
-#endif
+// #endif
 
         if ( IS_TWO_BYTE(*str) ){
             if ( checkLineBreak( str, info ) ){
@@ -373,36 +378,39 @@ void ONScripter::restoreTextBuffer(SDL_Surface *surface)
         }
         else{
             out_text[0] = current_page->text[i];
-#ifndef FORCE_1BYTE_CHAR            
-            if (out_text[0] == '('){
-                startRuby(current_page->text + i + 1, f_info);
-                continue;
-            }
-            else if (out_text[0] == '/' && ruby_struct.stage == RubyStruct::BODY ){
-                f_info.addLineOffset(ruby_struct.margin);
-                i = ruby_struct.ruby_end - current_page->text - 1;
-                if (*ruby_struct.ruby_end == ')'){
-                    endRuby(false, false, surface, &text_info);
-                    i++;
+             
+// #ifndef FORCE_1BYTE_CHAR         
+            if (english) {  
+                if (out_text[0] == '('){
+                    startRuby(current_page->text + i + 1, f_info);
+                    continue;
                 }
-                continue;
+                else if (out_text[0] == '/' && ruby_struct.stage == RubyStruct::BODY ){
+                    f_info.addLineOffset(ruby_struct.margin);
+                    i = ruby_struct.ruby_end - current_page->text - 1;
+                    if (*ruby_struct.ruby_end == ')'){
+                        endRuby(false, false, surface, &text_info);
+                        i++;
+                    }
+                    continue;
+                }
+                else if (out_text[0] == ')' && ruby_struct.stage == RubyStruct::BODY ){
+                    ruby_struct.stage = RubyStruct::NONE;
+                    continue;
+                }
+                else if (out_text[0] == '<'){
+                    int no = 0;
+                    while(current_page->text[i+1]>='0' && current_page->text[i+1]<='9')
+                        no=no*10+current_page->text[(i++)+1]-'0';
+                    in_textbtn_flag = true;
+                    continue;
+                }
+                else if (out_text[0] == '>' && in_textbtn_flag){
+                    in_textbtn_flag = false;
+                    continue;
+                }
             }
-            else if (out_text[0] == ')' && ruby_struct.stage == RubyStruct::BODY ){
-                ruby_struct.stage = RubyStruct::NONE;
-                continue;
-            }
-            else if (out_text[0] == '<'){
-                int no = 0;
-                while(current_page->text[i+1]>='0' && current_page->text[i+1]<='9')
-                    no=no*10+current_page->text[(i++)+1]-'0';
-                in_textbtn_flag = true;
-                continue;
-            }
-            else if (out_text[0] == '>' && in_textbtn_flag){
-                in_textbtn_flag = false;
-                continue;
-            }
-#endif
+// #endif
 
             if (IS_TWO_BYTE(out_text[0])){
                 out_text[1] = current_page->text[i+1];

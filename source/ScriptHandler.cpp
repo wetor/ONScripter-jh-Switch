@@ -804,45 +804,48 @@ int ScriptHandler::getStringFromInteger( char *buffer, int no, int num_column, b
         num_digit -= num_digit+num_minus-num_column;
     }
 
-#if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
-    if (num_minus == 1) no = -no;
-    char format[6];
-    if (is_zero_inserted)
-        sprintf(format, "%%0%dd", num_column);
-    else
-        sprintf(format, "%%%dd", num_column);
-    sprintf(buffer, format, no);
-    
-    return num_column;
-#else
-    int c = 0;
-    if (is_zero_inserted){
-        for (i=0 ; i<num_space ; i++){
-            buffer[c++] = coding2utf16->num_str[0];
-            buffer[c++] = coding2utf16->num_str[1];
-        }
-    }
-    else{
-        for (i=0 ; i<num_space ; i++){
-            buffer[c++] = coding2utf16->space[0];
-            buffer[c++] = coding2utf16->space[1];
-        }
-    }
-    if (num_minus == 1){
-        buffer[c++] = coding2utf16->minus[0];
-        buffer[c++] = coding2utf16->minus[1];
-    }
-    c = (num_column-1)*2;
-    for (i=0 ; i<num_digit ; i++){
-        buffer[c] = coding2utf16->num_str[no % 10 * 2];
-        buffer[c + 1] = coding2utf16->num_str[no % 10 * 2 + 1];
-        no /= 10;
-        c -= 2;
-    }
-    buffer[num_column*2] = '\0';
+// #if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
+    if (english) {
+        if (num_minus == 1) no = -no;
+        char format[6];
+        if (is_zero_inserted)
+            sprintf(format, "%%0%dd", num_column);
+        else
+            sprintf(format, "%%%dd", num_column);
+        sprintf(buffer, format, no);
 
-    return num_column*2;
-#endif    
+        return num_column;
+    } else {
+// #else
+        int c = 0;
+        if (is_zero_inserted){
+            for (i=0 ; i<num_space ; i++){
+                buffer[c++] = coding2utf16->num_str[0];
+                buffer[c++] = coding2utf16->num_str[1];
+            }
+        }
+        else{
+            for (i=0 ; i<num_space ; i++){
+                buffer[c++] = coding2utf16->space[0];
+                buffer[c++] = coding2utf16->space[1];
+            }
+        }
+        if (num_minus == 1){
+            buffer[c++] = coding2utf16->minus[0];
+            buffer[c++] = coding2utf16->minus[1];
+        }
+        c = (num_column-1)*2;
+        for (i=0 ; i<num_digit ; i++){
+            buffer[c] = coding2utf16->num_str[no % 10 * 2];
+            buffer[c + 1] = coding2utf16->num_str[no % 10 * 2 + 1];
+            no /= 10;
+            c -= 2;
+        }
+        buffer[num_column*2] = '\0';
+
+        return num_column*2;
+    }
+// #endif    
 }
 
 int ScriptHandler::openScript(char *path)

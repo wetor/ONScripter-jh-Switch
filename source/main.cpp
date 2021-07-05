@@ -9,6 +9,7 @@
 
 void *mouse_png;
 int mouse_png_size;
+int english = 0;
 char return_path[256];
 
 
@@ -30,12 +31,12 @@ int main(int argc, char *argv[])
 	utils::printInfo("ONScripter-Jh for Nintendo Switch\n\n");
 
 	// argc = 3;
-	// argv[1] = (char*)"sdmc:/onsemu/onsen";
+	// argv[1] = (char*)"sdmc:/onsemu/tuskihime";
 	// argv[2] = (char*)"4";
 	char path[256];
 	int fullmode = 0;
 	int outline = 0;
-	int english = 0;
+
 	if (envHasArgv() && argc > 1)
 	{
 		strcpy(path, argv[1]);

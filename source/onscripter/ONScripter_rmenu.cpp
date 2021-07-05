@@ -33,31 +33,66 @@
 #define DIALOG_BUTTON_W 96
 #define DIALOG_BUTTON_H 42
 
-#if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
-#define MESSAGE_SAVE_EXIST "`%s%s    Date %s/%s    Time %s:%s"
-#define MESSAGE_SAVE_EMPTY "`%s%s    ------------------------"
-#define MESSAGE_SAVE_CONFIRM "`Save in slot %s%s?"
-#define MESSAGE_LOAD_CONFIRM "`Load from slot %s%s?"
-#define MESSAGE_RESET_CONFIRM "`Return to Title Menu?"
-#define MESSAGE_END_CONFIRM "`Quit?"
-#define MESSAGE_YES "Yes"
-#define MESSAGE_NO "No"
-#define MESSAGE_OK "OK"
-#define MESSAGE_CANCEL "Cancel"
-#else
+// #if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
+// #define MESSAGE_SAVE_EXIST "`%s%s    Date %s/%s    Time %s:%s"
+// #define MESSAGE_SAVE_EMPTY "`%s%s    ------------------------"
+// #define MESSAGE_SAVE_CONFIRM "`Save in slot %s%s?"
+// #define MESSAGE_LOAD_CONFIRM "`Load from slot %s%s?"
+// #define MESSAGE_RESET_CONFIRM "`Return to Title Menu?"
+// #define MESSAGE_END_CONFIRM "`Quit?"
+// #define MESSAGE_YES "Yes"
+// #define MESSAGE_NO "No"
+// #define MESSAGE_OK "OK"
+// #define MESSAGE_CANCEL "Cancel"
+// #else
 extern Coding2UTF16 *coding2utf16;
-#define MESSAGE_SAVE_EXIST coding2utf16->MESSAGE_SAVE_EXIST
-#define MESSAGE_SAVE_EMPTY coding2utf16->MESSAGE_SAVE_EMPTY
-#define MESSAGE_SAVE_CONFIRM coding2utf16->MESSAGE_SAVE_CONFIRM
-#define MESSAGE_LOAD_CONFIRM coding2utf16->MESSAGE_LOAD_CONFIRM
-#define MESSAGE_RESET_CONFIRM coding2utf16->MESSAGE_RESET_CONFIRM
-#define MESSAGE_END_CONFIRM coding2utf16->MESSAGE_END_CONFIRM
-#define MESSAGE_YES coding2utf16->MESSAGE_YES
-#define MESSAGE_NO coding2utf16->MESSAGE_NO
-#define MESSAGE_OK coding2utf16->MESSAGE_OK
-#define MESSAGE_CANCEL coding2utf16->MESSAGE_CANCEL
-#endif
+// #define MESSAGE_SAVE_EXIST coding2utf16->MESSAGE_SAVE_EXIST
+// #define MESSAGE_SAVE_EMPTY coding2utf16->MESSAGE_SAVE_EMPTY
+// #define MESSAGE_SAVE_CONFIRM coding2utf16->MESSAGE_SAVE_CONFIRM
+// #define MESSAGE_LOAD_CONFIRM coding2utf16->MESSAGE_LOAD_CONFIRM
+// #define MESSAGE_RESET_CONFIRM coding2utf16->MESSAGE_RESET_CONFIRM
+// #define MESSAGE_END_CONFIRM coding2utf16->MESSAGE_END_CONFIRM
+// #define MESSAGE_YES coding2utf16->MESSAGE_YES
+// #define MESSAGE_NO coding2utf16->MESSAGE_NO
+// #define MESSAGE_OK coding2utf16->MESSAGE_OK
+// #define MESSAGE_CANCEL coding2utf16->MESSAGE_CANCEL
+// #endif
 
+static char MESSAGE_SAVE_EXIST[64];
+static char MESSAGE_SAVE_EMPTY[64];
+static char MESSAGE_SAVE_CONFIRM[64];
+static char MESSAGE_LOAD_CONFIRM[64];
+static char MESSAGE_RESET_CONFIRM[64];
+static char MESSAGE_END_CONFIRM[64];
+static char MESSAGE_YES[32];
+static char MESSAGE_NO[32];
+static char MESSAGE_OK[32];
+static char MESSAGE_CANCEL[32];
+void ONScripter::initMenuText(){
+    if (english) {
+        strcpy(MESSAGE_SAVE_EXIST, "`%s%s    Date %s/%s    Time %s:%s");
+        strcpy(MESSAGE_SAVE_EMPTY, "`%s%s    ------------------------");
+        strcpy(MESSAGE_SAVE_CONFIRM, "`Save in slot %s%s?");
+        strcpy(MESSAGE_LOAD_CONFIRM, "`Load from slot %s%s?");
+        strcpy(MESSAGE_RESET_CONFIRM, "`Return to Title Menu?");
+        strcpy(MESSAGE_END_CONFIRM, "`Quit?");
+        strcpy(MESSAGE_YES, "Yes");
+        strcpy(MESSAGE_NO, "No");
+        strcpy(MESSAGE_OK, "OK");
+        strcpy(MESSAGE_CANCEL, "Cancel");
+    }else{
+        strcpy(MESSAGE_SAVE_EXIST, coding2utf16->MESSAGE_SAVE_EXIST);
+        strcpy(MESSAGE_SAVE_EMPTY, coding2utf16->MESSAGE_SAVE_EMPTY);
+        strcpy(MESSAGE_SAVE_CONFIRM, coding2utf16->MESSAGE_SAVE_CONFIRM);
+        strcpy(MESSAGE_LOAD_CONFIRM, coding2utf16->MESSAGE_LOAD_CONFIRM);
+        strcpy(MESSAGE_RESET_CONFIRM, coding2utf16->MESSAGE_RESET_CONFIRM);
+        strcpy(MESSAGE_END_CONFIRM, coding2utf16->MESSAGE_END_CONFIRM);
+        strcpy(MESSAGE_YES, coding2utf16->MESSAGE_YES);
+        strcpy(MESSAGE_NO, coding2utf16->MESSAGE_NO);
+        strcpy(MESSAGE_OK, coding2utf16->MESSAGE_OK);
+        strcpy(MESSAGE_CANCEL, coding2utf16->MESSAGE_CANCEL);
+    }
+}
 
 void ONScripter::enterSystemCall()
 {

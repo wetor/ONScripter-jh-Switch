@@ -592,7 +592,7 @@ int ONScripter::init()
 
 	// ----------------------------------------
 	// Initialize misc variables
-
+	initMenuText();
 	breakup_cells = NULL;
 	breakup_mask = breakup_cellforms = NULL;
 

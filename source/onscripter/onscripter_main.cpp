@@ -335,13 +335,11 @@ int OnsMain(int argc, char *argv[])
     }
 
     if (coding2utf16 == NULL) coding2utf16 = new GBK2UTF16();
-
     // ----------------------------------------
     // Run ONScripter
     if (ons.openScript()) return -1;
     if (ons.init()) return -1;
     ons.executeLabel();
-
 	return 0;
 
 }
