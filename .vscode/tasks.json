@@ -1,0 +1,45 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "make",
+            "args": [
+                "-j16"
+            ],
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build-j1",
+            "command": "make",
+            "args": [
+                ""
+            ],
+            "type": "shell"
+        },
+        {
+            "label": "clean",
+            "command": "make",
+            "args": [
+                "clean"
+            ],
+            "type": "shell"
+        },
+        {
+            "label": "push-nro",
+            "command": "/home/li/twib",
+            "args": [
+                "push",
+                "ONScripter.nro",
+                "/onsemu/ONS.nro"
+            ],
+            "type": "shell"
+        }
+    ]
+}

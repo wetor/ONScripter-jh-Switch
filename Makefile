@@ -10,6 +10,7 @@ GUI_OBJS = ONScripter.o \
 	ONScripter_lut.o \
 	ONScripter_rmenu.o \
 	ONScripter_sound.o \
+	ONScripter_video.o \
 	ONScripter_text.o \
 	AnimationInfo.o \
 	FontInfo.o \
@@ -32,12 +33,14 @@ DECODER_OBJS = DirectReader.o \
 
 
 ONSCRIPTER_OBJS = \
+	main.o \
+	Common.o \
 	onscripter_main.o \
 	$(DECODER_OBJS) \
 	ScriptHandler.o \
 	ScriptParser.o \
 	ScriptParser_command.o \
-	$(GUI_OBJS)
+	$(GUI_OBJS) \
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
@@ -80,9 +83,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	ONScripter
 BUILD		:=	build
-SOURCES		:=	.
+SOURCES		:=	source source/builtin_dll source/player source/reader source/onscripter
 DATA		:=	data
-INCLUDES	:=	.
+INCLUDES	:=	include SDL_kitchensink/Output/include
 EXEFS_SRC	:=	exefs_src
 CONFIG_JSON :=	ONScripter.json
 #---------------------------------------------------------------------------------
@@ -94,9 +97,9 @@ CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
-CFLAGS	+=	-DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
+CFLAGS	+= -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
-CFLAGS	+= -DUSE_BUILTIN_EFFECTS -DUSE_BUILTIN_LAYER_EFFECTS
+CFLAGS	+= -DUSE_BUILTIN_EFFECTSX -DUSE_BUILTIN_LAYER_EFFECTSX
 CFLAGS	+= -DUSE_PARALLEL
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
@@ -104,18 +107,19 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= \
-	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lSDL2main -lSDL2 \
-	-lfreetype -lbz2 -lpng -lz -ljpeg -lFLAC \
+LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil -lpthread \
+	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lopusfile -lopus -lSDL2main -lSDL2 \
+	-lbz2 -lass -lfribidi -ltheora -lvorbis \
+	-lfreetype -lpng -lz -ljpeg -lwebp \
 	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
-	-lvorbisidec -logg -lmpg123 -lmodplug  -lstdc++  \
+	-lvorbisidec -logg -lopus -lvpx -lmpg123 -lmodplug -lFLAC -lstdc++  \
 	-ltwili -lnx -lm 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/SDL_kitchensink/Output
 
 
 #---------------------------------------------------------------------------------
@@ -210,11 +214,13 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@ 
+	@cd SDL_kitchensink && mkdir -p build && cd build && cmake ..  && make -j8 install && cd ../..
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@cd SDL_kitchensink && rm -fr build && rm -fr Output && cd ..
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 
@@ -229,11 +235,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 
 
-all	:	$(OUTPUT).nsp $(OUTPUT).nro
+all	:	$(OUTPUT).nro
 
-$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
+#$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
 
-$(OUTPUT).nso	:	$(OUTPUT).elf
+#$(OUTPUT).nso	:	$(OUTPUT).elf
 
 ifeq ($(strip $(NO_NACP)),)
 $(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp

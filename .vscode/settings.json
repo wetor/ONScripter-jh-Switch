@@ -1,0 +1,51 @@
+{
+  "C_Cpp.dimInactiveRegions": true,
+  "C_Cpp.inactiveRegionBackgroundColor": null,
+  "C_Cpp.inactiveRegionForegroundColor": "#ffffff",
+  "C_Cpp.inactiveRegionOpacity": 0.5,
+  "C_Cpp.default.compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++",
+  "C_Cpp.default.systemIncludePath": [
+    "/opt/devkitpro/devkitA64/aarch64-none-elf"
+  ],
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/include",
+    "${workspaceFolder}/SDL_kitchensink/include",
+    "${workspaceFolder}/build",
+    "/opt/devkitpro/portlibs/switch/include/SDL2",
+    "/opt/devkitpro/portlibs/switch/include",
+    "/opt/devkitpro/libnx/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0/aarch64-none-elf",
+    "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/machine",
+    "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include-fixed"
+  ],
+  "C_Cpp.default.browse.path": [
+    "${workspaceFolder}/include",
+    "${workspaceFolder}/SDL_kitchensink/include",
+    "/opt/devkitpro/portlibs/switch/include/SDL2",
+    "/opt/devkitpro/portlibs/switch/include",
+    "/opt/devkitpro/libnx/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/8.3.0/aarch64-none-elf",
+    "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include",
+    "/opt/devkitpro/devkitA64/aarch64-none-elf/include/machine",
+    "/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/8.3.0/include-fixed"
+  ],
+  "C_Cpp.default.defines": [
+    "SWITCH",
+    "__SWITCH__",
+    "MOUSE",
+    "USE_SDL_RENDERER",
+    "NDEBUG",
+    "USE_OGG_VORBIS",
+    "USE_LUA",
+    "USE_SIMD_ARM_NEON",
+    "USE_SIMD",
+    "USE_BUILTIN_EFFECTS",
+    "USE_BUILTIN_LAYER_EFFECTS",
+    "USE_PARALLEL"
+  ]
+}
