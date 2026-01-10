@@ -344,3 +344,7 @@ BUGList.md
 .vscode/tasks.json
 .vscode/launch.json
 
+.opencode/command
+openspec
+AGENTS.md
+ONScripter-jh-Switch-*.zip

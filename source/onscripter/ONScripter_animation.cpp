@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ONScripter_animation.cpp - Methods to manipulate AnimationInfo
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
@@ -91,32 +91,39 @@ void ONScripter::proceedAnimation(int current_time)
             flushDirect(sprite_info[i].pos, refreshMode() | (draw_cursor_flag ? REFRESH_CURSOR_MODE : 0));
 
 #ifdef USE_LUA
+    // Optimized Lua animation callback from OnscripterYuri
+    // Moved setCurrent/readToken outside the loop to avoid repeated calls
     if (lua_handler.is_animatable && !script_h.isExternalScript())
     {
+        int tmp_event_mode = event_mode;
+        int tmp_next_time = next_time;
+        int tmp_string_buffer_offset = string_buffer_offset;
+
+        char *current = script_h.getCurrent();
         while (lua_handler.next_time <= current_time)
         {
-            int tmp_event_mode = event_mode;
-            int tmp_next_time = next_time;
-            int tmp_string_buffer_offset = string_buffer_offset;
-
-            char *current = script_h.getCurrent();
             if (lua_handler.isCallbackEnabled(LUAHandler::LUA_ANIMATION))
                 if (lua_handler.callFunction(true, "animation"))
                     errorAndExit(lua_handler.error_str);
-            script_h.setCurrent(current);
-            readToken();
 
-            string_buffer_offset = tmp_string_buffer_offset;
-            next_time = tmp_next_time;
-            event_mode = tmp_event_mode;
-
-            lua_handler.next_time += lua_handler.duration_time;
             if (lua_handler.duration_time <= 0)
             {
                 lua_handler.next_time = current_time;
                 break;
             }
+
+            // Exit the loop not to decrease the performance
+            // Skip multiple frames at once if we're behind
+            do {
+                lua_handler.next_time += lua_handler.duration_time;
+            } while (lua_handler.next_time <= current_time);
         }
+        script_h.setCurrent(current);
+        readToken();
+
+        string_buffer_offset = tmp_string_buffer_offset;
+        next_time = tmp_next_time;
+        event_mode = tmp_event_mode;
     }
 #endif
 
@@ -135,6 +142,10 @@ void ONScripter::proceedAnimation(int current_time)
                 dst_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
                 dst_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
             }
+
+            // Fix sometimes double cursor display (from OnscripterYuri)
+            if (dst_rect.w > dst_rect.h) dst_rect.w = dst_rect.h;
+
             flushDirect(dst_rect, refreshMode() | (draw_cursor_flag ? REFRESH_CURSOR_MODE : 0));
         }
     }
@@ -270,9 +281,9 @@ void ONScripter::setupAnimationInfo(AnimationInfo *anim, FontInfo *info)
             resizeSurface(src_s, surface);
             SDL_FreeSurface(src_s);
         }
-        
+
         anim->setImage(surface, texture_format);
-        
+
         if (surface_m)
             SDL_FreeSurface(surface_m);
     }
@@ -558,7 +569,7 @@ void ONScripter::loadCursor(int no, const char *str, int x, int y, bool abs_flag
     ai->scalePosXY(screen_ratio1, screen_ratio2);
     parseTaggedString(ai);
     setupAnimationInfo(ai);
-    
+
     //utils::printInfo("%s %d w:%d h:%d\n",ai->file_name,ai->image_surface!=NULL,ai->image_surface->w,ai->image_surface->h);
     if (filelog_flag)
         script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], ai->file_name, true); // a trick for save file

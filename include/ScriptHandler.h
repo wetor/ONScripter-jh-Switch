@@ -1,9 +1,11 @@
 /* -*- C++ -*-
- * 
+ *
  *  ScriptHandler.h - Script manipulation class
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
  *            (C) 2016-2018 jh10001 <jh10001@live.cn>
+ *            (C) 2022-2023 yurisizuku <https://github.com/YuriSizuku>
+ *            (C) 2019-2025 ONScripter-jh-Switch contributors
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -34,6 +36,14 @@
 
 #define IS_TWO_BYTE(x) \
         ( ((unsigned char)(x) > (unsigned char)0x80) && ((unsigned char)(x) !=(unsigned char) 0xff) )
+
+// UTF-8 byte length detection macro (from OnscripterYuri)
+// Returns the number of bytes for a UTF-8 character based on its first byte
+#define UTF8_N_BYTE(x) ( \
+    (((unsigned char)(x) & 0x80) == 0x00) ? 1 : ( \
+    (((unsigned char)(x) & 0xE0) == 0xC0) ? 2 : ( \
+    (((unsigned char)(x) & 0xF0) == 0xE0) ? 3 : ( \
+    (((unsigned char)(x) & 0xF8) == 0xF0) ? 4 : 0))))
 
 typedef unsigned char uchar3[3];
 
@@ -122,8 +132,8 @@ public:
     inline char *getStringBuffer(){ return string_buffer; };
     char *saveStringBuffer();
     void addStringBuffer( char ch );
-    
-    // function for direct manipulation of script address 
+
+    // function for direct manipulation of script address
     inline char *getCurrent(bool use_script=false){ return (use_script && is_internal_script)?last_script_context->current_script:current_script; };
     inline char *getNext(){ return next_script; };
     inline char *getWait(){ return wait_script?wait_script:next_script; };
@@ -180,7 +190,7 @@ public:
 
     ArrayVariable *getRootArrayVariable();
     void loadArrayVariable( FILE *fp );
-    
+
     void addNumAlias( const char *str, int no );
     void addStrAlias( const char *str1, const char *str2 );
 
@@ -207,7 +217,7 @@ public:
     } log_info[2];
     LogLink *findAndAddLog( LogInfo &info, const char *name, bool add_flag );
     void resetLog( LogInfo &info );
-    
+
     /* ---------------------------------------- */
     /* Variable */
     struct VariableData{
@@ -232,16 +242,16 @@ public:
         };
     };
     VariableData &getVariableData(int no);
-    
+
     VariableInfo current_variable, pushed_variable;
-    
+
     int screen_width;
     int screen_height;
     int variable_range;
     int global_variable_border;
 
     BaseReader *cBR;
-    
+
 private:
     enum { OP_INVALID = 0, // 000
            OP_PLUS    = 2, // 010
@@ -250,7 +260,7 @@ private:
            OP_DIV     = 5, // 101
            OP_MOD     = 6  // 110
     };
-    
+
     struct Alias{
         struct Alias *next;
         char *alias;
@@ -281,7 +291,7 @@ private:
             if (str)   delete[] str;
         };
     };
-    
+
     struct ScriptContext{
         ScriptContext *prev, *next;
         char *current_script;
@@ -320,7 +330,7 @@ private:
 
     Alias root_num_alias, *last_num_alias;
     Alias root_str_alias, *last_str_alias;
-    
+
     ArrayVariable *root_array_variable, *current_array_variable;
 
     char *archive_path;
@@ -328,7 +338,7 @@ private:
     int  script_buffer_length;
     char *script_buffer;
     unsigned char *tmp_script_buf;
-    
+
     char *string_buffer; // update only be readToken
     int  string_counter;
     char *saved_string_buffer; // updated only by saveStringBuffer

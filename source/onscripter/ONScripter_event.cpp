@@ -627,7 +627,7 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent _jaxis)
 	SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
 	if (_jaxis.axis >= 2) //right axis
 		return false;
-	
+
 	SDL_JoyAxisEvent jaxis[2] = {_jaxis, event.jaxis};
 	//event.jaxis.axis
 	enum
@@ -676,7 +676,7 @@ bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent _jaxis)
 				}
 			}
 		}
-		
+
 	}
 	if(axis)
 		warpMouse((int)(x + 0.5), (int)(y + 0.5));
@@ -1101,8 +1101,17 @@ void ONScripter::shiftCursorOnButton(int diff)
 	{
 		int x = button->select_rect.x + button->select_rect.w / 2;
 		int y = button->select_rect.y + button->select_rect.h / 2;
-		x = x * screen_device_width / screen_width;
-		y = y * screen_device_height / screen_height;
+
+		// Bounds checking from OnscripterYuri
+		if (x < 0) x = 0;
+		else if (x >= screen_width) x = screen_width - 1;
+		if (y < 0) y = 0;
+		else if (y >= screen_height) y = screen_height - 1;
+
+		// Add render_view_rect offset for proper coordinate mapping (from OnscripterYuri)
+		x = x * screen_device_width / screen_width + render_view_rect.x;
+		y = y * screen_device_height / screen_height + render_view_rect.y;
+
 		shift_over_button = button->no;
 		warpMouse(x, y);
 	}
@@ -1691,8 +1700,9 @@ void ONScripter::runEventLoop()
 			if (!btndown_flag && convTouchKey(event.tfinger))
 				return;
 #if defined(SWITCH)
-			tmp_event.motion.x = device_width * event.tfinger.x;
-			tmp_event.motion.y = device_height * event.tfinger.y;
+			// Add render_view_rect offset for proper coordinate mapping (from OnscripterYuri)
+			tmp_event.motion.x = (device_width * event.tfinger.x - render_view_rect.x) * screen_scale_ratio1;
+			tmp_event.motion.y = (device_height * event.tfinger.y - render_view_rect.y) * screen_scale_ratio2;
 #else
 			tmp_event.motion.x = device_width * event.tfinger.x - (device_width - screen_device_width) / 2;
 			tmp_event.motion.y = device_height * event.tfinger.y - (device_height - screen_device_height) / 2;
@@ -1724,8 +1734,9 @@ void ONScripter::runEventLoop()
 
 			convTouchKey(event.tfinger);
 #if defined(SWITCH)
-			tmp_event.motion.x = device_width * event.tfinger.x;
-			tmp_event.motion.y = device_height * event.tfinger.y;
+			// Add render_view_rect offset for proper coordinate mapping (from OnscripterYuri)
+			tmp_event.motion.x = (device_width * event.tfinger.x - render_view_rect.x) * screen_scale_ratio1;
+			tmp_event.motion.y = (device_height * event.tfinger.y - render_view_rect.y) * screen_scale_ratio2;
 #else
 			tmp_event.motion.x = device_width * event.tfinger.x - (device_width - screen_device_width) / 2;
 			tmp_event.motion.y = device_height * event.tfinger.y - (device_height - screen_device_height) / 2;
@@ -1739,8 +1750,9 @@ void ONScripter::runEventLoop()
 				if (SDL_GetNumTouchFingers(event.tfinger.touchId) >= 2)
 					tmp_event.button.button = SDL_BUTTON_RIGHT;
 #if defined(SWITCH)
-				tmp_event.motion.x = device_width * event.tfinger.x;
-				tmp_event.motion.y = device_height * event.tfinger.y;
+				// Add render_view_rect offset for proper coordinate mapping (from OnscripterYuri)
+				tmp_event.button.x = (device_width * event.tfinger.x - render_view_rect.x) * screen_scale_ratio1;
+				tmp_event.button.y = (device_height * event.tfinger.y - render_view_rect.y) * screen_scale_ratio2;
 #else
 				tmp_event.motion.x = device_width * event.tfinger.x - (device_width - screen_device_width) / 2;
 				tmp_event.motion.y = device_height * event.tfinger.y - (device_height - screen_device_height) / 2;
@@ -1769,8 +1781,9 @@ void ONScripter::runEventLoop()
 				if (num_fingers == 2)
 					tmp_event.button.button = SDL_BUTTON_RIGHT;
 #if defined(SWITCH)
-				tmp_event.motion.x = device_width * event.tfinger.x;
-				tmp_event.motion.y = device_height * event.tfinger.y;
+				// Add render_view_rect offset for proper coordinate mapping (from OnscripterYuri)
+				tmp_event.button.x = (device_width * event.tfinger.x - render_view_rect.x) * screen_scale_ratio1;
+				tmp_event.button.y = (device_height * event.tfinger.y - render_view_rect.y) * screen_scale_ratio2;
 #else
 				tmp_event.motion.x = device_width * event.tfinger.x - (device_width - screen_device_width) / 2;
 				tmp_event.motion.y = device_height * event.tfinger.y - (device_height - screen_device_height) / 2;

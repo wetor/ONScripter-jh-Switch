@@ -1,124 +1,277 @@
+# ONScripter-jh for Nintendo Switch
 
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/wetor/ONScripter-jh-Switch/releases)
+[![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)](COPYING)
+[![Platform](https://img.shields.io/badge/platform-Nintendo%20Switch-red.svg)]()
+[![Firmware](https://img.shields.io/badge/firmware-21.1.0-orange.svg)]()
 
-# **ONSCripter-jh for Nintendo Switch**
-## **简介**
-- ONScripter（Open Source Nscripter ）是一个用来解析NScripter脚本的第三方开源Galgame游戏引擎，可以在多种平台和设备上（Windows，Linux，FreeBSD，Android，iOS，Symbian……etc）上运行使用NScripter脚本编译的文字冒险类游戏。
-- ONScripter-Jh是jh10001在原有的ONS基础上进行修改，修改目标： 提供比原版ONScripter更好的性能，适当增加一些功能 添加中文支持 尽可能的兼容原版ONS脚本。
-- ONScripter-Jh for PSVita是wetor即本人移植的jh版的SDL2分支，用于在PSVita平台运行ONS游戏。
-- ONScripter-Jh for Switch是wetor即本人移植的jh版的SDL2分支，用于在Nintendo Switch平台运行ONS游戏。
+> 🎮 在 Nintendo Switch 上运行 NScripter/ONScripter 游戏的现代化模拟器
 
-## 博客链接
-https://blog.wetorx.cn/post/onscripter-ns.html
+---
 
-## 更新日志 Update logs
+## ✨ 特性
 
-### 2021.7.5
-- Support English games  
-  Install && Switch language: 
-  1. Put the "onsemu" in the "SDFile" folder into the root directory  of the sd card
-  2. Install "ONSBrowser-install-05293394190000.nsp"
-  3. Put the ONS games folder in "onsemu"
-  4. Run "ONScripter", and press joycon "Plus +" button, the first setting is language switching
-  5. Enjoy !
+- 🚀 **开箱即用** - 内置中文游戏浏览器，无需额外安装启动器
+- 🎯 **最新系统支持** - 完美支持 Atmosphere 固件 21.1.0+
+- 🖼️ **现代化界面** - 全中文 UI，触屏支持，操作流畅
+- ⚡ **高性能优化** - ARM NEON SIMD 加速，C++17 标准
+- 🎬 **完整功能** - 视频播放、Lua 脚本、存档管理
+- 📦 **极简安装** - 复制到 `switch` 目录即可使用
 
+---
 
-### 2021.7.3  GUI ver.2.0
-- **修复12.0以上系统无法打开的问题**
-- 修复退出游戏无法返回GUI并且报错的问题
+## 📥 快速开始
 
+### 1️⃣ 安装模拟器
 
-### 2019.10.3 GUI ver.1.1
-- 修复游戏数量小于5个时打开启动器错误的问题
-- 修复部分游戏存档错误问题
+将 `ONScripter.nro` 复制到 SD 卡：
 
-## 关于启动器GUI
-如截图1 2所示  
-这个启动器的界面是我从零开始写的，借鉴了很多开源的ns自制程序，当时c++编码能力，代码逻辑比较乱  
-https://github.com/wetor/ONS-Switch-GUI  
+```
+sdmc:/switch/ONScripter/ONScripter.nro
+```
 
-## **关于Switch版**
+### 2️⃣ 添加游戏
 
-  模拟器本体几个月前就完成了...做了个没什么用的浏览器，因为NS已经可以刷安卓了，这种模拟器当然不在话下，所以也没有继续完善的必要了。
+创建游戏目录并放入游戏文件：
 
-  NS比起PSV那孱弱的性能来说真的好太多了，稍微重写了一些地方，ONS就能运行了，也不会出现PSV那种因为IO速度限制导致的卡顿
+```
+sdmc:/onsemu/游戏名称/
+  ├─ 0.txt 或 00.txt (必需)
+  ├─ arc.nsa (资源包)
+  └─ 其他游戏文件...
+```
 
-与其继续研究这个，不如等国外的那个大佬把kirikiroid2移植完再说吧（krkr已经移植到NS了，github仓库名krkrs）。
+**注意**：游戏文件夹名称建议使用英文或拼音
 
-至于那个ONSBrowser，是用Plutonium自己写的，用了很长时间...纯属娱乐
+### 3️⃣ 启动游戏
 
-[**下载地址**](#下载地址)
+1. 从 HBMenu 打开 **ONScripter**
+2. 游戏浏览器会自动显示 `onsemu` 文件夹中的所有游戏
+3. 使用方向键或触屏选择游戏，按 A 键启动
 
-[**安装说明**](#安装说明)
+**就这么简单！**
 
-**ONS for Switch演示视频：https://www.bilibili.com/video/av68622183/**
+---
 
-**ONS for Switch项目：https://github.com/wetor/ONScripter-jh-Switch**
+## 🎮 操作说明
 
+### 游戏浏览器
 
-## **截图**
+| 操作     | 功能         |
+| -------- | ------------ |
+| ↑↓       | 上下选择游戏 |
+| A        | 启动游戏     |
+| B / +    | 退出         |
+| L / R    | 快速滚动     |
+| ZL / ZR  | 翻页         |
+| 触屏     | 点击选择     |
+| 双击触屏 | 启动游戏     |
 
-<img src="./screenshot/2.jpg" width="50%" height="50%" />
-<img src="./screenshot/3.jpg" width="50%" height="50%" />
-<img src="./screenshot/4.jpg" width="50%" height="50%" />
-<img src="./screenshot/5.jpg" width="50%" height="50%" />
-<img src="./screenshot/1.jpg" width="50%" height="50%" />
+### 游戏中
 
-## 下载地址
-**请先查看安装说明**
+| 操作   | 功能      |
+| ------ | --------- |
+| A      | 确认/前进 |
+| B      | 取消/返回 |
+| +      | 菜单      |
+| L      | 帮助      |
+| 左摇杆 | 移动光标  |
+| 触摸屏 | 点击操作  |
 
-**github下载: https://github.com/wetor/ONScripter-jh-Switch/releases/latest**
+---
 
-或者
+## 📋 系统要求
 
-**链接: https://pan.baidu.com/s/1lFaTjYLOPluEe8YFBPmW4w 提取码:e8q7**
+- ✅ Nintendo Switch（破解机）
+- ✅ Atmosphere 自制固件
+- ✅ 系统版本：9.0.0+（推荐 21.1.0）
+- ✅ SD 卡（用于存放游戏）
 
+---
 
-## 安装说明
-### **安装模拟器**
+## 🔧 版本信息
 
-1. 将SDFile文件夹中的onsemu放入内存卡根目录，即【和switch文件夹同级】
-2. 安装ONSBrowser-install-0529293394190000.nsp，桌面即可出现快捷方式。【安装时显示1.0版本，如已安装旧版本，可强制安装，或者先删除旧版再安装】
+| 组件     | 版本     |
+| -------- | -------- |
+| ONS NX   | 2.2.0    |
+| ONS JH   | 0.8.0    |
+| ONS Core | 20181218 |
+| NSC      | 2.96     |
+| 系统支持 | 21.1.0   |
+| C++ 标准 | C++17    |
 
-### **安装游戏**
+---
 
-- 从网上下载ONS游戏包，不区分平台，只要是ONScripter模拟器能运行的游戏资源就可以。
-- 检查游戏资源是否完整，简单的辨别方法：一定存在'0.txt'、'00.txt'、'nscript.dat'其中之一，可能存在'\*.nsa'、'\*.sar'文件，大部分存在'icon0.png'。
-- 将游戏资源文件夹（不允许存在二级目录）用英文字符重命名，不能用中文字符，放至SD卡的'onsemu'文件夹中，如'SDCard:/onsemu/Rewrite/00.txt'，文件夹名称将作为选择游戏时的重要标志，安装游戏完成。
-- 注1：游戏文件夹不能存在中文字符！不能中文！不能中文！否则将无法正常识别。
-- 注2：如以上均无误，但是启动游戏后出错，可以使用其他平台的ONS模拟器运行同一资源包实验，如其他平台均无问题，可向我反馈，需提供游戏资源包。
+## 📂 目录结构示例
 
+```
+sdmc:/
+├─ switch/
+│  └─ ONScripter/
+│     └─ ONScripter.nro       ← 模拟器主程序
+│
+└─ onsemu/                     ← 游戏目录
+   ├─ eden/                    ← 游戏1
+   │  ├─ 0.txt
+   │  ├─ arc.nsa
+   │  └─ ...
+   │
+   ├─ umineko/                 ← 游戏2
+   │  ├─ 0.txt
+   │  ├─ arc1.nsa
+   │  └─ ...
+   │
+   ├─ stdout.txt               ← 日志文件（自动生成）
+   └─ stderr.txt               ← 错误日志（自动生成）
+```
 
-## 使用说明
+---
 
-- ONSBrowser中对快捷键均有说明，可在选择游戏前按下L键查看帮助。
-- 目前Y键的查看详细信息、X键的浏览游戏资源、R键的视频播放器功能均未实现，有生之年在加上，去掉了不好看，按钮就留着了= =。
-- 关于游戏名称显示问题，ONSBrowser显示的均是文件夹名称，实际名称由于编码问题无法正常显示。
-- 部分游戏由于脚本问题，按键效果可能不会太符合，但大多数都是没错的。
+## 🎯 新版本更新
 
-## 快速启动
-### **制作游戏的单独前端**
+### Version 2.2.0 (2025.01.11)
 
-[使用Releases中附带的工具](https://github.com/wetor/ONScripter-jh-Switch/releases/latest)
+- ✅ **全新统一架构** - 内置游戏浏览器，无需外部启动器
+- ✅ **系统支持升级** - 完美兼容 Atmosphere 21.1.0
+- ✅ **界面全面汉化** - 中文 UI，操作更直观
+- ✅ **布局优化** - 游戏信息显示清晰，不再重叠
+- ✅ **安装简化** - 单文件部署，复制即用
+- ✅ **性能优化** - C++17 标准，更好的编译优化
+- ✅ **日志系统** - 多级别日志输出，便于调试
+- ✅ **代码现代化** - 清理遗留代码，提升稳定性
 
-工具来源：https://gitlab.com/martinpham/NSP-Forwarder
+---
 
-### **修改源代码**
-修改模拟器源代码，将游戏资源打包进romfs，即可实现独立游戏的打包。
+## 🛠️ 开发编译
 
-**libnx版本：4.0.1-1**
+### 环境准备
 
-## **相关链接**
-原版ONScripter官网：https://onscripter.osdn.jp/onscripter.html
+```bash
+# 安装 devkitPro
+# macOS: brew install devkitpro-pacman
+# Linux: https://devkitpro.org/wiki/Getting_Started
 
-ONScripter-Jh项目：https://bitbucket.org/jh10001/onscripter-jh
+# 安装依赖
+sudo dkp-pacman -S switch-dev switch-sdl2 switch-sdl2_ttf \
+                  switch-sdl2_image switch-sdl2_mixer \
+                  switch-ffmpeg switch-libass
+```
 
-ONS for PSVita：http://www.wetor.top/onscripter-psvita.html
+### 编译步骤
 
-ONS for PSVita项目：https://github.com/wetor/ONScripter-jh-PSVita
+```bash
+# 克隆项目
+git clone https://github.com/wetor/ONScripter-jh-Switch.git
+cd ONScripter-jh-Switch
 
-**ONS for Switch演示视频：https://www.bilibili.com/video/av68622183/**
+# 初始化子模块
+git submodule update --init --recursive
 
-**ONS for Switch项目：https://github.com/wetor/ONScripter-jh-Switch**
+# 编译
+make -j$(nproc)
+```
 
-**ONS for Switch发布页：http://www.wetor.top/onscripter-ns.html**
+输出文件：`ONScripter.nro`
 
+---
+
+## 🎮 游戏资源
+
+### 获取游戏
+
+ONScripter 可运行大部分使用 NScripter 引擎的游戏：
+
+- 从网上寻找 ONScripter 兼容的游戏资源包
+- 不区分平台，只要是 ONScripter 格式即可
+- 支持中文、日文、英文游戏
+
+### 验证游戏完整性
+
+游戏文件夹必须包含以下文件之一：
+
+- `0.txt` 或 `00.txt`（脚本文件）
+- `nscript.dat`（编译后的脚本）
+
+可能包含的资源文件：
+
+- `*.nsa` - NSA 压缩档案
+- `*.sar` - SAR 压缩档案
+- `*.jpg`, `*.png` - 图片资源
+- `*.ogg`, `*.mp3` - 音频资源
+
+---
+
+## 🐛 故障排除
+
+### 游戏无法识别
+
+1. 检查游戏文件夹中是否存在 `0.txt` 或 `00.txt`
+2. 确认文件夹放在 `sdmc:/onsemu/` 目录下
+3. 游戏文件夹名称避免使用特殊字符
+
+### 游戏无法启动
+
+1. 查看 `sdmc:/onsemu/stdout.txt` 和 `stderr.txt` 日志
+2. 尝试在其他平台的 ONScripter 测试同一游戏包
+3. 确认游戏资源完整
+
+### 其他问题
+
+- 检查系统固件版本是否为 9.0.0+
+- 确保 SD 卡有足够空间
+- 重新下载最新版本模拟器
+
+---
+
+## 📖 相关链接
+
+| 项目            | 链接                                                   |
+| --------------- | ------------------------------------------------------ |
+| 项目主页        | https://github.com/wetor/ONScripter-jh-Switch          |
+| 发布下载        | https://github.com/wetor/ONScripter-jh-Switch/releases |
+| 问题反馈        | https://github.com/wetor/ONScripter-jh-Switch/issues   |
+| 原版 ONScripter | https://onscripter.osdn.jp/                            |
+| ONScripter-jh   | https://bitbucket.org/jh10001/onscripter-jh            |
+| PSVita 移植版   | https://github.com/wetor/ONScripter-jh-PSVita          |
+
+---
+
+## 📝 许可证
+
+本项目基于 **GNU General Public License v2.0** 开源。
+
+详见 [COPYING](COPYING) 文件。
+
+---
+
+## 👥 贡献者
+
+- **Ogapee** - ONScripter 原作者
+- **jh10001** - ONScripter-jh 维护者
+- **YuriSizuku** - Switch 移植基础工作
+- **Wetor** - 早期 Switch 移植
+- **ONScripter-jh Contributors** - 现代化更新与维护
+
+---
+
+## 💬 问题反馈
+
+遇到问题？请在 [GitHub Issues](https://github.com/wetor/ONScripter-jh-Switch/issues) 提交反馈。
+
+**提交时请包含**：
+
+- Switch 系统版本
+- Atmosphere 版本
+- 游戏名称
+- 错误日志（`stdout.txt` 和 `stderr.txt`）
+- 详细的复现步骤
+
+---
+
+## ⭐ Star History
+
+如果这个项目对你有帮助，请给个 Star ⭐
+
+---
+
+**享受你的 Switch 视觉小说之旅！** 🎮✨

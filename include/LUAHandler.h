@@ -24,7 +24,12 @@
 #if !defined(__LUA_HANDLER_H__) && defined(USE_LUA)
 #define __LUA_HANDLER_H__
 
-#include <lua.hpp>
+// lua.hpp is not always available, use C headers with extern "C"
+extern "C" {
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+}
 
 class ONScripter;
 class ScriptHandler;
@@ -43,11 +48,11 @@ public:
            LUA_RESET,
            MAX_CALLBACK
     };
-           
+
     LUAHandler();
     ~LUAHandler();
 
-    void init(ONScripter *ons, ScriptHandler *sh, 
+    void init(ONScripter *ons, ScriptHandler *sh,
               int screen_ratio1, int screen_ratio2);
     void loadInitScript();
     void addCallback(const char *label);
@@ -59,7 +64,7 @@ public:
     bool is_animatable;
     int duration_time;
     int next_time;
-    
+
     //private:
     ONScripter *ons;
     lua_State *state;
@@ -67,7 +72,7 @@ public:
     int screen_ratio1, screen_ratio2;
 
     char error_str[256];
-    
+
     bool callback_state[MAX_CALLBACK];
 };
 
