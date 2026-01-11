@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/gameconfig_background"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/button_stretchfull"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="stretch fullscreen" />
+
+        <CheckBox
+            android:id="@+id/button_ignorecutout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="ignore cutout (android 9 +)" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/button_gles2sharpness"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="use gles2 sharpness (hardware renderer)" />
+
+        <EditText
+            android:id="@+id/text_gles2sharpness"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.2"
+            android:ems="10"
+            android:inputType="number|textPersonName|numberDecimal"
+            android:text="10.0" />
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/button_disablevideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="disable video (skip video command)" />
+
+    <CheckBox
+        android:id="@+id/button_scopedsavedir"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="savedir in scoped storage (if gamedir readonly)" />
+
+    <CheckBox
+        android:id="@+id/button_alloweditargs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="allow edit start args (for debug and custom command)" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <RadioGroup
+            android:id="@+id/group_encoding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/button_gbk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="gbk" />
+
+            <RadioButton
+                android:id="@+id/button_sjis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="sjis" />
+
+            <RadioButton
+                android:id="@+id/button_utf8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="utf8" />
+        </RadioGroup>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/teal_200" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="3dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autoLink="web"
+                android:text="https://github.com/YuriSizuku/OnscripterYuri" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:gravity="right"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_checkupdate"
+                    style="@style/Widget.AppCompat.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="#00C853"
+                    android:text="Check Update"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp" />
+
+                <Button
+                    android:id="@+id/button_about"
+                    style="@style/Widget.AppCompat.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="#00C853"
+                    android:text="About"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_version"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="@string/app_version"
+            android:textColor="#0091EA"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+</LinearLayout>

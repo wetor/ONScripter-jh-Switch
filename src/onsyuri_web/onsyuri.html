@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta onsyuri_js="onsyuri.js">
+        <meta onsyuri_index="onsyuri_index.json">
+        <title>Onscripter Yuri v0.7.6</title>
+    </head>
+    <body style="margin: 0 auto; background-color:black;">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" style="margin: 0 auto; display: block;"></canvas> 
+        <video id="video" onended="videoEnded()" style="margin: 0 auto; display: none;"></video>        
+        <script type="text/javascript"> // browser universe function
+            function scale_full(docobj, ratio=0) {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+                if(ratio>0) {
+                    if(w/h > ratio) {
+                        docobj.style.width  = h * ratio  + "px";
+                        docobj.style.height = h + "px";
+                    }
+                    else {
+                        docobj.style.width  = w  + "px";
+                        docobj.style.height = w / ratio + "px";
+                    }
+                }
+                else {
+                    docobj.style.width  = w + "px";
+                    docobj.style.height = h + "px";
+                }
+                return {w: docobj.style.width, h: docobj.style.height}
+            }
+            
+            async function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async function send_worker(worker, data) {
+                worker.postMessage(data);
+                return new Promise((res)=>{
+                    worker.onmessage = (event)=>{
+                        res(event.data);
+                    };
+                })
+            };
+
+            async function load_json(url) {
+                return new Promise((res)=>{
+                    fetch(url).then((res)=>res.json())
+                    .then((json)=>(res(json)));
+                })
+            }
+
+            async function load_js(url) {
+                var script = document.createElement('script');
+                script.type = "text/javascript";
+                script.src = url;
+                document.getElementsByTagName("body")[0].appendChild(script);
+                return new Promise((res)=>{
+                    script.onload = () =>{
+                        res(1);
+                    }
+                })
+            }
+
+            async function download_data (name, data) {
+                var blob = new Blob([data], {type:'application/octet-stream'});
+                var e = document.createEvent('MouseEvents');
+                var a = document.createElement('a');
+                a.download = name;
+                a.href = window.URL.createObjectURL(blob);
+                a.dataset.downloadurl = ['application/octet-stream', a.download, a.href].join(':');
+                e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(e);
+            }
+
+            async function upload_data() {
+                return new Promise((res, rej) => {
+                    var i = document.createElement('input');
+                    i.type = 'file';
+                    i.addEventListener('change', () => {
+                        var file = i.files[0];
+                        var reader = new FileReader();
+                        reader.onload = (e) => {
+                            return res(e.target.result)
+                        };
+                        reader.readAsArrayBuffer(file);
+                    });
+                    i.click(); //can not open without user click
+                });
+            }
+        </script>
+        
+        <script type="text/javascript" src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+        <script type="text/javascript"> // onsyuri web function 
+            function em_mkdirs(_FS, path) {
+                var tmpdir="";
+                var arr = path.split('/');
+                for(i in arr)
+                {
+                    tmpdir += arr[i] +"/";
+                    if(arr[i]=="") continue;
+                    try{
+                        _FS.mkdir(tmpdir);
+                    }
+                    catch{};
+                }
+            }
+
+            function em_lsfiles(_FS, top) {
+                var files = [];
+                var paths = _FS.readdir(top);
+                for(let i=0; i < paths.length; i++) {
+                    paths[i] = top + "/" + paths[i];
+                }
+                while(paths.length > 0) {
+                    path = paths.pop();
+                    if(path.endsWith(".") || path.endsWith("..")) continue;
+                    const stat = _FS.stat(path);
+                    if (_FS.isDir(stat.mode)) {
+                        let tmppaths = _FS.readdir(path);
+                        for (let i=0; i<tmppaths.length; i++) {
+                            paths.push(path + "/" + tmppaths[i]);
+                        }
+                    }
+                    else if (_FS.isFile(stat.mode)) {
+                        files.push(path);   
+                    }
+                    else if (_FS.isLink(stat.mode)) {
+                        // not consider symbol link here
+                    }
+                }
+                return files;
+            }
+
+            function em_export(_FS, paths, name="export.zip") {
+                var zip = new JSZip();
+                for (let i=0; i<paths.length; i++) {
+                    var data = _FS.readFile(paths[i]);
+                    zip.file(paths[i], data, {binary: true});
+                    console.log("## onsyuri_fs: em_export", paths[i]);
+                }
+                zip.generateAsync({type : "arraybuffer"})
+                .then(function(data) {
+                    download_data(name, data);
+                });
+            }
+
+            function em_import(_FS, data) {
+                JSZip.loadAsync(data)
+                .then((zip) => {
+                    zip.forEach((path, obj) => {
+                        if(obj.dir) {
+                            em_mkdirs(_FS, path);
+                        }
+                        else {
+                            obj.async("arraybuffer")
+                            .then((buf) => {
+                                _FS.writeFile(path, new Uint8Array(buf));
+                                console.log("## onsyuri_fs: em_import", path);
+                            });
+                        }
+                    });
+                })
+            }
+
+            // mount --gamedir other by preload or lazyload
+            function mount_game(_FS, gamedir, files, urlbase="", lazyload=false) {
+                console.log("## onsyuri_fs: mount_onsgame", gamedir);
+                var filemap = {}
+                
+                if(gamedir[gamedir.length-1] =="/" ) 
+                    gamedir=gamedir.substring(0, gamedir.length-1);
+
+                if(urlbase[urlbase.length-1] == "/")
+                    urlbase=urlbase.substring(0, urlbase.length-1);
+
+                for(i in files) {
+                    var path = files[i].path;
+                    var url = files[i].url;
+                    var file_lazyload = files[i].lazyload;
+                    var j = path.lastIndexOf("/");
+                    var filename =path.substring(j+1);
+                    var filedir = path.substring(0, j);
+                    var basedir = gamedir + "/" + filedir;
+                    if(basedir[basedir.length-1]!="/") basedir+="/";
+                    if(url==undefined || url.length==0)
+                    {
+                        if (path[0]=="/") url = urlbase + path;
+                        else url = urlbase + "/" + path;
+                    }
+
+                    // console.log(path, url, file_lazyload);
+                    em_mkdirs(_FS, basedir);
+                    if(file_lazyload==undefined) file_lazyload = lazyload;
+                    if(file_lazyload){ // pay attension to the case sensitive!
+                        var key = basedir + filename;
+                        filemap[key.toLowerCase()] = {url: url, loaded:false};
+                    }
+                    else {
+                        _FS.createPreloadedFile(basedir, filename, url, true, false);
+                    }
+                }
+                return filemap;
+            }
+
+            // mount --gamedir using BrowserFS with lazyload, 
+            // deprecated as sync block sound problems
+            function mount_game2(_module, gamedir, lazyindex, urlbase) {
+                console.log("## onsyuri_fs: mount_onsgame2", gamedir);
+                var _FS=_module.FS;
+                _module.addRunDependency("onsgamefs");
+                
+                var brewfs =  new BrowserFS.FileSystem.MountableFileSystem();
+                var xhrfs = new BrowserFS.FileSystem.XmlHttpRequest(lazyindex, urlbase);
+                window.xhrfs = xhrfs;
+                window.brewfs = brewfs;
+                brewfs.mount('/xhrfs', xhrfs);
+                BrowserFS.initialize(brewfs);
+                var BREWFS = new BrowserFS.EmscriptenFS(_module.FS, _module.PATH); 
+                
+                em_mkdirs(_FS, gamedir);
+                _FS.mount(BREWFS, {root: "/xhrfs"}, gamedir);
+                _module.removeRunDependency("onsgamefs")
+            }
+
+            // mount --savedir using IDBFS
+            function mount_save(_FS, _IDBFS, savedir) {
+                console.log("## onsyuri_fs: mount_onssave", savedir);
+                em_mkdirs(_FS, savedir);
+                _FS.mount(_IDBFS, {}, savedir);
+                _FS.syncfs(true, (err)=>{
+                    if(err) console.log(err);
+                });
+            }
+        </script>
+        
+        <script type="text/javascript"> // onsyuri C interface of val or function
+            
+            // flush the savedir to IDFBFS for persistence
+            function flush_save() { 
+                g_onsyuri_module.FS.syncfs(false, (err)=>{
+                    if(err) console.log(err);
+                    else console.log("## onsyuri_fs: flush_save, sync finished");
+                });
+            }
+
+            // fetch file from the remote server, and write them to local fs
+            async function fetch_file(_FS, path, filemap) {
+                var fnode = filemap[path];
+                return new Promise((res)=>{
+                    if(!fnode){
+                        res(0);
+                    }
+                    else{
+                        if(fnode.loaded) res(1);
+                        fetch(fnode.url).then( (resp)=>{
+                            return resp.arrayBuffer();
+                        }).then((data)=>{
+                            _FS.writeFile(path, new Uint8Array(data));
+                            fnode.loaded = true;
+                            res(1);
+                        }).catch((err)=>{
+                            console.log("## fetch_file ${path}", err);
+                            res(-1);
+                        })
+                    }
+                })
+            }
+    
+            const ONSYURI_PREFIX = ""; // prefix for mount, not used 
+            const ONSYURI_INDEX_URL = document.querySelector( // the url to load onsyuri_index.json
+                'meta[onsyuri_index]').attributes.onsyuri_index.textContent;
+            const ONSYURI_JS_URL = document.querySelector(
+                'meta[onsyuri_js]').attributes.onsyuri_js.textContent;
+            var g_onsyuri_index = {}; // onsyuri_index.json, game file index
+            var g_onsyuri_filemap = {}; // filemap to record status of loaded files, used for lazyload
+            var g_onsyuri_module  = {}; // onsyuri c module, FS and configure are here
+
+        </script>
+
+        <script type="text/javascript"> // onsyuri module
+            g_onsyuri_module.canvas = (()=>{return document.getElementById('canvas');})();
+            g_onsyuri_module.preRun = () => {
+                console.log("## onsyuri: preRun");
+                var lazyload = false;
+                var urlbase = window.location.href;
+                urlbase = urlbase.substring(0, urlbase.lastIndexOf("/") + 1);
+                
+                // lazyindex is deprecated as the sync sound problem
+                if(g_onsyuri_index.lazyindex && g_onsyuri_index.lazyindex!=""){
+                    mount_onsgame2(g_onsyuri_module, g_onsyuri_index.gamedir, 
+                        g_onsyuri_index.lazyindex, urlbase);
+                }
+                else{
+                    lazyload = g_onsyuri_index.lazyload||lazyload;
+                    window.g_onsyuri_filemap = mount_game(
+                        g_onsyuri_module.FS, g_onsyuri_index.gamedir, 
+                        g_onsyuri_index.files, urlbase, lazyload
+                    );
+                }
+                mount_save(g_onsyuri_module.FS, g_onsyuri_module.IDBFS, g_onsyuri_index.savedir);
+            };
+            g_onsyuri_module.onRuntimeInitialized = () => {
+                console.log("## onsyuri: onRuntimeInitialized");
+            };
+            
+            (async() => {
+                //return
+                g_onsyuri_index = await load_json(ONSYURI_INDEX_URL);
+                await load_js(ONSYURI_JS_URL); // dynamic load onsyuri.js
+                await onsyuri(g_onsyuri_module);
+
+                var args = [
+                    "--root", ONSYURI_PREFIX + g_onsyuri_index.gamedir, 
+                    "--font",  ONSYURI_PREFIX + g_onsyuri_index.gamedir + "/default.ttf", 
+                    "--save-dir", g_onsyuri_index.savedir
+                ];
+                args = args.concat(g_onsyuri_index.args);
+                console.log("## onsyuri: args", args);
+                g_onsyuri_module.callMain(args);
+            })();
+        </script>
+
+        <script type="text/javascript"> // onsyuri ui
+            var g_fullstrech = false;
+            var g_screen_height, g_screen_width; // initial in onsyuri C code
+            var g_lastpressdown; // for longpress 
+            const LONG_CLICK_TIME = 1200;
+
+            function toggle_stretchfull() {
+                g_fullstrech = !g_fullstrech;
+                window.dispatchEvent(new Event('resize'));
+            }
+
+            function toggle_screenfull() {
+                var body = document.getElementsByTagName('body')[0];
+                if(window.innerHeight != screen.height) {
+                    body.requestFullscreen({ navigationUI: "show" })
+                    .then(()=>{ // can not use canvas.requestFullscreen
+                        console.log("## after requestFullscreen");
+                    });
+                }
+                else {
+                    document.exitFullscreen();
+                }
+            }
+
+            function toggle_onsmenu(){
+                var canvas = document.getElementById('canvas');    
+                var event = new KeyboardEvent("keydown", 
+                    {bubbles: true, cancelable: true, keyCode: 0x1B}); // ESC key
+                canvas.dispatchEvent(event);
+                setTimeout(() => {
+                    var event = new KeyboardEvent("keyup", 
+                    {bubbles: true, cancelable: true, keyCode: 0x1B}); // ESC key
+                    canvas.dispatchEvent(event);
+                }, 50);
+            }
+
+            var g_skip = false;
+            function toggle_skip() {
+                g_skip = !g_skip;
+                var canvas = document.getElementById('canvas');    
+                var event = new KeyboardEvent(g_skip ? "keydown": "keyup", 
+                    {bubbles: true, cancelable: true, keyCode: 0x11}); // ctrl key
+                canvas.dispatchEvent(event);
+            }
+
+            function toggle_webinfo() {
+                var onsyuri_webinfo = document.getElementById("onsyuri_webinfo");
+                if(onsyuri_webinfo.style.display=="none") {
+                    var first_line = onsyuri_webinfo.getElementsByTagName("p")[0];
+                    first_line.innerText = `In Game <${g_onsyuri_index.title}>`
+                    onsyuri_webinfo.style.display="block";
+                }
+                else{
+                    onsyuri_webinfo.style.display="none";
+                }
+            }
+
+            function toggle_webmenu() {
+                var onsyuri_webrmenu = document.getElementById("onsyuri_webrmenu");
+                if(onsyuri_webrmenu.style.display=="none") {
+                    onsyuri_webrmenu.style.display = "block";
+                }
+                else {
+                    var onsyuri_webinfo = document.getElementById("onsyuri_webinfo");
+                    onsyuri_webinfo.style.display = "none";
+                    onsyuri_webrmenu.style.display = "none";
+                }
+            }
+
+            function click_export() {
+                var files = em_lsfiles(g_onsyuri_module.FS, g_onsyuri_index.savedir);
+                em_export(g_onsyuri_module.FS, files);
+            }
+
+            async function click_import() {
+                var data = await upload_data();
+                em_import(g_onsyuri_module.FS, data);
+            }
+
+            window.onresize = (event) => {
+                var canvas = document.getElementById('canvas');
+                var ratio = g_fullstrech ? window.innerWidth/window.innerHeight: g_screen_width/g_screen_height;
+                scale_full(canvas, ratio);
+            };
+
+            window.onkeydown = (event) => {
+                switch(event.key) {
+                    case "F2":
+                        toggle_webinfo();
+                        break;
+                    case "F3":
+                        click_export();
+                        break;
+                    case "F4":
+                        click_import();
+                        break;
+                    case "F9":
+                        toggle_webmenu();
+                        break;
+                    case "F10":
+                        toggle_stretchfull();
+                        break;
+                    case "F11":
+                        toggle_screenfull();
+                        break;
+                }
+            }
+
+            window.onmousedown = (event) => {
+                if(event.button==0){
+                    g_lastpressdown = event.timeStamp;
+                }
+            }
+
+            window.onmouseup = (event) => {
+                if(event.button==0){
+                    if(event.timeStamp - g_lastpressdown > LONG_CLICK_TIME) {
+                        var onsyuri_webrmenu = document.getElementById("onsyuri_webrmenu");
+                        if(onsyuri_webrmenu.style.display=="none") toggle_webmenu();
+                        g_lastpressdown = event.timeStamp;
+                    }
+                }
+            }
+
+            window.ontouchstart = (event) => {
+                g_lastpressdown = event.timeStamp;
+            }
+
+            window.ontouchend = (event) => {
+                if(event.timeStamp - g_lastpressdown > LONG_CLICK_TIME) {
+                    var onsyuri_webrmenu = document.getElementById("onsyuri_webrmenu");
+                    if(onsyuri_webrmenu.style.display=="none") toggle_webmenu();
+                    g_lastpressdown = event.timeStamp;
+                }
+            }
+
+            window.onmessage = (evnet)=> {
+                console.log("## onsyuri: onmessage ", event.data);
+                if(!event.data) return;
+                switch(event.data) {
+                    case "onsinit":
+                        var body = document.getElementsByTagName("body")[0];
+                        var onsyuri_webinfo = document.getElementById("onsyuri_webinfo");
+                        if(body) body.style.background = "black";
+                        if(onsyuri_webinfo) onsyuri_webinfo.style.display = "none";
+                        break;
+                }
+            }
+        </script>
+        
+        <script type="text/javascript"> // onsyuri video 
+            const video=document.getElementById("video");
+
+            function videoEnded(){
+                g_onsyuri_module.canvas.style.display="block";
+                video.style.display="none";
+                if (video.src && video.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(video.src);
+                    video.src='';
+                }
+                g_onsyuri_module.wait_video=false;
+            }
+
+            function playVideo(path, click_flag, loop_flag){
+                g_onsyuri_module.wait_video=true;
+                const fileData = g_onsyuri_module.FS.readFile(path, {flags:'r',encoding:'binary'});
+                const videoBlob = new Blob([fileData.buffer], { type: 'video/mp4' });
+                const videoUrl = URL.createObjectURL(videoBlob);
+                video.src = videoUrl;
+
+                g_onsyuri_module.canvas.style.display="none";
+                video.style.display="block";
+
+                video.onclick=click_flag?videoEnded:null;
+                video.loop=loop_flag;
+
+                video.play();
+            }
+
+            video.addEventListener('error', function(event) {
+                console.error('The video failed to load: ', event);
+                videoEnded();
+            });
+
+        </script>
+
+        <style>
+            #onsyuri_webinfo {
+                position: fixed; 
+                display: block;
+                border-radius: 10px;
+                top: 17%;
+                left: 0;
+                right: 0; 
+                margin-left:auto;
+                margin-right: auto; 
+                min-width: 300px;
+                max-width: 400px;
+                text-align: left;
+                color: snow;    
+                background: cornflowerblue;
+            }
+
+            #onsyuri_webinfo p {
+                margin-left: 10%; 
+                margin-right: 10%;
+            }
+
+            #onsyuri_webrmenu {
+                position: fixed; 
+                display: block;
+                border-radius: 10px;
+                top: 10%;
+                left: 0;
+                right: 0; 
+                margin-left:auto;
+                margin-right: auto; 
+                min-width: 400px;
+                max-width: 800px;
+                text-align: center;
+                color: snow;
+            }
+
+            #onsyuri_webrmenu button {
+                border: 1px solid;
+                border-radius: 0.3em;
+                background: #00bcd4;
+                border-color: #00bcd4;
+                color: white;
+                font-size: larger;
+                outline: none;
+            }
+
+            #onsyuri_webrmenu button:hover {
+                background: #16e5ff;
+                border-color: #16e5ff;
+            }
+        </style>
+        
+        <div id="onsyuri_webinfo">
+            <p> Loading game resources ... </p>
+            <p> Powered by <a href="https://github.com/YuriSizuku/OnscripterYuri" target="_blank"> Onscripter Yuri</a> v0.7.6</p>
+            <hr>
+            <p> [Right|Long Click|F9]: show menu </p>
+            <p> [F10]: stretch full; [F11]: screen full</p>
+        </div>
+
+        <div id="onsyuri_webrmenu" style="display: none;">
+            <button onclick="toggle_stretchfull()">sfull[F10]</button>
+            <button onclick="toggle_screenfull()">full[F11]</button>
+            <button onclick="toggle_onsmenu()">menu[Esc]</button>
+            <button onclick="toggle_skip()">skip[Ctrl]</button>
+            <button onclick="click_export()">export[F3]</button>
+            <button onclick="click_import()">import[F4]</button>
+            <button onclick="toggle_webinfo()">about[F2]</button>
+            <button onclick="toggle_webmenu()">close[F9]</button>
+        </div>
+    </body>
+</html>

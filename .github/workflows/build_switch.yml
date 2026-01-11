@@ -1,0 +1,110 @@
+name: Build Nintendo Switch
+
+on:
+  push:
+    tags: ['v*']
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build tests
+        run: |
+          cd tests
+          make all
+
+      - name: Run tests
+        run: |
+          cd tests
+          make test
+
+  build_switch:
+    runs-on: ubuntu-latest
+    needs: test
+    container:
+      image: devkitpro/devkita64:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Switch dependencies
+        run: |
+          dkp-pacman -Sy --noconfirm \
+            switch-sdl2 \
+            switch-sdl2_ttf \
+            switch-sdl2_image \
+            switch-sdl2_mixer \
+            switch-libpng \
+            switch-libjpeg-turbo \
+            switch-libwebp \
+            switch-freetype \
+            switch-harfbuzz \
+            switch-zlib \
+            switch-bzip2 \
+            switch-libogg \
+            switch-libvorbisidec \
+            switch-libmodplug \
+            switch-mpg123 \
+            switch-opusfile \
+            switch-liblua51
+
+      - name: Update version in source
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          sed -i -E "s/#define ONS_YURI_VERSION \"(.+?)\"/#define ONS_YURI_VERSION \"${VERSION}\"/g" src/onsyuri/version.h
+
+      - name: Build Switch NRO
+        run: |
+          make -f Makefile.switch -j$(nproc)
+
+      - name: Prepare release artifact
+        run: |
+          mkdir -p release
+          cp onsyuri.nro release/ONScripter_Switch.nro
+          cp README.md release/
+          cp COPYING release/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ONScripter-Switch
+          path: release/
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/ONScripter_Switch.nro"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## ONScripter Yuri for Nintendo Switch
+            
+            ### 安装说明
+            1. 将 `ONScripter_Switch.nro` 复制到 `sdmc:/switch/ONScripter/` 目录
+            2. 将游戏文件夹放入 `sdmc:/onsemu/` 目录
+            3. 从 HBMenu 启动 ONScripter
+            
+            ### 系统要求
+            - Nintendo Switch (破解机)
+            - Atmosphere 自制固件
+            - 系统版本 9.0.0+
+            
+            ### 操作说明
+            - A: 确认 | B: 取消 | +: 菜单
+            - 左摇杆: 移动光标 (按下L3切换鼠标模式)
+            - 方向键: 选择选项
