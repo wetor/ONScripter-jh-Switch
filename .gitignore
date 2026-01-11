@@ -348,3 +348,21 @@ BUGList.md
 openspec
 AGENTS.md
 ONScripter-jh-Switch-*.zip
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories
+.cursor/
+.idea/
+
+# Switch build artifacts
+build_switch/*.o
+build_switch/*.d
+build_switch/*.lst
+build_switch/*.map
+
+# Test binaries
+tests/run_*
