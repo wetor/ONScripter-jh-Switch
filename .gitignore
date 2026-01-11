@@ -359,10 +359,7 @@ ONScripter-jh-Switch-*.zip
 .idea/
 
 # Switch build artifacts
-build_switch/*.o
-build_switch/*.d
-build_switch/*.lst
-build_switch/*.map
+build_switch/
 
 # Test binaries
 tests/run_*
