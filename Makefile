@@ -1,3 +1,11 @@
+#---------------------------------------------------------------------------------
+# ONScripter-jh for Nintendo Switch
+# Updated Makefile with modern compiler flags and C++17 support
+#---------------------------------------------------------------------------------
+
+# GLES renderer objects (from OnscripterYuri)
+GLES_OBJS = gles_renderer.o
+
 GUI_OBJS = ONScripter.o \
 	ONScripter_animation.o \
 	ONScripter_command.o \
@@ -22,25 +30,28 @@ GUI_OBJS = ONScripter.o \
 	layer_snow.o \
 	ONScripter_effect_cascade.o \
 	ONScripter_effect_trig.o \
-	layer_oldmovie.o 
+	layer_oldmovie.o
 
 DECODER_OBJS = DirectReader.o \
 	SarReader.o \
 	NsaReader.o \
 	sjis2utf16.o \
 	gbk2utf16.o \
-	coding2utf16.o 
+	coding2utf16.o
 
 
 ONSCRIPTER_OBJS = \
 	main.o \
 	Common.o \
+	GameBrowser.o \
 	onscripter_main.o \
 	$(DECODER_OBJS) \
 	ScriptHandler.o \
 	ScriptParser.o \
 	ScriptParser_command.o \
 	$(GUI_OBJS) \
+	$(GLES_OBJS) \
+
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
@@ -73,17 +84,17 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 2
-VERSION_MINOR := 0
+VERSION_MINOR := 2
 VERSION_MICRO := 0
 
 APP_TITLE	:=	ONScripter
 APP_TITLEID :=	010FF000AE9A2C1B
-APP_AUTHOR	:=	Wetor
+APP_AUTHOR	:=	ONScripter-jh Contributors
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	ONScripter
 BUILD		:=	build
-SOURCES		:=	source source/builtin_dll source/player source/reader source/onscripter
+SOURCES		:=	source source/builtin_dll source/player source/reader source/onscripter source/renderer
 DATA		:=	data
 INCLUDES	:=	include SDL_kitchensink/Output/include
 EXEFS_SRC	:=	exefs_src
@@ -91,32 +102,56 @@ CONFIG_JSON :=	ONScripter.json
 ROMFS		:=	romfs
 
 ICON		:= Icon.jpg
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE 
+# Updated architecture flags for better optimization
+ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-O2 -ffunction-sections \
+# Optimization and warning flags
+CFLAGS	:=	-O2 -ffunction-sections -fdata-sections \
+			-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ -I$(DEVKITPRO)/portlibs/switch/include/SDL2 -I$(DEVKITPRO)/portlibs/switch/include/
+CFLAGS	+=	$(INCLUDE) -DSWITCH -D__SWITCH__ \
+			-I$(DEVKITPRO)/portlibs/switch/include/SDL2 \
+			-I$(DEVKITPRO)/portlibs/switch/include/ \
+			-I$(DEVKITPRO)/portlibs/switch/include/lua5.1
+
+# Feature flags
 CFLAGS	+= -DUSE_SDL_RENDERER -DNDEBUG -DUSE_OGG_VORBIS -DUSE_LUA
 CFLAGS	+= -DUSE_SIMD_ARM_NEON -DUSE_SIMD
 CFLAGS	+= -DUSE_BUILTIN_EFFECTSX -DUSE_BUILTIN_LAYER_EFFECTSX
 CFLAGS	+= -DUSE_PARALLEL -DENABLE_1BYTE_CHAR
+# GLES renderer for CAS sharpening (from OnscripterYuri)
+CFLAGS	+= -DUSE_GLES
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+# C++17 standard with modern features
+CXXFLAGS	:= $(CFLAGS) -std=gnu++17 \
+			-fno-rtti -fno-exceptions \
+			-Wno-deprecated-declarations
 
 ASFLAGS	:=	$(ARCH)
-LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH) \
+			-Wl,-Map,$(notdir $*.map) \
+			-Wl,--gc-sections
 
-LIBS	:= -lSDL_kitchensink -lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil -lpthread \
-	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer -lopusfile -lopus -lSDL2main -lSDL2 \
+# Libraries
+# Note: Order matters for static linking - dependencies must come after dependents
+LIBS	:= -lSDL_kitchensink \
+	-lswscale -lswresample -lavformat -lavfilter -lavcodec -lavutil \
+	-ldav1d \
+	-lpthread \
+	-lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2_mixer \
+	-lopusfile -lopus -lSDL2main -lSDL2 \
 	-lbz2 -lass -lfribidi -ltheora -lvorbis \
-	-lfreetype -lpng -lz -ljpeg -lwebp \
-	-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lmikmod -llua \
-	-lvorbisidec -logg -lopus -lvpx -lmpg123 -lmodplug -lFLAC -lstdc++  \
-	-lnx -lm 
+	-lfreetype -lharfbuzz -lpng -lz -ljpeg -lwebp \
+	-lEGL -lGLESv2 -lglapi -ldrm_nouveau \
+	-llua5.1 \
+	-lvorbisidec -logg -lvpx -lmpg123 -lmodplug -lFLAC \
+	-lstdc++ \
+	-lnx -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -220,8 +255,8 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@ 
-	@cd SDL_kitchensink && mkdir -p build && cd build && cmake ..  && make -j8 install && cd ../..
+	@[ -d $@ ] || mkdir -p $@
+	@cd SDL_kitchensink && mkdir -p build && cd build && cmake .. && make -j$(shell nproc 2>/dev/null || echo 4) install && cd ../..
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------

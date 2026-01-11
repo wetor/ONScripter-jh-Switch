@@ -3,6 +3,8 @@
 *  coding2utf16.h
 *
 *  Copyright (C) 2014-2015 jh10001 <jh10001@live.cn>
+*            (C) 2022-2023 yurisizuku <https://github.com/YuriSizuku>
+*            (C) 2019-2025 ONScripter-jh-Switch contributors
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -26,6 +28,10 @@
 
 class Coding2UTF16{
 public:
+  // Flag to force UTF-8 encoding mode (from OnscripterYuri)
+  // When true, script is treated as UTF-8 encoded
+  bool force_utf8 = false;
+
   static char space[4];
   static char minus[4];
   static char bracket[8];
@@ -45,10 +51,11 @@ public:
   static char MESSAGE_NO[8];
   static char MESSAGE_OK[8];
   static char MESSAGE_CANCEL[12];
+
   virtual void init() = 0;
   virtual uint16_t conv2UTF16(uint16_t) const = 0;
   virtual uint16_t convUTF162Coding(uint16_t) const = 0;
-  int convUTF16ToUTF8(unsigned char*,uint16_t) const;
+  int convUTF16ToUTF8(unsigned char*, uint16_t) const;
   unsigned short convUTF8ToUTF16(const char**);
   virtual ~Coding2UTF16() {};
 };
