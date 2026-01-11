@@ -59,7 +59,7 @@ jobs:
             switch-libmodplug \
             switch-mpg123 \
             switch-opusfile \
-            switch-lua
+            switch-liblua51
 
       - name: Update version in source
         if: startsWith(github.ref, 'refs/tags/')
