@@ -1,7 +1,6 @@
 # ONScripter Yuri for Nintendo Switch
 
-[![Build Nintendo Switch](https://img.shields.io/github/actions/workflow/status/pengcai6/ONScripter-jh-Switch/build_switch.yml?label=Switch%20Build&logo=nintendo-switch&style=flat-square)](https://github.com/pengcai6/ONScripter-jh-Switch/actions)
-[![Version](https://img.shields.io/badge/version-2.0.3-blue.svg)](https://github.com/pengcai6/ONScripter-jh-Switch/releases)
+[![Build Nintendo Switch](https://img.shields.io/github/actions/workflow/status/YuriSizuku/OnscripterYuri/build_switch.yml?label=Switch%20Build&logo=nintendo-switch&style=flat-square)](https://github.com/YuriSizuku/OnscripterYuri/actions)
 [![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)](COPYING)
 [![Platform](https://img.shields.io/badge/platform-Nintendo%20Switch-red.svg)]()
 
@@ -26,10 +25,10 @@
 
 ### 1️⃣ 安装模拟器
 
-将 `ONScripter_Switch.nro` 复制到 SD 卡：
+将 `onsyuri.nro` 复制到 SD 卡：
 
 ```
-sdmc:/switch/ONScripter/ONScripter_Switch.nro
+sdmc:/switch/onsyuri/onsyuri.nro
 ```
 
 ### 2️⃣ 添加游戏
@@ -47,7 +46,7 @@ sdmc:/onsemu/游戏名称/
 
 ### 3️⃣ 启动游戏
 
-1. 从 HBMenu 打开 **ONScripter**
+1. 从 HBMenu 打开 **onsyuri**
 2. 游戏浏览器会自动显示 `onsemu` 文件夹中的所有游戏
 3. 使用方向键或触屏选择游戏，按 A 键启动
 
@@ -101,8 +100,8 @@ sdmc:/onsemu/游戏名称/
 ```
 sdmc:/
 ├─ switch/
-│  └─ ONScripter/
-│     └─ ONScripter_Switch.nro   ← 模拟器主程序
+│  └─ onsyuri/
+│     └─ onsyuri.nro              ← 模拟器主程序
 │
 └─ onsemu/                        ← 游戏目录
    ├─ eden/                       ← 游戏1
@@ -140,10 +139,10 @@ sudo dkp-pacman -S switch-dev switch-sdl2 switch-sdl2_ttf \
 
 ```bash
 # 克隆项目
-git clone https://github.com/pengcai6/ONScripter-jh-Switch.git
-cd ONScripter-jh-Switch
+git clone https://github.com/YuriSizuku/OnscripterYuri.git
+cd OnscripterYuri
 
-# 编译
+# 编译 Switch 版本
 make -f Makefile.switch -j$(nproc)
 ```
 
@@ -203,10 +202,7 @@ ONScripter 可运行大部分使用 NScripter 引擎的游戏：
 
 | 项目               | 链接                                                      |
 | ------------------ | --------------------------------------------------------- |
-| 项目主页           | https://github.com/pengcai6/ONScripter-jh-Switch          |
-| 发布下载           | https://github.com/pengcai6/ONScripter-jh-Switch/releases |
-| 问题反馈           | https://github.com/pengcai6/ONScripter-jh-Switch/issues   |
-| 上游 OnscripterYuri | https://github.com/YuriSizuku/OnscripterYuri             |
+| OnscripterYuri     | https://github.com/YuriSizuku/OnscripterYuri              |
 | 原版 ONScripter    | https://onscripter.osdn.jp/                               |
 | ONScripter-jh      | https://bitbucket.org/jh10001/onscripter-jh               |
 
@@ -225,13 +221,12 @@ ONScripter 可运行大部分使用 NScripter 引擎的游戏：
 - **Ogapee** - ONScripter 原作者
 - **jh10001** - ONScripter-jh 维护者
 - **YuriSizuku** - OnscripterYuri 开发者
-- **pengcai6** - Nintendo Switch 移植与维护
 
 ---
 
 ## 💬 问题反馈
 
-遇到问题？请在 [GitHub Issues](https://github.com/pengcai6/ONScripter-jh-Switch/issues) 提交反馈。
+遇到问题？请在 [GitHub Issues](https://github.com/YuriSizuku/OnscripterYuri/issues) 提交反馈。
 
 **提交时请包含**：
 
