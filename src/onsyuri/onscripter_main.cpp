@@ -609,19 +609,23 @@ int main(int argc, char *argv[])
         browser.cleanup();
     }
 
-    // Cleanup browser resources
+    // Cleanup browser resources - game engine will reinit SDL/TTF itself
     SDL_DestroyRenderer(browser_renderer);
     SDL_DestroyWindow(browser_window);
-    TTF_Quit();
-    SDL_Quit();
+    TTF_Quit();  // Quit TTF so ONScripter can reinit cleanly
+    SDL_Quit();  // Quit SDL so ONScripter can reinit cleanly
 
     // Check if a game was selected
     if (strlen(selected_path) == 0) {
         printf("No game selected\n");
+        TTF_Quit();
+        SDL_Quit();
         romfsExit();
         socketExit();
         return 0;
     }
+
+    printf("Starting game engine...\n");
 
     // Create save directory for this game
     char save_path[512];
