@@ -55,6 +55,9 @@ std::string g_stderrpath = "stderr.txt";
 #if defined(SWITCH)
 #include <switch.h>
 #include <sys/stat.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include "GameBrowser.h"
 #endif
 
 void optionHelp()
@@ -495,26 +498,145 @@ int main(int argc, char *argv[])
     }
 
     // Create necessary directories
+    mkdir("sdmc:/onsemu", 0777);
     mkdir("sdmc:/switch", 0777);
     mkdir("sdmc:/switch/onsyuri", 0777);
-    mkdir("sdmc:/switch/onsyuri/save", 0777);
 
-    // Redirect stdout/stderr to log file
-    freopen("sdmc:/switch/onsyuri/stdout.txt", "w", stdout);
-    freopen("sdmc:/switch/onsyuri/stderr.txt", "w", stderr);
+    // Redirect stdout/stderr to log file in onsemu directory
+    freopen("sdmc:/onsemu/stdout.txt", "w", stdout);
+    freopen("sdmc:/onsemu/stderr.txt", "w", stderr);
 
     printf("ONScripter Yuri for Nintendo Switch\n");
+    printf("Version: %s\n", ONS_VERSION);
     printf("Initializing...\n");
 
-    // Set archive path to SD card
-    ons.setArchivePath("sdmc:/switch/onsyuri/");
-    ons.setSaveDir("sdmc:/switch/onsyuri/save/");
+    // Initialize SDL for browser
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO) != 0) {
+        printf("Failed to initialize SDL: %s\n", SDL_GetError());
+        romfsExit();
+        socketExit();
+        return 1;
+    }
+
+    // Initialize TTF
+    if (TTF_Init() != 0) {
+        printf("Failed to initialize TTF: %s\n", TTF_GetError());
+        SDL_Quit();
+        romfsExit();
+        socketExit();
+        return 1;
+    }
+
+    // Create window for browser
+    SDL_Window* browser_window = SDL_CreateWindow(
+        "ONScripter Game Browser",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        1280, 720,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN
+    );
+
+    if (!browser_window) {
+        printf("Failed to create browser window: %s\n", SDL_GetError());
+        TTF_Quit();
+        SDL_Quit();
+        romfsExit();
+        socketExit();
+        return 1;
+    }
+
+    SDL_Renderer* browser_renderer = SDL_CreateRenderer(
+        browser_window, -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    );
+
+    if (!browser_renderer) {
+        printf("Failed to create browser renderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(browser_window);
+        TTF_Quit();
+        SDL_Quit();
+        romfsExit();
+        socketExit();
+        return 1;
+    }
+
+    // Create and run browser
+    char selected_path[512] = {0};
+    {
+        GameBrowser browser;
+        if (!browser.init(browser_window, browser_renderer)) {
+            printf("Failed to initialize game browser\n");
+            SDL_DestroyRenderer(browser_renderer);
+            SDL_DestroyWindow(browser_window);
+            TTF_Quit();
+            SDL_Quit();
+            romfsExit();
+            socketExit();
+            return 1;
+        }
+
+        // Scan for games in sdmc:/onsemu
+        int game_count = browser.scanGames("sdmc:/onsemu");
+        printf("Found %d games in sdmc:/onsemu\n", game_count);
+
+        if (game_count == 0) {
+            printf("No games found. Please put games in sdmc:/onsemu/\n");
+            // Still run browser to show help message
+        }
+
+        // Run browser and get selected game
+        int selected = browser.run();
+
+        if (selected < 0) {
+            printf("Browser cancelled by user\n");
+            browser.cleanup();
+            SDL_DestroyRenderer(browser_renderer);
+            SDL_DestroyWindow(browser_window);
+            TTF_Quit();
+            SDL_Quit();
+            romfsExit();
+            socketExit();
+            return 0;
+        }
+
+        // Get selected game path
+        const GameInfo* game_info = browser.getGameInfo(selected);
+        if (game_info) {
+            printf("Selected game: %s\n", game_info->name.c_str());
+            printf("Game path: %s\n", game_info->path.c_str());
+            strncpy(selected_path, game_info->path.c_str(), sizeof(selected_path) - 1);
+        }
+
+        browser.cleanup();
+    }
+
+    // Cleanup browser resources
+    SDL_DestroyRenderer(browser_renderer);
+    SDL_DestroyWindow(browser_window);
+    TTF_Quit();
+    SDL_Quit();
+
+    // Check if a game was selected
+    if (strlen(selected_path) == 0) {
+        printf("No game selected\n");
+        romfsExit();
+        socketExit();
+        return 0;
+    }
+
+    // Create save directory for this game
+    char save_path[512];
+    snprintf(save_path, sizeof(save_path), "%s/save", selected_path);
+    mkdir(save_path, 0777);
+
+    // Set archive path to selected game
+    ons.setArchivePath(selected_path);
+    ons.setSaveDir(save_path);
+
+    printf("Archive path set to: %s\n", selected_path);
+    printf("Save directory set to: %s\n", save_path);
 
     // Enable button shortcuts for controller
     ons.enableButtonShortCut();
-
-    printf("Archive path set to: sdmc:/switch/onsyuri/\n");
-    printf("Save directory set to: sdmc:/switch/onsyuri/save/\n");
 
 #elif defined(PSP)
     ons.disableRescale();
