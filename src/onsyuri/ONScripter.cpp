@@ -448,10 +448,17 @@ ONScripter::ONScripter()
 
 ONScripter::~ONScripter()
 {
+    delete[] wm_title_string;
+    delete[] wm_icon_string;
+    wm_title_string = nullptr;
+    wm_icon_string = nullptr;
+
     reset();
 
     delete[] sprite_info;
+    sprite_info = nullptr;
     delete[] sprite2_info;
+    sprite2_info = nullptr;
 }
 
 void ONScripter::enableCDAudio(){

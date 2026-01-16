@@ -114,6 +114,46 @@ static const char* _current_test_name = NULL;
         } \
     } while(0)
 
+#define ASSERT_GT(a, b) \
+    do { \
+        if (!((a) > (b))) { \
+            char _msg[256]; \
+            snprintf(_msg, sizeof(_msg), "Expected %d > %d", (int)(a), (int)(b)); \
+            TEST_FAIL(_msg); \
+            return; \
+        } \
+    } while(0)
+
+#define ASSERT_GE(a, b) \
+    do { \
+        if (!((a) >= (b))) { \
+            char _msg[256]; \
+            snprintf(_msg, sizeof(_msg), "Expected %d >= %d", (int)(a), (int)(b)); \
+            TEST_FAIL(_msg); \
+            return; \
+        } \
+    } while(0)
+
+#define ASSERT_LT(a, b) \
+    do { \
+        if (!((a) < (b))) { \
+            char _msg[256]; \
+            snprintf(_msg, sizeof(_msg), "Expected %d < %d", (int)(a), (int)(b)); \
+            TEST_FAIL(_msg); \
+            return; \
+        } \
+    } while(0)
+
+#define ASSERT_LE(a, b) \
+    do { \
+        if (!((a) <= (b))) { \
+            char _msg[256]; \
+            snprintf(_msg, sizeof(_msg), "Expected %d <= %d", (int)(a), (int)(b)); \
+            TEST_FAIL(_msg); \
+            return; \
+        } \
+    } while(0)
+
 // Get test results
 static inline int get_test_result() {
     return _test_failed == 0 ? 0 : 1;

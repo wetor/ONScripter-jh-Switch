@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -I.
 
-TEST_BINS = run_input_tests run_path_tests run_game_browser_tests run_screen_tests
+TEST_BINS = run_input_tests run_path_tests run_game_browser_tests run_screen_tests run_utils_tests run_screen_edge_tests
 
 .PHONY: all clean test
 
@@ -18,6 +18,12 @@ run_game_browser_tests: test_game_browser.cpp game_browser_logic.h test_framewor
 
 run_screen_tests: test_screen_scaling.cpp screen_logic.h test_framework.h
 	$(CXX) $(CXXFLAGS) -o $@ test_screen_scaling.cpp
+
+run_utils_tests: test_utils.cpp test_framework.h
+	$(CXX) $(CXXFLAGS) -o $@ test_utils.cpp
+
+run_screen_edge_tests: test_screen_edge_cases.cpp screen_logic.h test_framework.h
+	$(CXX) $(CXXFLAGS) -o $@ test_screen_edge_cases.cpp
 
 test: all
 	@echo ""

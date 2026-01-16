@@ -125,6 +125,7 @@ int GameBrowser::scanGames(const char* base_path)
     }
 
     struct dirent* entry;
+    bool scan_complete = false;
     while ((entry = readdir(dir)) != nullptr) {
         // Skip special directories
         if (strcmp(entry->d_name, ".") == 0 ||
@@ -151,8 +152,13 @@ int GameBrowser::scanGames(const char* base_path)
             printf("GameBrowser: Found game: %s (%s)\n", info.name.c_str(), info.script_file.c_str());
         }
     }
+    scan_complete = true;
 
     closedir(dir);
+    if (!scan_complete) {
+        printf("GameBrowser: Scan was interrupted\n");
+        return 0;
+    }
 
     // Sort games alphabetically
     std::sort(games_.begin(), games_.end(),
