@@ -1,6 +1,6 @@
 DirtyRect.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirtyRect.cpp \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirtyRect.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirtyRect.cpp \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirtyRect.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h \
@@ -51,7 +51,7 @@ DirtyRect.o: \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirtyRect.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirtyRect.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h:

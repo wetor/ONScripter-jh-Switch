@@ -1,12 +1,12 @@
 ScriptParser_command.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptParser_command.cpp \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptParser.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptHandler.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/BaseReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/NsaReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/SarReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirectReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptParser_command.cpp \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptParser.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptHandler.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/BaseReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/NsaReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/SarReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirectReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h \
@@ -57,16 +57,16 @@ ScriptParser_command.o: \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/FontInfo.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/coding2utf16.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/Utils.h
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptParser.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptHandler.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/BaseReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/NsaReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/SarReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirectReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h:
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/FontInfo.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/coding2utf16.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/Utils.h
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptParser.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptHandler.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/BaseReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/NsaReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/SarReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirectReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h:
@@ -117,6 +117,6 @@ ScriptParser_command.o: \
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/FontInfo.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/coding2utf16.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/Utils.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/FontInfo.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/coding2utf16.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/Utils.h:

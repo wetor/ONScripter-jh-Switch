@@ -1,13 +1,13 @@
 ONScripter_text.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ONScripter_text.cpp \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ONScripter.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptParser.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptHandler.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/BaseReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/NsaReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/SarReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirectReader.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ONScripter_text.cpp \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ONScripter.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptParser.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptHandler.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/BaseReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/NsaReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/SarReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirectReader.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h \
@@ -58,30 +58,30 @@ ONScripter_text.o: \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/FontInfo.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/coding2utf16.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirtyRect.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ButtonLink.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/FontInfo.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/coding2utf16.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirtyRect.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ButtonLink.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_image.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_ttf.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_mixer.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles_renderer.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles_renderer.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_khrplatform.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2platform.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2ext.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles2funcs.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/Utils.h
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ONScripter.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptParser.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ScriptHandler.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/BaseReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/NsaReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/SarReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirectReader.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h:
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles2funcs.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/Utils.h
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ONScripter.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptParser.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ScriptHandler.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/BaseReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/NsaReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/SarReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirectReader.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h:
@@ -132,19 +132,19 @@ ONScripter_text.o: \
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/FontInfo.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/coding2utf16.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/DirtyRect.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/ButtonLink.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/FontInfo.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/coding2utf16.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/DirtyRect.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/ButtonLink.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_image.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_ttf.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_mixer.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles_renderer.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles_renderer.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_khrplatform.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2platform.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2ext.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles2funcs.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/Utils.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles2funcs.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/Utils.h:

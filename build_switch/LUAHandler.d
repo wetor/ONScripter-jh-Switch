@@ -1,2 +1,2 @@
 LUAHandler.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/LUAHandler.cpp
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/LUAHandler.cpp

@@ -1,6 +1,6 @@
 gles_renderer.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles_renderer.cpp \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles_renderer.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles_renderer.cpp \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles_renderer.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h \
@@ -56,10 +56,10 @@ gles_renderer.o: \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2platform.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2ext.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles2funcs.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/../Utils.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/shader/post_cas.h
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles_renderer.h:
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles2funcs.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/../Utils.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/shader/post_cas.h
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles_renderer.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h:
@@ -115,6 +115,6 @@ gles_renderer.o: \
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2platform.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_opengles2_gl2ext.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/gles2funcs.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/../Utils.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/renderer/shader/post_cas.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/gles2funcs.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/../Utils.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/renderer/shader/post_cas.h:

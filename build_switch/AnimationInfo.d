@@ -1,6 +1,6 @@
 AnimationInfo.o: \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.cpp \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.cpp \
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h \
@@ -51,8 +51,8 @@ AnimationInfo.o: \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h \
  /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h \
- /Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/builtin_layer.h
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/AnimationInfo.h:
+ /Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/builtin_layer.h
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/AnimationInfo.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_main.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_stdinc.h:
@@ -103,4 +103,4 @@ AnimationInfo.o: \
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_version.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_locale.h:
 /opt/devkitpro/portlibs/switch/include/SDL2/SDL_misc.h:
-/Users/cai/GitHub_Project/ONScripter-jh-Switch/src/onsyuri/builtin_layer.h:
+/Users/cai/GitHub_Project/ONScripter-jh-Switch-cai/src/onsyuri/builtin_layer.h:
