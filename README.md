@@ -28,9 +28,9 @@
 将 `onsyuri.nro` 复制到 SD 卡：
 
 ```
-sdmc:/switch/onsyuri/onsyuri.nro
+sdmc:/switch/
 ```
-
+该目录下即可
 ### 2️⃣ 添加游戏
 
 创建游戏目录并放入游戏文件：
