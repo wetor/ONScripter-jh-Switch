@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ONScripter_animation.cpp - Methods to manipulate AnimationInfo
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
@@ -34,7 +34,7 @@
 int ONScripter::calcDurationToNextAnimation()
 {
     int min = 0; // minimum next time
-    
+
     for (int i=0 ; i<3 ; i++){
         AnimationInfo *anim = &tachi_info[i];
         if (anim->visible && anim->is_animatable){
@@ -78,7 +78,7 @@ void ONScripter::proceedAnimation(int current_time)
     for (int i=0 ; i<3 ; i++)
         if (tachi_info[i].proceedAnimation(current_time))
             flushDirect(tachi_info[i].pos, refreshMode() | (draw_cursor_flag?REFRESH_CURSOR_MODE:0));
-        
+
     for (int i=MAX_SPRITE_NUM-1 ; i>=0 ; i--)
         if (sprite_info[i].proceedAnimation(current_time))
             flushDirect(sprite_info[i].pos, refreshMode() | (draw_cursor_flag?REFRESH_CURSOR_MODE:0));
@@ -94,12 +94,12 @@ void ONScripter::proceedAnimation(int current_time)
             if (lua_handler.isCallbackEnabled(LUAHandler::LUA_ANIMATION))
                 if (lua_handler.callFunction(true, "animation"))
                     errorAndExit( lua_handler.error_str );
-                
+
             if (lua_handler.duration_time <= 0){
                 lua_handler.next_time = current_time;
                 break;
             }
-            
+
             // exit the loop not to decrease the performance
             do{
                 lua_handler.next_time += lua_handler.duration_time;
@@ -120,14 +120,14 @@ void ONScripter::proceedAnimation(int current_time)
         AnimationInfo *anim = &cursor_info[0]; // CLICK_WAIT
         if (clickstr_state == CLICK_NEWPAGE)
             anim = &cursor_info[1];
-        
+
         if (anim->proceedAnimation(current_time)){
             SDL_Rect dst_rect = anim->pos;
             if (!anim->abs_flag){
                 dst_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
                 dst_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
             }
-            
+
             // fix sometimes double cursor
             if(dst_rect.w > dst_rect.h) dst_rect.w = dst_rect.h;
 
@@ -149,7 +149,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
     anim->abs_flag = true;
 
 #ifdef USE_BUILTIN_LAYER_EFFECTS
-    if (anim->trans_mode != AnimationInfo::TRANS_LAYER) 
+    if (anim->trans_mode != AnimationInfo::TRANS_LAYER)
 #endif
     {
         anim->surface_name = new char[ strlen(anim->file_name) + 1 ];
@@ -160,7 +160,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         anim->mask_surface_name = new char[ strlen(anim->mask_file_name) + 1 ];
         strcpy( anim->mask_surface_name, anim->mask_file_name );
     }
-    
+
     if ( anim->trans_mode == AnimationInfo::TRANS_STRING ){
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
@@ -173,7 +173,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             if (anim->is_single_line)
                 f_info.setLineArea( strlen(anim->file_name)/2+1 );
             f_info.clear();
-            
+
             f_info.font_size_xy[0] = anim->font_size_xy[0];
             f_info.font_size_xy[1] = anim->font_size_xy[1];
             f_info.pitch_xy[0] = anim->font_pitch[0];
@@ -194,7 +194,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             int xy_bak[2];
             xy_bak[0] = f_info.xy[0];
             xy_bak[1] = f_info.xy[1];
-            
+
             int xy[2] = {0, 0};
             f_info.setXY(f_info.num_xy[0]-1, f_info.num_xy[1]-1);
             pos = f_info.calcUpdatedArea(xy, screen_ratio1, screen_ratio2);
@@ -202,18 +202,18 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.xy[0] = xy_bak[0];
             f_info.xy[1] = xy_bak[1];
         }
-        
+
         if (info != NULL){
             info->xy[0] = f_info.xy[0];
             info->xy[1] = f_info.xy[1];
         }
-        
+
         anim->orig_pos.w = pos.w;
         anim->orig_pos.h = pos.h;
         anim->scalePosWH( screen_ratio1, screen_ratio2 );
         anim->allocImage( anim->pos.w*anim->num_of_cells, anim->pos.h, texture_format );
         anim->fill( 0, 0, 0, 0 );
-        
+
         f_info.top_xy[0] = f_info.top_xy[1] = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
@@ -235,7 +235,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         SDL_Surface *surface_m = NULL;
         if (anim->trans_mode == AnimationInfo::TRANS_MASK)
             surface_m = loadImage( anim->mask_file_name );
-        
+
         surface = anim->setupImageAlpha(surface, surface_m, has_alpha);
 
         if (surface &&
@@ -250,7 +250,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             SDL_PixelFormat *fmt = image_surface->format;
             surface = SDL_CreateRGBSurface( SDL_SWSURFACE, w, h,
                                             fmt->BitsPerPixel, fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask );
-        
+
             resizeSurface(src_s, surface);
             SDL_FreeSurface(src_s);
         }
@@ -265,7 +265,7 @@ void ONScripter::parseTaggedString( AnimationInfo *anim )
 {
     if (anim->image_name == NULL) return;
     anim->removeTag();
-    
+
     int i;
     char *buffer = anim->image_name;
     anim->num_of_cells = 1;
@@ -273,7 +273,7 @@ void ONScripter::parseTaggedString( AnimationInfo *anim )
 
     if ( buffer[0] == ':' ){
         while (*++buffer == ' ');
-        
+
         if ( buffer[0] == 'a' ){
             anim->trans_mode = AnimationInfo::TRANS_ALPHA;
             buffer++;
@@ -297,7 +297,7 @@ void ONScripter::parseTaggedString( AnimationInfo *anim )
             if ( *buffer == '/' ){
                 buffer++;
                 script_h.getNext();
-                
+
                 script_h.pushCurrent( buffer );
                 anim->font_size_xy[0] = script_h.readInt();
                 anim->font_size_xy[1] = script_h.readInt();
@@ -401,7 +401,7 @@ void ONScripter::parseTaggedString( AnimationInfo *anim )
                     anim->duration_list[i] = anim->duration_list[0];
             }
             anim->next_time = SDL_GetTicks() + anim->duration_list[0];
-        
+
             buffer++;
             anim->loop_mode = *buffer++ - '0'; // 3...no animation
         }
@@ -411,7 +411,7 @@ void ONScripter::parseTaggedString( AnimationInfo *anim )
             anim->loop_mode = 3; // 3...no animation
         }
         if ( anim->loop_mode != 3 ) anim->is_animatable = true;
-        
+
         while(buffer[0] != ';' && buffer[0] != '\0') buffer++;
     }
 
@@ -461,7 +461,7 @@ void ONScripter::stopAnimation( int click )
     else return;
 
     if (cursor_info[no].image_surface == NULL) return;
-    
+
     SDL_Rect dst_rect = cursor_info[ no ].pos;
 
     if ( !cursor_info[ no ].abs_flag ){
@@ -474,8 +474,14 @@ void ONScripter::stopAnimation( int click )
 
 void ONScripter::loadCursor(int no, const char *str, int x, int y, bool abs_flag)
 {
-    AnimationInfo *ai = &cursor_info[no];
-    
+    AnimationInfo *ai;
+#ifdef SWITCH
+    if (no < 0)
+        ai = &mouse_info;
+    else
+#endif
+        ai = &cursor_info[no];
+
     if (str){
         ai->setImageName( str );
     }

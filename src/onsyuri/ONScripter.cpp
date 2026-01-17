@@ -29,6 +29,9 @@
 #ifdef USE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
 #endif
+#ifdef SWITCH
+#include <SDL2/SDL_image.h>
+#endif
 #ifdef USE_SIMD
 #include "simd/simd.h"
 #endif
@@ -379,7 +382,63 @@ void ONScripter::initSDL()
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 #endif
+
+#ifdef SWITCH
+    // Initialize Switch mouse cursor
+    draw_mouse_flag = true;
+    current_mouse_x = screen_width / 2;
+    current_mouse_y = screen_height / 2;
+
+    // Load mouse cursor image using AnimationInfo (will be loaded after surfaces are created)
+    SDL_ShowCursor(SDL_DISABLE);
+#endif
 }
+
+#ifdef SWITCH
+void ONScripter::loadSwitchMouseCursor()
+{
+    // Load mouse cursor from romfs
+    loadCursor(-1, ":a;romfs:/cursor/mouse.png", 0, 0);
+    if (mouse_info.image_surface) {
+        utils::printInfo("Switch mouse cursor loaded successfully\n");
+    } else {
+        utils::printError("Failed to load Switch mouse cursor\n");
+    }
+}
+
+bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent jaxis)
+{
+    if (jaxis.axis >= 2)  // Only handle left stick (axis 0 and 1)
+        return false;
+
+    float x = (float)current_mouse_x * screen_device_width / screen_width;
+    float y = (float)current_mouse_y * screen_device_height / screen_height;
+
+    float level = jaxis.value >> 12;  // -8 to 7
+    if (level >= 0) level++;  // -8 to 8
+
+    bool moved = false;
+
+    if (level > 1 || level < -1) {
+        if (jaxis.axis == 0) {  // Left/Right
+            x += 0.2f * abs((int)level) * level + 2.0f;
+            moved = true;
+            if (level < 0) x -= 0.5f;
+        }
+        if (jaxis.axis == 1) {  // Up/Down
+            y += 0.2f * abs((int)level) * level + 2.0f;
+            moved = true;
+            if (level < 0) y -= 0.5f;
+        }
+    }
+
+    if (moved) {
+        warpMouse((int)(x + 0.5f), (int)(y + 0.5f));
+    }
+
+    return moved;
+}
+#endif
 
 void ONScripter::openAudio(int freq)
 {
@@ -745,6 +804,11 @@ int ONScripter::init()
         return -1;
     }
 
+#ifdef SWITCH
+    // Load mouse cursor after surfaces and font are initialized
+    loadSwitchMouseCursor();
+#endif
+
     return 0;
 }
 
@@ -963,6 +1027,7 @@ void ONScripter::flushDirect( SDL_Rect &rect, int refresh_mode )
         SDL_RenderCopy(renderer, texture, NULL, &render_view_rect);
     }
 #endif
+
     SDL_RenderPresent(renderer);
 }
 

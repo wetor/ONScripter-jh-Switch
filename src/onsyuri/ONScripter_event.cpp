@@ -34,6 +34,10 @@
 #include <switch.h>
 static PadState g_pad;
 static bool g_pad_initialized = false;
+static float g_mouse_x = 640.0f;  // Virtual mouse position (screen center)
+static float g_mouse_y = 360.0f;
+static const float STICK_DEADZONE = 8000.0f;
+static const float MOUSE_SPEED = 8.0f;
 #endif
 
 #define ONS_TIMER_EVENT   (SDL_USEREVENT)
@@ -191,7 +195,7 @@ void pollSwitchInput()
     u64 kDown = padGetButtonsDown(&g_pad);
     u64 kUp = padGetButtonsUp(&g_pad);
 
-    // Button to key mapping
+    // Button to key mapping (excluding left stick directions - those control mouse)
     struct ButtonMapping {
         u64 button;
         SDL_Keycode key;
@@ -212,10 +216,8 @@ void pollSwitchInput()
         { HidNpadButton_Down,      SDLK_DOWN },     // D-Pad Down
         { HidNpadButton_Left,      SDLK_LEFT },     // D-Pad Left
         { HidNpadButton_Right,     SDLK_RIGHT },    // D-Pad Right
-        { HidNpadButton_StickLUp,    SDLK_UP },     // Left Stick Up
-        { HidNpadButton_StickLDown,  SDLK_DOWN },   // Left Stick Down
-        { HidNpadButton_StickLLeft,  SDLK_LEFT },   // Left Stick Left
-        { HidNpadButton_StickLRight, SDLK_RIGHT },  // Left Stick Right
+        // Left stick press -> left click
+        { HidNpadButton_StickL,    SDLK_RETURN },   // L3 -> Confirm (like left click)
     };
 
     const int num_mappings = sizeof(mappings) / sizeof(mappings[0]);
@@ -241,6 +243,49 @@ void pollSwitchInput()
         }
     }
 
+    // Handle left stick as mouse movement
+    HidAnalogStickState left_stick = padGetStickPos(&g_pad, 0);
+
+    float stick_x = (float)left_stick.x;
+    float stick_y = (float)left_stick.y;
+
+    // Apply deadzone
+    if (stick_x > -STICK_DEADZONE && stick_x < STICK_DEADZONE) stick_x = 0;
+    if (stick_y > -STICK_DEADZONE && stick_y < STICK_DEADZONE) stick_y = 0;
+
+    if (stick_x != 0 || stick_y != 0) {
+        // Normalize and apply speed (stick range is roughly -32768 to 32767)
+        float norm_x = stick_x / 32768.0f;
+        float norm_y = -stick_y / 32768.0f;  // Y is inverted on Switch
+
+        // Acceleration curve for precision and speed
+        float magnitude = sqrtf(norm_x * norm_x + norm_y * norm_y);
+        if (magnitude > 1.0f) magnitude = 1.0f;
+        float speed = MOUSE_SPEED * magnitude * magnitude;  // Quadratic for better control
+
+        g_mouse_x += norm_x * speed;
+        g_mouse_y += norm_y * speed;
+
+        // Clamp to screen bounds (1280x720 for Switch)
+        if (g_mouse_x < 0) g_mouse_x = 0;
+        if (g_mouse_x > 1279) g_mouse_x = 1279;
+        if (g_mouse_y < 0) g_mouse_y = 0;
+        if (g_mouse_y > 719) g_mouse_y = 719;
+
+        // Inject mouse motion event
+        SDL_Event event;
+        event.type = SDL_MOUSEMOTION;
+        event.motion.x = (int)g_mouse_x;
+        event.motion.y = (int)g_mouse_y;
+        event.motion.xrel = (int)(norm_x * speed);
+        event.motion.yrel = (int)(norm_y * speed);
+        event.motion.state = 0;
+        SDL_PushEvent(&event);
+
+        // Also warp the actual SDL mouse position
+        SDL_WarpMouseInWindow(NULL, (int)g_mouse_x, (int)g_mouse_y);
+    }
+
     // Handle touch screen as mouse
     HidTouchScreenState touch_state;
     static bool was_touching = false;
@@ -251,8 +296,9 @@ void pollSwitchInput()
             int touch_x = touch_state.touches[0].x;
             int touch_y = touch_state.touches[0].y;
 
-            // Scale touch coordinates to game screen (1280x720 -> game resolution)
-            // This needs to match the game's render scaling
+            // Update virtual mouse position from touch
+            g_mouse_x = (float)touch_x;
+            g_mouse_y = (float)touch_y;
 
             if (!was_touching) {
                 // Touch down -> mouse button down
@@ -290,6 +336,13 @@ void pollSwitchInput()
             was_touching = false;
         }
     }
+}
+
+// Get current virtual mouse position for cursor rendering
+void getSwitchMousePos(int *x, int *y)
+{
+    if (x) *x = (int)g_mouse_x;
+    if (y) *y = (int)g_mouse_y;
 }
 #endif
 
@@ -485,6 +538,19 @@ bool ONScripter::mouseMoveEvent( SDL_MouseMotionEvent *event )
 {
     current_button_state.x = event->x;
     current_button_state.y = event->y;
+
+#ifdef SWITCH
+    // Update virtual mouse position for cursor rendering
+    // Convert from device coordinates to game coordinates
+    current_mouse_x = (int)((event->x - render_view_rect.x) * screen_scale_ratio1);
+    current_mouse_y = (int)((event->y - render_view_rect.y) * screen_scale_ratio2);
+
+    // Clamp to screen bounds
+    if (current_mouse_x < 0) current_mouse_x = 0;
+    if (current_mouse_x >= screen_width) current_mouse_x = screen_width - 1;
+    if (current_mouse_y < 0) current_mouse_y = 0;
+    if (current_mouse_y >= screen_height) current_mouse_y = screen_height - 1;
+#endif
 
     if ( event_mode & WAIT_BUTTON_MODE ){
         mouseOverCheck( current_button_state.x, current_button_state.y );
