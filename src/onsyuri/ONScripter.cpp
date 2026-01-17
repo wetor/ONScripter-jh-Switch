@@ -397,12 +397,54 @@ void ONScripter::initSDL()
 #ifdef SWITCH
 void ONScripter::loadSwitchMouseCursor()
 {
-    // Load mouse cursor from romfs
-    loadCursor(-1, ":a;romfs:/cursor/mouse.png", 0, 0);
-    if (mouse_info.image_surface) {
-        utils::printInfo("Switch mouse cursor loaded successfully\n");
+    // Load mouse cursor directly from romfs using SDL_image
+    const char* cursor_path = "romfs:/cursor/mouse.png";
+
+    mouse_cursor_texture = NULL;
+
+    SDL_Surface *tmp = IMG_Load(cursor_path);
+    if (tmp) {
+        // Store cursor size in mouse_info
+        mouse_info.pos.w = tmp->w;
+        mouse_info.pos.h = tmp->h;
+        mouse_info.visible = true;
+
+        // Create hardware texture for efficient rendering
+        mouse_cursor_texture = SDL_CreateTextureFromSurface(renderer, tmp);
+        if (mouse_cursor_texture) {
+            SDL_SetTextureBlendMode(mouse_cursor_texture, SDL_BLENDMODE_BLEND);
+            utils::printInfo("Switch mouse cursor texture created (%dx%d)\n", tmp->w, tmp->h);
+        } else {
+            utils::printError("Failed to create mouse cursor texture: %s\n", SDL_GetError());
+        }
+
+        SDL_FreeSurface(tmp);
     } else {
-        utils::printError("Failed to load Switch mouse cursor\n");
+        utils::printError("Failed to load Switch mouse cursor from %s: %s\n", cursor_path, IMG_GetError());
+    }
+}
+
+void ONScripter::renderSwitchMouseCursor()
+{
+    if (!mouse_cursor_texture || !draw_mouse_flag) return;
+
+    // Convert game coordinates to device coordinates
+    int dst_x = current_mouse_x * screen_device_width / screen_width + render_view_rect.x;
+    int dst_y = current_mouse_y * screen_device_height / screen_height + render_view_rect.y;
+
+    // Scale cursor size proportionally to screen resolution
+    int scaled_w = mouse_info.pos.w * screen_device_width / screen_width;
+    int scaled_h = mouse_info.pos.h * screen_device_height / screen_height;
+
+    SDL_Rect dst_rect = { dst_x, dst_y, scaled_w, scaled_h };
+    SDL_RenderCopy(renderer, mouse_cursor_texture, NULL, &dst_rect);
+
+    static int render_log_count = 0;
+    if (render_log_count++ % 60 == 0) {  // Log every 60 frames
+        printf("[CURSOR] game=(%d,%d) -> device=(%d,%d) size=%dx%d view=(%d,%d,%d,%d)\n",
+               current_mouse_x, current_mouse_y, dst_x, dst_y,
+               mouse_info.pos.w, mouse_info.pos.h,
+               render_view_rect.x, render_view_rect.y, render_view_rect.w, render_view_rect.h);
     }
 }
 
@@ -807,6 +849,12 @@ int ONScripter::init()
 #ifdef SWITCH
     // Load mouse cursor after surfaces and font are initialized
     loadSwitchMouseCursor();
+
+    // Set device bounds for stick mouse movement
+    extern void setSwitchDeviceBounds(int device_w, int device_h, int view_x, int view_y, int view_w, int view_h);
+    setSwitchDeviceBounds(device_width, device_height,
+                          render_view_rect.x, render_view_rect.y,
+                          render_view_rect.w, render_view_rect.h);
 #endif
 
     return 0;
@@ -1026,6 +1074,10 @@ void ONScripter::flushDirect( SDL_Rect &rect, int refresh_mode )
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, &render_view_rect);
     }
+#endif
+
+#ifdef SWITCH
+    renderSwitchMouseCursor();
 #endif
 
     SDL_RenderPresent(renderer);

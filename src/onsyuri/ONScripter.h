@@ -474,6 +474,7 @@ private:
     AnimationInfo btndef_info, bg_info, cursor_info[2];
 #ifdef SWITCH
     AnimationInfo mouse_info;  // Mouse cursor for Switch
+    SDL_Texture *mouse_cursor_texture;  // Hardware texture for cursor
 #endif
     AnimationInfo tachi_info[3]; // 0 ... left, 1 ... center, 2 ... right
     AnimationInfo *sprite_info, *sprite2_info;
@@ -621,6 +622,7 @@ private:
 
 #ifdef SWITCH
     void loadSwitchMouseCursor();
+    void renderSwitchMouseCursor();
 #endif
 
     void setCaption(const char *title, const char *iconstr = NULL);

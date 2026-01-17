@@ -814,14 +814,7 @@ void ONScripter::refreshSurface( SDL_Surface *surface, SDL_Rect *clip_src, int r
         bl = bl->next;
     }
 
-#ifdef SWITCH
-    // Draw Switch mouse cursor
-    if (draw_mouse_flag && mouse_info.image_surface) {
-        mouse_info.pos.x = current_mouse_x;
-        mouse_info.pos.y = current_mouse_y;
-        mouse_info.blendOnSurface(surface, mouse_info.pos.x, mouse_info.pos.y, clip);
-    }
-#endif
+    // Note: Switch mouse cursor is now rendered via hardware texture in flushDirect()
 }
 
 void ONScripter::refreshSprite( int sprite_no, bool active_flag, int cell_no,
