@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ONScripter_command.cpp - Command executer of ONScripter
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
@@ -29,6 +29,9 @@
 #elif defined(WIN32)
 #include <direct.h>
 #endif
+#ifdef SWITCH
+#include <switch.h>
+#endif
 #include "version.h"
 #include "Utils.h"
 #include <algorithm>
@@ -40,7 +43,7 @@
 extern SDL_TimerID timer_bgmfade_id;
 extern "C" Uint32 SDLCALL bgmfadeCallback( Uint32 interval, void *param );
 extern "C" void smpegCallback();
-    
+
 #define CONTINUOUS_PLAY
 
 #include "coding2utf16.h"
@@ -79,7 +82,7 @@ int ONScripter::yesnoboxCommand()
             break;
         }
     }
-    
+
     show_dialog_flag = false;
     delete root_button_link.next->next;
     delete root_button_link.next;
@@ -105,7 +108,7 @@ int ONScripter::wavestopCommand()
 int ONScripter::waveCommand()
 {
     wave_play_loop_flag = false;
-    
+
     if (script_h.isName( "waveloop" ))
         wave_play_loop_flag = true;
 
@@ -113,7 +116,7 @@ int ONScripter::waveCommand()
 
     setStr(&wave_file_name, script_h.readStr());
     playSound(wave_file_name, SOUND_CHUNK, wave_play_loop_flag, MIX_WAVE_CHANNEL);
-        
+
     return RET_CONTINUE;
 }
 
@@ -124,7 +127,7 @@ int ONScripter::waittimerCommand()
 
     event_mode = WAIT_TIMER_MODE;
     waitEvent( count );
-    
+
     return RET_CONTINUE;
 }
 
@@ -154,7 +157,7 @@ int ONScripter::vspCommand()
         sprite_info[no].visible = (v==1)?true:false;
         dirty_rect.add( sprite_info[no].pos );
     }
-    
+
     return RET_CONTINUE;
 }
 
@@ -162,24 +165,24 @@ int ONScripter::voicevolCommand()
 {
     voice_volume = script_h.readInt();
     if ( wave_sample[0] ) Mix_Volume( 0, voice_volume * MIX_MAX_VOLUME / 100 );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::vCommand()
 {
     char buf[256];
-    
+
     sprintf(buf, RELATIVEPATH "wav%c%s.wav", DELIMITER, script_h.getStringBuffer()+1);
     playSound(buf, SOUND_CHUNK, false, MIX_WAVE_CHANNEL);
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::trapCommand()
 {
     bool is_clicked = trap_mode & TRAP_CLICKED;
-    
+
     if      ( script_h.isName( "lr_trap" ) ){
         trap_mode = TRAP_LEFT_CLICK | TRAP_RIGHT_CLICK;
     }
@@ -213,7 +216,7 @@ int ONScripter::trapCommand()
     else{
         utils::printInfo("trapCommand: [%s] is not supported\n", buf );
     }
-              
+
     return RET_CONTINUE;
 }
 
@@ -302,21 +305,21 @@ int ONScripter::texecCommand()
     }
 
     saveon_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::tateyokoCommand()
 {
     sentence_font.setTateyokoMode( script_h.readInt() );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::talCommand()
 {
     leaveTextDisplayMode();
-    
+
     char loc = script_h.readLabel()[0];
     int no = -1, trans = 0;
     if      ( loc == 'l' ) no = 0;
@@ -359,14 +362,14 @@ int ONScripter::systemcallCommand()
     system_menu_mode = getSystemCallNo( script_h.readLabel() );
 
     executeSystemCall();
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::strspCommand()
 {
     leaveTextDisplayMode();
-    
+
     bool v = true;
     if ( script_h.isName( "strsph" ) ) v = false;
 
@@ -427,7 +430,7 @@ int ONScripter::stopCommand()
 {
     mp3stopCommand();
     wavestopCommand();
-    
+
     return RET_CONTINUE;
 }
 
@@ -452,7 +455,7 @@ int ONScripter::sp_rgb_gradationCommand()
     if (surface == NULL) return RET_CONTINUE;
 
     SDL_PixelFormat *fmt = surface->format;
-    
+
     ONSBuf key_mask = (((key_r >> fmt->Rloss) << fmt->Rshift) |
                        ((key_g >> fmt->Gloss) << fmt->Gshift) |
                        ((key_b >> fmt->Bloss) << fmt->Bshift));
@@ -478,11 +481,11 @@ int ONScripter::sp_rgb_gradationCommand()
             }
         }
     }
-    
+
     // replace pixels of the key-color with the specified color in gradation
     for (i=upper_bound ; i<=lower_bound ; i++){
         ONSBuf *buf = (ONSBuf *)surface->pixels + surface->w * i;
-#if defined(BPP16)    
+#if defined(BPP16)
         unsigned char *alphap = ai->alpha_buf + surface->w * i;
 #else
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
@@ -502,22 +505,22 @@ int ONScripter::sp_rgb_gradationCommand()
             color |= (upper_g >> fmt->Gloss) << fmt->Gshift;
             color |= (upper_b >> fmt->Bloss) << fmt->Bshift;
         }
-        
+
         for (j=0 ; j<surface->w ; j++, buf++){
             if ((*buf & rgb_mask) == key_mask){
                 *buf = color;
                 *alphap = alpha;
             }
-#if defined(BPP16)                
+#if defined(BPP16)
             alphap++;
 #else
             alphap += 4;
-#endif                
+#endif
         }
     }
-    
+
     SDL_UnlockSurface(surface);
-    
+
     if ( ai->visible )
         dirty_rect.add( ai->pos );
 
@@ -527,7 +530,7 @@ int ONScripter::sp_rgb_gradationCommand()
 int ONScripter::spstrCommand()
 {
     decodeExbtnControl( script_h.readStr() );
-    
+
     return RET_CONTINUE;
 }
 
@@ -540,10 +543,10 @@ int ONScripter::spreloadCommand()
 
     parseTaggedString( ai );
     setupAnimationInfo( ai );
-    
+
     if ( ai->visible )
         dirty_rect.add( ai->pos );
-    
+
     return RET_CONTINUE;
 }
 
@@ -551,7 +554,7 @@ int ONScripter::splitCommand()
 {
     script_h.readStr();
     const char *save_buf = script_h.saveStringBuffer();
-    
+
     char delimiter = script_h.readStr()[0];
 
     char token256[256], *token=NULL;
@@ -567,15 +570,15 @@ int ONScripter::splitCommand()
                 else c++;
             }
         }
-        
-        if (c < 256) 
+
+        if (c < 256)
             token = token256;
         else
             token = new char[c+1];
-        
+
         memcpy( token, save_buf, c );
         token[c] = '\0';
-        
+
         script_h.readVariable();
         if ( script_h.current_variable.type & ScriptHandler::VAR_INT ||
              script_h.current_variable.type & ScriptHandler::VAR_ARRAY ){
@@ -586,11 +589,11 @@ int ONScripter::splitCommand()
         }
 
         if (c >= 256) delete[] token;
-        
+
         save_buf += c;
         if (save_buf[0] != '\0') save_buf++;
     }
-    
+
     return RET_CONTINUE;
 }
 
@@ -610,9 +613,9 @@ int ONScripter::spbtnCommand()
 
     int sprite_no = script_h.readInt();
     int no        = script_h.readInt();
-    if (no < 1 || 
+    if (no < 1 ||
         sprite_no < 0 ||
-        sprite_no >= MAX_SPRITE_NUM || 
+        sprite_no >= MAX_SPRITE_NUM ||
         sprite_info[sprite_no].image_surface == NULL)
         return RET_CONTINUE;
 
@@ -637,12 +640,12 @@ int ONScripter::spbtnCommand()
     return RET_CONTINUE;
 }
 
-int ONScripter::skipoffCommand() 
-{ 
+int ONScripter::skipoffCommand()
+{
     skip_mode &= ~SKIP_NORMAL;
- 
-    return RET_CONTINUE; 
-} 
+
+    return RET_CONTINUE;
+}
 
 int ONScripter::sevolCommand()
 {
@@ -653,7 +656,7 @@ int ONScripter::sevolCommand()
 
     if ( wave_sample[MIX_LOOPBGM_CHANNEL0] ) Mix_Volume( MIX_LOOPBGM_CHANNEL0, se_volume * MIX_MAX_VOLUME / 100 );
     if ( wave_sample[MIX_LOOPBGM_CHANNEL1] ) Mix_Volume( MIX_LOOPBGM_CHANNEL1, se_volume * MIX_MAX_VOLUME / 100 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -708,14 +711,14 @@ void ONScripter::setwindowCore()
 int ONScripter::setwindow3Command()
 {
     setwindowCore();
-    
+
     clearCurrentPage();
     indent_offset = 0;
     line_enter_status = 0;
     page_enter_status = 0;
     display_mode = DISPLAY_MODE_NORMAL;
     flush( refreshMode(), &sentence_font_info.pos );
-    
+
     return RET_CONTINUE;
 }
 
@@ -741,14 +744,14 @@ int ONScripter::setwindow2Command()
 int ONScripter::setwindowCommand()
 {
     setwindowCore();
-    
+
     lookbackflushCommand();
     indent_offset = 0;
     line_enter_status = 0;
     page_enter_status = 0;
     display_mode = DISPLAY_MODE_NORMAL;
     flush( refreshMode(), &sentence_font_info.pos );
-    
+
     return RET_CONTINUE;
 }
 
@@ -762,7 +765,7 @@ int ONScripter::setcursorCommand()
     else{
         abs_flag = false;
     }
-    
+
     int no = script_h.readInt();
     script_h.readStr();
     const char* buf = script_h.saveStringBuffer();
@@ -770,7 +773,7 @@ int ONScripter::setcursorCommand()
     int y = script_h.readInt();
 
     loadCursor( no, buf, x, y, abs_flag );
-    
+
     return RET_CONTINUE;
 }
 
@@ -841,7 +844,7 @@ int ONScripter::selectCommand()
             //utils::printInfo("comma %d\n", comma_flag);
             char *buf = script_h.getNext() + 1; // consume eol
             while ( *buf == ' ' || *buf == '\t' ) buf++;
-                
+
             if (comma_flag && *buf == ',')
                 errorAndExit( "select: double comma." );
 
@@ -852,12 +855,12 @@ int ONScripter::selectCommand()
                 while ( *buf == ' ' || *buf == '\t' ) buf++;
             }
             script_h.setCurrent(buf);
-                
+
             if (*buf == 0x0a){
                 comma_flag |= comma2_flag;
                 continue;
             }
-                
+
             if (!comma_flag && !comma2_flag){
                 select_label_info.next_script = buf;
                 //utils::printInfo("select: stop at the end of line\n");
@@ -897,7 +900,7 @@ int ONScripter::selectCommand()
     sentence_font.xy[1] = xy[1];
 
     flush( refreshMode() );
-        
+
     refreshMouseOverButton();
 
     event_mode = WAIT_TEXT_MODE | WAIT_BUTTON_MODE | WAIT_TIMER_MODE;
@@ -906,9 +909,9 @@ int ONScripter::selectCommand()
         if (waitEvent(-1)) return RET_CONTINUE;
     }
     while(current_button_state.button <= 0 || skip_mode & SKIP_NORMAL);
-        
+
     if ( selectvoice_file_name[SELECTVOICE_SELECT] )
-        playSound(selectvoice_file_name[SELECTVOICE_SELECT], 
+        playSound(selectvoice_file_name[SELECTVOICE_SELECT],
                   SOUND_CHUNK, false, MIX_WAVE_CHANNEL );
 
     deleteButtonLink();
@@ -970,17 +973,17 @@ int ONScripter::savescreenshotCommand()
     bool delete_flag = true;
     if      ( script_h.isName( "savescreenshot2" ) ){
         delete_flag = false;
-    }       
+    }
 
     if (!screenshot_surface){
          screenshot_surface = AnimationInfo::alloc32bitSurface(screen_width, screen_height, texture_format);
     }
-       
+
     SDL_Surface *surface = AnimationInfo::alloc32bitSurface( screenshot_w, screenshot_h, texture_format );
     resizeSurface( screenshot_surface, surface );
 
     const char *buf = script_h.readStr();
-   
+
     // fix --root, --save-dir problem
     std::string savepath;
     std::string imgpath(buf); // dirty fix for screenshot save/save problem
@@ -1032,7 +1035,7 @@ int ONScripter::saveoffCommand()
 {
     if (!autosaveoff_flag){
         if (saveon_flag && internal_saveon_flag) storeSaveFile();
-    
+
         saveon_flag = false;
     }
 
@@ -1044,7 +1047,7 @@ int ONScripter::savegameCommand()
     bool savegame2_flag = false;
     if ( script_h.isName( "savegame2" ) )
         savegame2_flag = true;
-    
+
     int no = script_h.readInt();
 
     const char* savestr = NULL;
@@ -1052,7 +1055,7 @@ int ONScripter::savegameCommand()
         savestr = script_h.readStr();
 
     if (saveon_flag && internal_saveon_flag) storeSaveFile();
-    writeSaveFile( no, savestr ); 
+    writeSaveFile( no, savestr );
 
     return RET_CONTINUE;
 }
@@ -1074,11 +1077,11 @@ int ONScripter::savefileexistCommand()
 int ONScripter::rndCommand()
 {
     int upper, lower;
-    
+
     if ( script_h.isName( "rnd2" ) ){
         script_h.readInt();
         script_h.pushVariable();
-        
+
         lower = script_h.readInt();
         upper = script_h.readInt();
     }
@@ -1120,14 +1123,14 @@ int ONScripter::resetCommand()
     start_page = current_page = &page_list[0];
     clearCurrentPage();
     flush( refreshMode(), &sentence_font_info.pos );
-    
+
     /* Initialize local variables */
     for (int i=0 ; i<script_h.global_variable_border ; i++)
         script_h.getVariableData(i).reset(false);
 
     setCurrentLabel( "start" );
     storeSaveFile();
-    
+
     return RET_CONTINUE;
 }
 
@@ -1135,7 +1138,7 @@ int ONScripter::repaintCommand()
 {
     dirty_rect.fill( screen_width, screen_height );
     flush( refreshMode() );
-    
+
     return RET_CONTINUE;
 }
 
@@ -1199,7 +1202,7 @@ int ONScripter::prnumclearCommand()
 int ONScripter::prnumCommand()
 {
     leaveTextDisplayMode();
-    
+
     int no = script_h.readInt();
     if (no < 0 || no >= MAX_PARAM_NUM){
         script_h.readInt();
@@ -1210,7 +1213,7 @@ int ONScripter::prnumCommand()
         script_h.readStr();
         return RET_CONTINUE;
     }
-    
+
     if ( prnum_info[no] ){
         dirty_rect.add( prnum_info[no]->pos );
         delete prnum_info[no];
@@ -1220,7 +1223,7 @@ int ONScripter::prnumCommand()
     ai->num_of_cells = 1;
     ai->setCell(0);
     ai->color_list = new uchar3[ ai->num_of_cells ];
-    
+
     ai->param = script_h.readInt();
     ai->orig_pos.x = script_h.readInt();
     ai->orig_pos.y = script_h.readInt();
@@ -1239,7 +1242,7 @@ int ONScripter::prnumCommand()
 
     setupAnimationInfo( ai );
     dirty_rect.add( ai->pos );
-    
+
     return RET_CONTINUE;
 }
 
@@ -1271,19 +1274,19 @@ int ONScripter::playCommand()
     if ( buf[0] == '*' ){
         cd_play_loop_flag = loop_flag;
         int new_cd_track = atoi( buf + 1 );
-#ifdef CONTINUOUS_PLAY        
+#ifdef CONTINUOUS_PLAY
         if ( current_cd_track != new_cd_track ) {
-#endif        
+#endif
             stopBGM( false );
             current_cd_track = new_cd_track;
             playCDAudio();
-#ifdef CONTINUOUS_PLAY        
+#ifdef CONTINUOUS_PLAY
         }
 #endif
     }
     else{ // play MIDI
         stopBGM( false );
-        
+
         setStr(&midi_file_name, buf);
         midi_play_loop_flag = loop_flag;
         if (playSound(midi_file_name, SOUND_MIDI, midi_play_loop_flag) != SOUND_MIDI){
@@ -1365,7 +1368,7 @@ int ONScripter::mspCommand()
     else{
         dirty_rect.add( ai->pos );
     }
-    
+
     if ( script_h.getEndStatus() & ScriptHandler::END_COMMA ){
         if (ai->trans == -1)
             ai->trans = 255 + script_h.readInt();
@@ -1382,14 +1385,14 @@ int ONScripter::mpegplayCommand()
 {
     script_h.readStr();
     const char *save_buf = script_h.saveStringBuffer();
-    
+
     bool click_flag = (script_h.readInt()==1)?true:false;
 
     stopBGM( false );
     if (playMPEG( save_buf, click_flag )) endCommand();
 
     repaintCommand();
-    
+
     return RET_CONTINUE;
 }
 
@@ -1405,7 +1408,7 @@ int ONScripter::mp3stopCommand()
 {
     if (Mix_PlayingMusic() == 1 && timer_bgmfade_id && mp3fadeout_duration_internal > 0) // already in fadeout
         return RET_CONTINUE;
-    
+
     if (Mix_PlayingMusic() == 1 && mp3fadeout_duration > 0){
         // do a bgm fadeout
         Mix_HookMusicFinished( NULL );
@@ -1502,7 +1505,7 @@ int ONScripter::mp3Command()
         if (mp3fadein_duration > 0)
             music_volume = 0;
 
-        playSound(music_file_name, 
+        playSound(music_file_name,
                   SOUND_MUSIC | SOUND_MIDI | SOUND_CHUNK,
                   music_play_loop_flag, MIX_BGM_CHANNEL);
 
@@ -1529,7 +1532,7 @@ int ONScripter::mp3Command()
             }
         }
     }
-        
+
     return RET_CONTINUE;
 }
 
@@ -1543,7 +1546,7 @@ int ONScripter::movieCommand()
 
     script_h.readStr();
     const char *filename = script_h.saveStringBuffer();
-    
+
     stopBGM(false);
 
     bool click_flag = false;
@@ -1574,7 +1577,7 @@ int ONScripter::movieCommand()
             script_h.readLabel();
         }
     }
-    
+
     if (playMPEG(filename, click_flag, loop_flag)) endCommand();
 
     return RET_CONTINUE;
@@ -1588,7 +1591,7 @@ int ONScripter::movemousecursorCommand()
     y = y * screen_device_height / screen_height + render_view_rect.y;
 
     warpMouse(x, y);
-    
+
     return RET_CONTINUE;
 }
 
@@ -1601,14 +1604,14 @@ int ONScripter::monocroCommand()
     else{
         monocro_flag = true;
         readColor( &monocro_color, script_h.readStr() );
-        
+
         for (int i=0 ; i<256 ; i++){
             monocro_color_lut[i][0] = (monocro_color[0] * i) >> 8;
             monocro_color_lut[i][1] = (monocro_color[1] * i) >> 8;
             monocro_color_lut[i][2] = (monocro_color[2] * i) >> 8;
         }
     }
-    
+
     dirty_rect.fill( screen_width, screen_height );
 
     return RET_CONTINUE;
@@ -1643,7 +1646,7 @@ int ONScripter::menu_automodeCommand()
     automode_flag = true;
     skip_mode &= ~SKIP_NORMAL;
     utils::printInfo("menu_automode: change to automode\n");
-    
+
     return RET_CONTINUE;
 }
 
@@ -1665,12 +1668,12 @@ int ONScripter::lsp2Command()
 
     int no = script_h.readInt();
     AnimationInfo *ai = &sprite2_info[no];
-    
+
     if (ai->image_surface && ai->visible)
         dirty_rect.add( ai->bounding_rect );
     ai->visible = v;
     ai->blending_mode = blend_mode;
-    
+
     const char *buf = script_h.readStr();
     ai->setImageName( buf );
 
@@ -1709,7 +1712,7 @@ int ONScripter::lspCommand()
     if (ai->image_surface && ai->visible)
         dirty_rect.add( ai->pos );
     ai->visible = v;
-    
+
     const char *buf = script_h.readStr();
     ai->setImageName(buf);
     ai->orig_pos.x = script_h.readInt();
@@ -1720,7 +1723,7 @@ int ONScripter::lspCommand()
         ai->trans = script_h.readInt();
     else
         ai->trans = -1;
-    
+
     parseTaggedString( ai );
     setupAnimationInfo( ai );
 
@@ -1742,7 +1745,7 @@ int ONScripter::loopbgmstopCommand()
         wave_sample[MIX_LOOPBGM_CHANNEL1] = NULL;
     }
     setStr(&loop_bgm_name[0], NULL);
-    
+
     return RET_CONTINUE;
 }
 
@@ -1757,7 +1760,7 @@ int ONScripter::loopbgmCommand()
               SOUND_PRELOAD|SOUND_CHUNK, false, MIX_LOOPBGM_CHANNEL1);
     playSound(loop_bgm_name[0],
               SOUND_CHUNK, false, MIX_LOOPBGM_CHANNEL0);
-    
+
     return RET_CONTINUE;
 }
 
@@ -1770,7 +1773,7 @@ int ONScripter::lookbackflushCommand()
     }
     clearCurrentPage();
     start_page = current_page;
-    
+
     return RET_CONTINUE;
 }
 
@@ -1805,7 +1808,7 @@ int ONScripter::logspCommand()
     ai->orig_pos.x = script_h.readInt();
     ai->orig_pos.y = script_h.readInt();
     ai->scalePosXY( screen_ratio1, screen_ratio2 );
-    
+
     ai->trans_mode = AnimationInfo::TRANS_STRING;
     if (logsp2_flag){
         ai->font_size_xy[0] = script_h.readInt();
@@ -1819,7 +1822,7 @@ int ONScripter::logspCommand()
         ai->font_pitch[0] = sentence_font.pitch_xy[0];
         ai->font_pitch[1] = sentence_font.pitch_xy[1];
     }
-    
+
     char *current = script_h.getNext();
     int num = 0;
     while(script_h.getEndStatus() & ScriptHandler::END_COMMA){
@@ -1849,7 +1852,7 @@ int ONScripter::logspCommand()
     sentence_font.is_newline_accepted = false;
     ai->visible = true;
     dirty_rect.add( ai->pos );
-    
+
     return RET_CONTINUE;
 }
 
@@ -1915,7 +1918,7 @@ int ONScripter::ldCommand()
 
     const char *buf = NULL;
     if (no >= 0) buf = script_h.readStr();
-    
+
     if (no >= 0){
         AnimationInfo *ai = &tachi_info[no];
 
@@ -2003,11 +2006,11 @@ int ONScripter::jumpfCommand()
     char *buf = script_h.getNext();
     while(*buf != '\0' && *buf != '~') buf++;
     if (*buf == '~') buf++;
-    
+
     script_h.setCurrent(buf);
     current_label_info = script_h.getLabelByAddress(buf);
     current_line = script_h.getLineByAddress(buf);
-    
+
     return RET_CONTINUE;
 }
 
@@ -2028,7 +2031,7 @@ int ONScripter::ispageCommand()
         script_h.setInt( &script_h.current_variable, 1 );
     else
         script_h.setInt( &script_h.current_variable, 0 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2036,7 +2039,7 @@ int ONScripter::isfullCommand()
 {
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, fullscreen_mode?1:0 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2050,7 +2053,7 @@ int ONScripter::isskipCommand()
         script_h.setInt( &script_h.current_variable, 1 );
     else
         script_h.setInt( &script_h.current_variable, 0 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2067,15 +2070,15 @@ int ONScripter::isdownCommand()
         script_h.setInt( &script_h.current_variable, 1 );
     else
         script_h.setInt( &script_h.current_variable, 0 );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::inputCommand()
 {
     script_h.readStr();
-    
-    if ( script_h.current_variable.type != ScriptHandler::VAR_STR ) 
+
+    if ( script_h.current_variable.type != ScriptHandler::VAR_STR )
         errorAndExit( "input: no string variable." );
     int no = script_h.current_variable.var_no;
 
@@ -2100,14 +2103,14 @@ int ONScripter::inputCommand()
 int ONScripter::indentCommand()
 {
     indent_offset = script_h.readInt();
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::humanorderCommand()
 {
     leaveTextDisplayMode();
-    
+
     const char *buf = script_h.readStr();
     int i;
     for (i=0 ; i<3 ; i++){
@@ -2153,7 +2156,7 @@ int ONScripter::getversionCommand()
 int ONScripter::gettimerCommand()
 {
     bool gettimer_flag=false;
-    
+
     if      ( script_h.isName( "gettimer" ) ){
         gettimer_flag = true;
     }
@@ -2168,8 +2171,8 @@ int ONScripter::gettimerCommand()
     else{
         script_h.setInt( &script_h.current_variable, btnwait_time );
     }
-        
-    return RET_CONTINUE; 
+
+    return RET_CONTINUE;
 }
 
 int ONScripter::gettextCommand()
@@ -2187,7 +2190,7 @@ int ONScripter::gettextCommand()
 
     setStr( &script_h.getVariableData(no).str, buf );
     delete[] buf;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2225,7 +2228,7 @@ int ONScripter::gettagCommand()
         buf += 2;
     else
         buf = NULL;
-    
+
     int end_status;
     do{
         script_h.readVariable();
@@ -2242,7 +2245,7 @@ int ONScripter::gettagCommand()
         else if ( script_h.pushed_variable.type & ScriptHandler::VAR_STR ){
             if (buf){
                 const char *buf_start = buf;
-                while(*buf != '/' && *buf != 0 && *buf != ']' && 
+                while(*buf != '/' && *buf != 0 && *buf != ']' &&
                       (!zenkakko_flag || buf[0] != coding2utf16->bracket[0] || buf[1] != coding2utf16->bracket[1])) {
                     if(coding2utf16->force_utf8) {
                         buf += UTF8_N_BYTE(*buf);
@@ -2269,7 +2272,7 @@ int ONScripter::gettagCommand()
 
     if (pretext_buf[0] == ']')
         pretext_buf++;
-    else if (zenkakko_flag && 
+    else if (zenkakko_flag &&
              pretext_buf[0] == "��"[0] && pretext_buf[1] == "��"[1])
         pretext_buf += 2;
 
@@ -2279,7 +2282,7 @@ int ONScripter::gettagCommand()
 int ONScripter::gettabCommand()
 {
     gettab_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2302,7 +2305,7 @@ int ONScripter::getspsizeCommand()
 int ONScripter::getspposCommand()
 {
     int no = script_h.readInt();
-    
+
     script_h.readVariable();
     script_h.setInt( &script_h.current_variable, sprite_info[no].orig_pos.x );
 
@@ -2349,7 +2352,7 @@ int ONScripter::getscreenshotCommand()
     if(screenshot_surface){
         SDL_BlitSurface(accumulation_surface, nullptr, screenshot_surface, nullptr);
     }
-    
+
     return RET_CONTINUE;
 }
 
@@ -2358,7 +2361,7 @@ int ONScripter::getsavestrCommand()
     script_h.readVariable();
     if ( script_h.current_variable.type != ScriptHandler::VAR_STR )
         errorAndExit( "getsavestr: no string variable." );
-        
+
     script_h.pushVariable();
 
     int no = script_h.readInt();
@@ -2373,7 +2376,7 @@ int ONScripter::getsavestrCommand()
 int ONScripter::getpageupCommand()
 {
     getpageup_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2381,7 +2384,7 @@ int ONScripter::getpageCommand()
 {
     getpageup_flag = true;
     getpagedown_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2398,15 +2401,15 @@ int ONScripter::getretCommand()
         setStr( &script_h.getVariableData(no).str, getret_str );
     }
     else errorAndExit( "getret: no variable." );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::getregCommand()
 {
     script_h.readVariable();
-    
-    if ( script_h.current_variable.type != ScriptHandler::VAR_STR ) 
+
+    if ( script_h.current_variable.type != ScriptHandler::VAR_STR )
         errorAndExit( "getreg: no string variable." );
     int no = script_h.current_variable.var_no;
 
@@ -2417,7 +2420,7 @@ int ONScripter::getregCommand()
     strcpy( key, buf );
 
     utils::printInfo("  reading Registry file for [%s] %s\n", path, key );
-        
+
     FILE *fp;
     if ( ( fp = fopen( registry_file, "r" ) ) == NULL ){
         utils::printError("Cannot open file [%s]\n", registry_file );
@@ -2441,7 +2444,7 @@ int ONScripter::getregCommand()
                         script_h.popCurrent();
                         continue;
                     }
-                    
+
                     if ( !script_h.compareString("=") ){
                         script_h.popCurrent();
                         continue;
@@ -2468,7 +2471,7 @@ int ONScripter::getregCommand()
 int ONScripter::getmclickCommand()
 {
     getmclick_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2483,10 +2486,10 @@ int ONScripter::getmouseposCommand()
 {
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, current_button_state.x * screen_ratio2 / screen_ratio1 );
-    
+
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, current_button_state.y * screen_ratio2 / screen_ratio1 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2496,14 +2499,14 @@ int ONScripter::getmouseoverCommand()
 
     getmouseover_lower = script_h.readInt();
     getmouseover_upper = script_h.readInt();
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::getlogCommand()
 {
     bool getlogtext_flag=false;
-    
+
     if ( script_h.isName( "getlogtext" ) )
         getlogtext_flag = true;
 
@@ -2548,7 +2551,7 @@ int ONScripter::getlogCommand()
                 }
             }
         }
-    
+
         setStr( &script_h.getVariableData(script_h.pushed_variable.var_no).str, buf, count );
 
         if (getlogtext_flag) delete[] buf;
@@ -2567,7 +2570,7 @@ int ONScripter::getinsertCommand()
 int ONScripter::getfunctionCommand()
 {
     getfunction_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2575,7 +2578,7 @@ int ONScripter::getenterCommand()
 {
     if ( !force_button_shortcut_flag )
         getenter_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2583,17 +2586,17 @@ int ONScripter::getcursorpos2Command()
 {
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, sentence_font.old_xy[0] );
-    
+
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, sentence_font.old_xy[1] );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::getcursorposCommand()
 {
     FontInfo fi = sentence_font;
-    
+
     if ( fi.isEndOfLine() ){
         fi.newLine();
         for (int i=0 ; i<indent_offset ; i++)
@@ -2602,10 +2605,10 @@ int ONScripter::getcursorposCommand()
 
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, fi.x(false) );
-    
+
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, fi.y(false) );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2613,7 +2616,7 @@ int ONScripter::getcursorCommand()
 {
     if ( !force_button_shortcut_flag )
         getcursor_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -2680,7 +2683,7 @@ int ONScripter::gameCommand()
         parseTaggedString( &lookback_info[3] );
         setupAnimationInfo( &lookback_info[3] );
     }
-    
+
     /* ---------------------------------------- */
     /* Initialize text buffer */
     page_list = new Page[max_page_list];
@@ -2812,7 +2815,7 @@ int ONScripter::exec_dllCommand()
 
     if ( !found_flag ) utils::printError("  The DLL is not found in %s.\n", dll_file );
     fclose( fp );
-    
+
     return RET_CONTINUE;
 }
 
@@ -2820,7 +2823,7 @@ int ONScripter::exbtnCommand()
 {
     int sprite_no=-1, no=0;
     ButtonLink *bl;
-    
+
     if ( script_h.isName( "exbtn_d" ) ||
          script_h.isName( "bdef" )){
         bl = &exbtn_d_button_link;
@@ -2840,28 +2843,28 @@ int ONScripter::exbtnCommand()
         sprite_no = script_h.readInt();
         no = script_h.readInt();
 
-        if (no < 1 || 
+        if (no < 1 ||
             sprite_no < 0 ||
-            sprite_no >= MAX_SPRITE_NUM || 
+            sprite_no >= MAX_SPRITE_NUM ||
             sprite_info[sprite_no].image_surface == NULL ||
             ( cellcheck_flag && sprite_info[ sprite_no ].num_of_cells < 2) ||
             (!cellcheck_flag && sprite_info[ sprite_no ].num_of_cells == 0)){
             script_h.readStr();
             return RET_CONTINUE;
         }
-        
+
         bl = new ButtonLink();
         root_button_link.insert( bl );
         is_exbtn_enabled = true;
     }
 
     const char *buf = script_h.readStr();
-    
+
     bl->button_type = ButtonLink::SPRITE_BUTTON;
     bl->sprite_no   = sprite_no;
     bl->no          = no;
     setStr( &bl->exbtn_ctl[1], buf );
-    
+
     if ( sprite_no >= 0 &&
          ( sprite_info[ sprite_no ].image_surface ||
            sprite_info[ sprite_no ].trans_mode == AnimationInfo::TRANS_STRING ) )
@@ -2881,6 +2884,11 @@ int ONScripter::endCommand()
 {
     quit();
     stopSMPEG();
+#ifdef SWITCH
+    // Cleanup Switch services before exit
+    romfsExit();
+    socketExit();
+#endif
     exit(0);
     return RET_CONTINUE; // dummy
 }
@@ -2904,7 +2912,7 @@ int ONScripter::dwaveCommand()
 {
     int play_mode = WAVE_PLAY;
     bool loop_flag = false;
-    
+
     if ( script_h.isName( "dwaveloop" ) ){
         loop_flag = true;
     }
@@ -2933,17 +2941,17 @@ int ONScripter::dwaveCommand()
         if (play_mode == WAVE_PRELOAD) fmt |= SOUND_PRELOAD;
         playSound(buf, fmt, loop_flag, ch);
     }
-        
+
     return RET_CONTINUE;
 }
 
 int ONScripter::dvCommand()
 {
     char buf[256];
-    
+
     sprintf(buf, RELATIVEPATH "voice%c%s.wav", DELIMITER, script_h.getStringBuffer()+2);
     playSound(buf, SOUND_CHUNK, false, 0);
-    
+
     return RET_CONTINUE;
 }
 
@@ -2954,7 +2962,7 @@ int ONScripter::drawtextCommand()
     clip.w = accumulation_surface->w;
     clip.h = accumulation_surface->h;
     text_info.blendOnSurface( accumulation_surface, 0, 0, clip );
-    
+
     return RET_CONTINUE;
 }
 
@@ -3038,14 +3046,14 @@ int ONScripter::drawfillCommand()
     int b = script_h.readInt();
 
     SDL_FillRect( accumulation_surface, NULL, SDL_MapRGBA( accumulation_surface->format, r, g, b, 0xff) );
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::drawclearCommand()
 {
     SDL_FillRect( accumulation_surface, NULL, SDL_MapRGBA( accumulation_surface->format, 0, 0, 0, 0xff) );
-    
+
     return RET_CONTINUE;
 }
 
@@ -3056,7 +3064,7 @@ int ONScripter::drawbgCommand()
     clip.w = accumulation_surface->w;
     clip.h = accumulation_surface->h;
     bg_info.blendOnSurface( accumulation_surface, bg_info.pos.x, bg_info.pos.y, clip );
-    
+
     return RET_CONTINUE;
 }
 
@@ -3080,7 +3088,7 @@ int ONScripter::drawCommand()
 {
     flushDirect( screen_rect, REFRESH_NONE_MODE );
     dirty_rect.clear();
-    
+
     return RET_CONTINUE;
 }
 
@@ -3096,7 +3104,7 @@ int ONScripter::deletescreenshotCommand()
 int ONScripter::delayCommand()
 {
     int val = script_h.readInt();
-    
+
     if (skip_mode & SKIP_NORMAL || ctrl_pressed_status)
         return RET_CONTINUE;
 
@@ -3121,7 +3129,7 @@ int ONScripter::defineresetCommand()
 
 #ifdef USE_LUA
     lua_handler.init(this, &script_h, screen_ratio1, screen_ratio2);
-#endif    
+#endif
 
     current_mode = DEFINE_MODE;
 
@@ -3131,7 +3139,7 @@ int ONScripter::defineresetCommand()
 int ONScripter::cspCommand()
 {
     leaveTextDisplayMode();
-    
+
     bool csp2_flag = false;
     if (script_h.isName("csp2")) csp2_flag = true;
 
@@ -3190,10 +3198,10 @@ int ONScripter::cselgotoCommand()
     if ( !link ) errorAndExit( "cselgoto: no select link" );
 
     setCurrentLabel( link->label );
-    
+
     deleteSelectLink();
     newPage();
-    
+
     return RET_CONTINUE;
 }
 
@@ -3242,16 +3250,16 @@ int ONScripter::clickCommand()
 
     if (lrclick_flag)
         getret_int = (current_button_state.button == -1)?0:1;
-        
+
     return RET_CONTINUE;
 }
 
 int ONScripter::clCommand()
 {
     leaveTextDisplayMode();
-    
+
     char loc = script_h.readLabel()[0];
-    
+
     if ( loc == 'l' || loc == 'a' ){
         dirty_rect.add( tachi_info[0].pos );
         tachi_info[0].remove();
@@ -3280,7 +3288,7 @@ int ONScripter::chvolCommand()
 
     int vol = script_h.readInt();
     if ( wave_sample[ch] ) Mix_Volume( ch, vol * MIX_MAX_VOLUME / 100 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -3294,7 +3302,7 @@ int ONScripter::checkpageCommand()
         errorAndExit( "checkpage: no integer variable." );
 
     int page_no = script_h.readInt();
-    
+
     Page *page = current_page;
     while(page != start_page && page_no > 0){
         page_no--;
@@ -3319,7 +3327,7 @@ int ONScripter::checkkeyCommand()
         script_h.setInt( &script_h.pushed_variable, 1 );
     else
         script_h.setInt( &script_h.pushed_variable, 0 );
-    
+
     return RET_CONTINUE;
 }
 
@@ -3330,7 +3338,7 @@ int ONScripter::cellCommand()
 
     sprite_info[sprite_no].setCell(no);
     dirty_rect.add( sprite_info[sprite_no].pos );
-        
+
     return RET_CONTINUE;
 }
 
@@ -3342,11 +3350,11 @@ int ONScripter::captionCommand()
     char *buf2 = new char[len*3+1];
 
     DirectReader::convertCodingToUTF8(buf2, buf);
-    
+
     setStr( &wm_title_string, buf2 );
     setStr( &wm_icon_string,  buf2 );
     delete[] buf2;
-    
+
     setCaption( wm_title_string, wm_icon_string );
 
     return RET_CONTINUE;
@@ -3419,14 +3427,14 @@ int ONScripter::btnwaitCommand()
         if (is_exbtn_enabled) decodeExbtnControl( exbtn_d_button_link.exbtn_ctl[1], &check_src_rect );
     }
 
-    if ((textbtn_flag || bexec_flag) && 
-        (skip_mode & SKIP_NORMAL || 
-         (skip_mode & SKIP_TO_EOP && (textgosub_clickstr_state & 0x03) == CLICK_WAIT) || 
+    if ((textbtn_flag || bexec_flag) &&
+        (skip_mode & SKIP_NORMAL ||
+         (skip_mode & SKIP_TO_EOP && (textgosub_clickstr_state & 0x03) == CLICK_WAIT) ||
          ctrl_pressed_status) ){
         waitEventSub(0); // for checking keyup event
         current_button_state.button = 0;
         if (bexec_flag) current_button_state.button = -1;
-        if (skip_mode & SKIP_NORMAL || 
+        if (skip_mode & SKIP_NORMAL ||
             (skip_mode & SKIP_TO_EOP && (textgosub_clickstr_state & 0x03) == CLICK_WAIT))
             sprintf(current_button_state.str, "SKIP");
         else
@@ -3499,13 +3507,13 @@ int ONScripter::btnwaitCommand()
 
     event_mode = IDLE_EVENT_MODE;
     disableGetButtonFlag();
-        
+
     bl = root_button_link.next;
     while( bl ){
         bl->show_flag = 0;
         bl = bl->next;
     }
-            
+
     return RET_CONTINUE;
 }
 
@@ -3520,12 +3528,12 @@ int ONScripter::btntimeCommand()
         btntime2_flag = true;
     else
         btntime2_flag = false;
-    
+
     btntime_value = script_h.readInt();
 
     if ( btime_flag && script_h.getEndStatus() & ScriptHandler::END_COMMA )
         if (script_h.readInt() == 1) btntime2_flag = true;
-    
+
     return RET_CONTINUE;
 }
 
@@ -3559,22 +3567,22 @@ int ONScripter::btndefCommand()
             SDL_SetSurfaceBlendMode(btndef_info.image_surface, SDL_BLENDMODE_NONE);
         }
     }
-    
+
     btntime_value = -1;
     transbtn_flag = false;
     deleteButtonLink();
 
     disableGetButtonFlag();
-    
+
     return RET_CONTINUE;
 }
 
 int ONScripter::btnCommand()
 {
     SDL_Rect src_rect;
-    
+
     ButtonLink *button = new ButtonLink();
-    
+
     button->no           = script_h.readInt();
     button->image_rect.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
     button->image_rect.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
@@ -3603,7 +3611,7 @@ int ONScripter::btnCommand()
     ai->allocImage( button->image_rect.w, button->image_rect.h, texture_format );
     ai->fill( 0, 0, 0, 0 );
     ai->copySurface( btndef_info.image_surface, &src_rect );
-    
+
     root_button_link.insert( button );
 
     return RET_CONTINUE;
@@ -3612,7 +3620,7 @@ int ONScripter::btnCommand()
 int ONScripter::bspCommand()
 {
     int no = script_h.readInt();
-    if (no < 0 || no >= MAX_SPRITE_NUM || 
+    if (no < 0 || no >= MAX_SPRITE_NUM ||
         sprite_info[no].image_surface == NULL){
         for (int i=0 ; i<3 ; i++)
             if ( script_h.getEndStatus() & ScriptHandler::END_COMMA )
@@ -3678,7 +3686,7 @@ int ONScripter::bltCommand()
 
     if (btndef_info.image_surface == NULL) return RET_CONTINUE;
     if (dw == 0 || dh == 0 || sw == 0 || sh == 0) return RET_CONTINUE;
-    
+
     if (sx >= 0 && sy >= 0 && sw > 0 && sh > 0) {
         if (sx + sw > btndef_info.image_surface->w) sw = btndef_info.image_surface->w - sx;
         if (sy + sh > btndef_info.image_surface->h) sh = btndef_info.image_surface->h - sy;
@@ -3706,16 +3714,16 @@ int ONScripter::bltCommand()
             SDL_DestroyTexture(blt_texture);
             blt_texture = createMaximumTexture(renderer, blt_texture_src_rect, src_rect, btndef_info.image_surface,
               texture_format, max_texture_width, max_texture_height);
-          }       
+          }
         }
         src_rect.x -= blt_texture_src_rect.x;
         src_rect.y -= blt_texture_src_rect.y;
         screen_dirty_flag = true;
 
-        // printf("## bltCommand src(%d, %d, %d, %d), dst(%d, %d, %d, %d)\n", 
+        // printf("## bltCommand src(%d, %d, %d, %d), dst(%d, %d, %d, %d)\n",
         //     src_rect.x, src_rect.y, src_rect.w, src_rect.h,
         //     dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
-        
+
 #if defined(USE_GLES)
         if(!isnan(sharpness)){ // fix gles render blt problem
             SDL_BlitScaled(btndef_info.image_surface, &src_rect, bg_info.image_surface, &dst_rect);
@@ -3724,8 +3732,8 @@ int ONScripter::bltCommand()
             return RET_CONTINUE;
         }
 #endif
-        
-#if defined(ANDROID) // dirty fix for android flash problem 
+
+#if defined(ANDROID) // dirty fix for android flash problem
         SDL_BlitScaled(btndef_info.image_surface, &src_rect, bg_info.image_surface, &dst_rect);
         flushDirect(dst_rect, REFRESH_NORMAL_MODE);
 #else
@@ -3750,7 +3758,7 @@ int ONScripter::bltCommand()
 int ONScripter::bgcopyCommand()
 {
     ofscopyCommand();
-    
+
     setStr( &bg_info.file_name, "*bgcpy" );
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;
@@ -3817,7 +3825,7 @@ int ONScripter::barCommand()
 {
     int no = script_h.readInt();
     AnimationInfo *ai = bar_info[no];
-    
+
     if ( ai ){
         dirty_rect.add( ai->pos );
         ai->remove();
@@ -3859,7 +3867,7 @@ int ONScripter::aviCommand()
 {
     script_h.readStr();
     const char *save_buf = script_h.saveStringBuffer();
-    
+
     bool click_flag = (script_h.readInt()==1)?true:false;
 
     stopBGM( false );
@@ -3874,7 +3882,7 @@ int ONScripter::aviCommand()
 int ONScripter::automode_timeCommand()
 {
     automode_time = script_h.readInt();
-    
+
     return RET_CONTINUE;
 }
 
@@ -3916,7 +3924,7 @@ int ONScripter::amspCommand()
     else{
         dirty_rect.add( ai->pos );
     }
-    
+
     if ( script_h.getEndStatus() & ScriptHandler::END_COMMA ){
         ai->trans = script_h.readInt();
         if      (ai->trans <   0) ai->trans = 0;
@@ -4000,10 +4008,10 @@ void ONScripter::NSDCallCommand(int texnum, const char *str1, int proc, const ch
         f_info.setTateyokoMode(0);
         f_info.top_xy[0] = f_info.top_xy[1] = 0;
         f_info.clear();
-            
+
         f_info.ttf_font[0] = NULL;
         f_info.ttf_font[1] = NULL;
-        
+
         RubyStruct rs_old = ruby_struct;
         ruby_struct.font_name = NULL;
 
@@ -4112,7 +4120,7 @@ void ONScripter::NSDPresentRectCommand(int x1, int y1, int x2, int y2)
     clip_src.y = y1;
     clip_src.w = x2-x1+1;
     clip_src.h = y2-y1+1;
-    
+
     SDL_Rect clip;
     clip.x = clip.y = 0;
     clip.w = accumulation_surface->w;
@@ -4190,5 +4198,5 @@ void ONScripter::stopSMPEG()
         delete[] layer_smpeg_buffer;
         layer_smpeg_buffer = NULL;
     }
-#endif        
+#endif
 }

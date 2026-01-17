@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ONScripter_event.cpp - Event handler of ONScripter
  *
  *  Copyright (c) 2001-2016 Ogapee. All rights reserved.
@@ -28,6 +28,12 @@
 #if defined(LINUX)
 #include <sys/types.h>
 #include <sys/wait.h>
+#endif
+
+#ifdef SWITCH
+#include <switch.h>
+static PadState g_pad;
+static bool g_pad_initialized = false;
 #endif
 
 #define ONS_TIMER_EVENT   (SDL_USEREVENT)
@@ -163,6 +169,130 @@ ONS_Key transControllerButton(Uint8 button)
     return button_map[button];
 }
 
+#ifdef SWITCH
+// Initialize Switch pad for direct HID input
+void initSwitchPad()
+{
+    if (!g_pad_initialized) {
+        padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+        padInitializeDefault(&g_pad);
+        g_pad_initialized = true;
+    }
+}
+
+// Poll Switch pad and inject SDL keyboard events
+void pollSwitchInput()
+{
+    if (!g_pad_initialized) {
+        initSwitchPad();
+    }
+
+    padUpdate(&g_pad);
+    u64 kDown = padGetButtonsDown(&g_pad);
+    u64 kUp = padGetButtonsUp(&g_pad);
+
+    // Button to key mapping
+    struct ButtonMapping {
+        u64 button;
+        SDL_Keycode key;
+    };
+
+    static const ButtonMapping mappings[] = {
+        { HidNpadButton_A,         SDLK_RETURN },   // A -> Confirm
+        { HidNpadButton_B,         SDLK_ESCAPE },   // B -> Back/Cancel
+        { HidNpadButton_X,         SDLK_RCTRL },    // X -> Skip
+        { HidNpadButton_Y,         SDLK_SPACE },    // Y -> Auto
+        { HidNpadButton_L,         SDLK_o },        // L -> Log
+        { HidNpadButton_R,         SDLK_s },        // R -> Save
+        { HidNpadButton_ZL,        SDLK_PAGEUP },   // ZL -> Page up
+        { HidNpadButton_ZR,        SDLK_PAGEDOWN }, // ZR -> Page down
+        { HidNpadButton_Plus,      SDLK_a },        // + -> Menu
+        { HidNpadButton_Minus,     SDLK_0 },        // - -> Back
+        { HidNpadButton_Up,        SDLK_UP },       // D-Pad Up
+        { HidNpadButton_Down,      SDLK_DOWN },     // D-Pad Down
+        { HidNpadButton_Left,      SDLK_LEFT },     // D-Pad Left
+        { HidNpadButton_Right,     SDLK_RIGHT },    // D-Pad Right
+        { HidNpadButton_StickLUp,    SDLK_UP },     // Left Stick Up
+        { HidNpadButton_StickLDown,  SDLK_DOWN },   // Left Stick Down
+        { HidNpadButton_StickLLeft,  SDLK_LEFT },   // Left Stick Left
+        { HidNpadButton_StickLRight, SDLK_RIGHT },  // Left Stick Right
+    };
+
+    const int num_mappings = sizeof(mappings) / sizeof(mappings[0]);
+
+    for (int i = 0; i < num_mappings; i++) {
+        if (kDown & mappings[i].button) {
+            SDL_Event event;
+            event.type = SDL_KEYDOWN;
+            event.key.keysym.sym = mappings[i].key;
+            event.key.keysym.mod = 0;
+            event.key.state = SDL_PRESSED;
+            event.key.repeat = 0;
+            SDL_PushEvent(&event);
+        }
+        if (kUp & mappings[i].button) {
+            SDL_Event event;
+            event.type = SDL_KEYUP;
+            event.key.keysym.sym = mappings[i].key;
+            event.key.keysym.mod = 0;
+            event.key.state = SDL_RELEASED;
+            event.key.repeat = 0;
+            SDL_PushEvent(&event);
+        }
+    }
+
+    // Handle touch screen as mouse
+    HidTouchScreenState touch_state;
+    static bool was_touching = false;
+    static int last_touch_x = 0, last_touch_y = 0;
+
+    if (hidGetTouchScreenStates(&touch_state, 1) > 0) {
+        if (touch_state.count > 0) {
+            int touch_x = touch_state.touches[0].x;
+            int touch_y = touch_state.touches[0].y;
+
+            // Scale touch coordinates to game screen (1280x720 -> game resolution)
+            // This needs to match the game's render scaling
+
+            if (!was_touching) {
+                // Touch down -> mouse button down
+                SDL_Event event;
+                event.type = SDL_MOUSEBUTTONDOWN;
+                event.button.button = SDL_BUTTON_LEFT;
+                event.button.x = touch_x;
+                event.button.y = touch_y;
+                event.button.state = SDL_PRESSED;
+                event.button.clicks = 1;
+                SDL_PushEvent(&event);
+            } else if (touch_x != last_touch_x || touch_y != last_touch_y) {
+                // Touch move -> mouse motion
+                SDL_Event event;
+                event.type = SDL_MOUSEMOTION;
+                event.motion.x = touch_x;
+                event.motion.y = touch_y;
+                event.motion.state = SDL_BUTTON_LMASK;
+                SDL_PushEvent(&event);
+            }
+
+            last_touch_x = touch_x;
+            last_touch_y = touch_y;
+            was_touching = true;
+        } else if (was_touching) {
+            // Touch up -> mouse button up
+            SDL_Event event;
+            event.type = SDL_MOUSEBUTTONUP;
+            event.button.button = SDL_BUTTON_LEFT;
+            event.button.x = last_touch_x;
+            event.button.y = last_touch_y;
+            event.button.state = SDL_RELEASED;
+            event.button.clicks = 1;
+            SDL_PushEvent(&event);
+            was_touching = false;
+        }
+    }
+}
+#endif
+
 void ONScripter::flushEventSub( SDL_Event &event )
 {
     if ( event.type == ONS_MUSIC_EVENT ){
@@ -255,10 +385,10 @@ void ONScripter::flushEventSub( SDL_Event &event )
         if ( wave_sample[event.user.code] ){
             Mix_FreeChunk( wave_sample[event.user.code] );
             wave_sample[event.user.code] = NULL;
-            if (event.user.code == MIX_LOOPBGM_CHANNEL0 && 
+            if (event.user.code == MIX_LOOPBGM_CHANNEL0 &&
                 loop_bgm_name[1] &&
                 wave_sample[MIX_LOOPBGM_CHANNEL1])
-                Mix_PlayChannel(MIX_LOOPBGM_CHANNEL1, 
+                Mix_PlayChannel(MIX_LOOPBGM_CHANNEL1,
                                 wave_sample[MIX_LOOPBGM_CHANNEL1], -1);
         }
     }
@@ -295,7 +425,7 @@ void ONScripter::waitEventSub(int count)
 bool ONScripter::waitEvent( int count )
 {
     if (count > 0) count += SDL_GetTicks();
-    
+
     while(1){
         waitEventSub( count );
         if ( system_menu_mode == SYSTEM_NULL ) break;
@@ -332,14 +462,14 @@ extern "C" void waveCallback( int channel )
 
 bool ONScripter::trapHandler()
 {
-    if (event_mode & WAIT_BUTTON_MODE || 
+    if (event_mode & WAIT_BUTTON_MODE ||
         event_mode & WAIT_TEXT_MODE) return false;
 
     if (trap_mode & TRAP_STOP){
         trap_mode |= TRAP_CLICKED;
         return false;
     }
-    
+
     trap_mode = TRAP_NONE;
     stopAnimation( clickstr_state );
     setCurrentLabel( trap_dist );
@@ -373,7 +503,7 @@ bool ONScripter::mousePressEvent( SDL_MouseButtonEvent *event )
 {
     // utils::printInfo("## mousePressEvent\n");
     if ( variable_edit_mode ) return false;
-    
+
     if ( automode_flag ){
         automode_flag = false;
         return false;
@@ -436,7 +566,7 @@ bool ONScripter::mousePressEvent( SDL_MouseButtonEvent *event )
                 flush( refreshMode() );
             }
         }
-            
+
         if ( event->type == SDL_MOUSEBUTTONDOWN )
             current_button_state.down_flag = true;
     }
@@ -636,7 +766,7 @@ void ONScripter::variableEditMode( SDL_KeyboardEvent *event )
     }
     else if ( variable_edit_mode >= EDIT_VARIABLE_NUM_MODE ){
         int p=0;
-        
+
         switch( variable_edit_mode ){
 
           case EDIT_VARIABLE_NUM_MODE:
@@ -666,7 +796,7 @@ void ONScripter::shiftCursorOnButton( int diff )
 {
     int num;
     ButtonLink *button = root_button_link.next;
-    for (num=0 ; button ; num++) 
+    for (num=0 ; button ; num++)
         button = button->next;
 
     shortcut_mouse_line += diff;
@@ -674,9 +804,9 @@ void ONScripter::shiftCursorOnButton( int diff )
     else if (shortcut_mouse_line >= num) shortcut_mouse_line = 0;
 
     button = root_button_link.next;
-    for (int i=0 ; i<shortcut_mouse_line ; i++) 
+    for (int i=0 ; i<shortcut_mouse_line ; i++)
         button  = button->next;
-    
+
     if (button){
         int x = button->select_rect.x + button->select_rect.w/2;
         int y = button->select_rect.y + button->select_rect.h/2;
@@ -790,7 +920,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         automode_flag = false;
         return false;
     }
-    
+
     if ( event->type == SDL_KEYUP ){
 #if !defined(WINRT) && !defined(WEB) && (defined(WIN32) || defined(_WIN32) || defined(LINUX) || defined(MACOSX))
       if ((event->keysym.mod & KMOD_ALT) && event->keysym.sym == SDLK_RETURN) {
@@ -798,7 +928,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         return true;
       }
       if (event->keysym.sym == SDLK_F10) {
-        stretch_mode = !fullscreen_mode; 
+        stretch_mode = !fullscreen_mode;
         setFullScreen(!fullscreen_mode);
         return true;
       }
@@ -816,25 +946,25 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
             setCaption( wm_edit_string, wm_icon_string );
         }
     }
-    
+
     if (event->type == SDL_KEYUP)
         skip_mode &= ~SKIP_NORMAL;
-    
+
     if ( shift_pressed_status && event->keysym.sym == SDLK_q && current_mode == NORMAL_MODE ){
         endCommand();
     }
 
-    if ( (trap_mode & TRAP_LEFT_CLICK) && 
+    if ( (trap_mode & TRAP_LEFT_CLICK) &&
          (event->keysym.sym == SDLK_RETURN ||
           event->keysym.sym == SDLK_KP_ENTER ||
           event->keysym.sym == SDLK_SPACE ) ){
         if (trapHandler()) return true;
     }
-    else if ( (trap_mode & TRAP_RIGHT_CLICK) && 
+    else if ( (trap_mode & TRAP_RIGHT_CLICK) &&
               (event->keysym.sym == SDLK_ESCAPE) ){
         if (trapHandler()) return true;
     }
-    
+
     if ( event_mode & WAIT_BUTTON_MODE &&
          (((event->type == SDL_KEYUP || btndown_flag) &&
            ((!getenter_flag && event->keysym.sym == SDLK_RETURN) ||
@@ -880,7 +1010,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
     }
 
     if ( event->type == SDL_KEYDOWN ) return false;
-    
+
     if ( ( event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE) ) &&
          ( autoclick_time == 0 || (event_mode & WAIT_BUTTON_MODE)) ){
         if ( !useescspc_flag && event->keysym.sym == SDLK_ESCAPE){
@@ -902,7 +1032,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         else if (((!getcursor_flag && event->keysym.sym == SDLK_LEFT) ||
                   event->keysym.sym == SDLK_h) &&
                  (event_mode & WAIT_TEXT_MODE ||
-                  (usewheel_flag && !getcursor_flag && event_mode & WAIT_BUTTON_MODE) || 
+                  (usewheel_flag && !getcursor_flag && event_mode & WAIT_BUTTON_MODE) ||
                   system_menu_mode == SYSTEM_LOOKBACK)){
             current_button_state.button = -2;
             sprintf(current_button_state.str, "WHEELUP");
@@ -911,7 +1041,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         else if (((!getcursor_flag && event->keysym.sym == SDLK_RIGHT) ||
                   event->keysym.sym == SDLK_l) &&
                  ((enable_wheeldown_advance_flag && event_mode & WAIT_TEXT_MODE) ||
-                  (usewheel_flag && event_mode & WAIT_BUTTON_MODE) || 
+                  (usewheel_flag && event_mode & WAIT_BUTTON_MODE) ||
                   system_menu_mode == SYSTEM_LOOKBACK)){
             if (event_mode & WAIT_TEXT_MODE)
                 current_button_state.button = 0;
@@ -976,27 +1106,27 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         else if ( getzxc_flag && event->keysym.sym == SDLK_c ){
             current_button_state.button  = -53;
         }
-        else if ( getfunction_flag && 
+        else if ( getfunction_flag &&
                   event->keysym.sym >= SDLK_F1 && event->keysym.sym <= SDLK_F12 ){
             current_button_state.button = -21-(event->keysym.sym - SDLK_F1);
             sprintf(current_button_state.str, "F%d", event->keysym.sym - SDLK_F1+1);
         }
-        else if ( bexec_flag && 
+        else if ( bexec_flag &&
                   event->keysym.sym >= SDLK_0 && event->keysym.sym <= SDLK_9 ){
             current_button_state.button = -1; // dummy
             sprintf(current_button_state.str, "%d", event->keysym.sym - SDLK_0);
         }
-        else if ( bexec_flag && 
+        else if ( bexec_flag &&
                   event->keysym.sym >= SDLK_a && event->keysym.sym <= SDLK_z ){
             current_button_state.button = -1; // dummy
             sprintf(current_button_state.str, "%c", 'A' + event->keysym.sym - SDLK_a);
         }
-        else if ( bexec_flag && 
+        else if ( bexec_flag &&
                   (event->keysym.sym == SDLK_RSHIFT || event->keysym.sym == SDLK_LSHIFT) ){
             current_button_state.button = -1; // dummy
             sprintf(current_button_state.str, "SHIFT");
         }
-        
+
         if ( current_button_state.button != 0 ){
             stopAnimation( clickstr_state );
 
@@ -1006,7 +1136,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
 
     if ( event_mode & WAIT_INPUT_MODE &&
          ( autoclick_time == 0 || (event_mode & WAIT_BUTTON_MODE)) ){
-        if (event->keysym.sym == SDLK_RETURN || 
+        if (event->keysym.sym == SDLK_RETURN ||
             event->keysym.sym == SDLK_KP_ENTER ||
             event->keysym.sym == SDLK_SPACE ){
             if (!(event_mode & WAIT_TEXT_MODE))
@@ -1017,7 +1147,7 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
             return true;
         }
     }
-    
+
     if ( event_mode & WAIT_INPUT_MODE ){
         if (event->keysym.sym == SDLK_s && !automode_flag ){
             skip_mode |= SKIP_NORMAL;
@@ -1090,7 +1220,7 @@ void ONScripter::timerEvent(bool init_flag)
         SDL_PushEvent(&event);
         return;
     }
-    
+
     int duration = 0;
     if (event_mode & WAIT_TIMER_MODE){
         proceedAnimation(current_time);
@@ -1156,13 +1286,29 @@ void ONScripter::runEventLoop()
 {
     SDL_Event event, tmp_event;
 
+#ifdef SWITCH
+    initSwitchPad();
+#endif
+
+#ifdef SWITCH
+    // On Switch, use timeout-based event loop to allow regular input polling
+    while (true) {
+        // Poll Switch HID input and inject as SDL events
+        pollSwitchInput();
+
+        // Use timeout to avoid blocking - this allows regular input polling
+        if (!SDL_WaitEventTimeout(&event, 16)) { // ~60fps
+            continue; // No event, loop back to poll input
+        }
+#else
     while ( SDL_WaitEvent(&event) ) {
+#endif
         tmp_event = event; // fix android long click problem
 #if defined(USE_SMPEG)
         // required to repeat the movie
         if (layer_smpeg_sample)
             SMPEG_status(layer_smpeg_sample);
-#endif    
+#endif
         bool ret = false;
         // ignore continous SDL_MOUSEMOTION
         while (event.type == SDL_MOUSEMOTION || event.type == SDL_FINGERMOTION) {
@@ -1259,7 +1405,7 @@ void ONScripter::runEventLoop()
                 if (ret) return;
             }
             break;
-            
+
           case SDL_MOUSEBUTTONDOWN:
             if(event.button.button == SDL_BUTTON_LEFT) {
                 g_lastpress_time = event.button.timestamp;
@@ -1369,15 +1515,15 @@ void ONScripter::runEventLoop()
                 sprintf(current_button_state.str, "TIMEOUT");
             }
 
-            if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE) && 
-                ( clickstr_state == CLICK_WAIT || 
+            if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE) &&
+                ( clickstr_state == CLICK_WAIT ||
                   clickstr_state == CLICK_NEWPAGE ) ){
-                playClickVoice(); 
-                stopAnimation( clickstr_state ); 
+                playClickVoice();
+                stopAnimation( clickstr_state );
             }
 
             return;
-          case SDL_WINDOWEVENT:  
+          case SDL_WINDOWEVENT:
               switch (event.window.event) {
               case SDL_WINDOWEVENT_EXPOSED:
                   repaintCommand();
@@ -1421,7 +1567,7 @@ void ONScripter::runEventLoop()
           case SDL_QUIT:
             endCommand();
             break;
-            
+
           default:
             break;
         }

@@ -29,6 +29,7 @@
 #include "sjis2utf16.h"
 #include "version.h"
 #include "stdlib.h"
+#include <sys/stat.h>
 
 ONScripter ons;
 Coding2UTF16 *coding2utf16 = NULL;
@@ -638,6 +639,51 @@ int main(int argc, char *argv[])
 
     printf("Archive path set to: %s\n", selected_path);
     printf("Save directory set to: %s\n", save_path);
+
+    // Find and set font file for the game engine
+    // Search order: game directory -> romfs -> system paths
+    const char* font_search_paths[] = {
+        "%s/default.ttf",      // Game directory
+        "%s/font.ttf",         // Game directory alternate name
+        nullptr                // End marker for game-relative paths
+    };
+    const char* font_fallback_paths[] = {
+        "romfs:/font.ttf",
+        "sdmc:/switch/ONScripter/default.ttf",
+        "sdmc:/switch/ONScripter/font.ttf",
+        nullptr
+    };
+
+    char font_path[512];
+    bool font_found = false;
+    struct stat st;
+
+    // First, search in game directory
+    for (int i = 0; font_search_paths[i] != nullptr; i++) {
+        snprintf(font_path, sizeof(font_path), font_search_paths[i], selected_path);
+        if (stat(font_path, &st) == 0 && S_ISREG(st.st_mode)) {
+            printf("Font found at: %s\n", font_path);
+            ons.setFontFile(font_path);
+            font_found = true;
+            break;
+        }
+    }
+
+    // If not found in game directory, try fallback paths
+    if (!font_found) {
+        for (int i = 0; font_fallback_paths[i] != nullptr; i++) {
+            if (stat(font_fallback_paths[i], &st) == 0 && S_ISREG(st.st_mode)) {
+                printf("Font found at fallback: %s\n", font_fallback_paths[i]);
+                ons.setFontFile(font_fallback_paths[i]);
+                font_found = true;
+                break;
+            }
+        }
+    }
+
+    if (!font_found) {
+        printf("Warning: No font file found! Game may fail to start.\n");
+    }
 
     // Enable button shortcuts for controller
     ons.enableButtonShortCut();

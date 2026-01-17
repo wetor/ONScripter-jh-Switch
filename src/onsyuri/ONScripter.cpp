@@ -142,7 +142,12 @@ void ONScripter::initSDL()
     utils::printInfo("Initializing SDL for Nintendo Switch...\n");
 #endif
 
+#ifdef SWITCH
+    // Switch needs JOYSTICK for controller support
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK ) < 0 ){
+#else
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER  ) < 0 ){
+#endif
         utils::printError("Couldn't initialize SDL: %s\n", SDL_GetError());
 #ifdef SWITCH
         FILE *crashlog = fopen("sdmc:/switch/onsyuri/crash.log", "w");
