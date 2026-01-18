@@ -25,10 +25,20 @@ struct GameInfo {
     std::string path;
     std::string name;
     std::string script_file;
+    std::string cover_file_path;
+    SDL_Texture* cover_texture_;
     bool has_script;
     bool has_font;
+    bool has_cover;
+    bool texture_loaded;
 
-    GameInfo() : has_script(false), has_font(false) {}
+    GameInfo() : cover_texture_(nullptr), has_script(false), has_font(false), has_cover(false), texture_loaded(false) {}
+    ~GameInfo() {
+        if (cover_texture_) {
+            SDL_DestroyTexture(cover_texture_);
+            cover_texture_ = nullptr;
+        }
+    }
 };
 
 class GameBrowser {
@@ -62,48 +72,60 @@ private:
     void handleInput();
     void moveSelection(int delta);
 
-    // Rendering
     void render();
-    void renderTitle();
-    void renderGameList();
-    void renderGameItem(int index, int y_pos);
-    void renderHelp();
+    void renderStatusBar();
+    void renderCarousel();
+    void renderBottomBar();
     void renderNoGames();
     void renderHelpOverlay();
 
-    // Drawing helpers
+    void renderGameCard(int index, float x, float y, float width, float height, float scale, float alpha);
+    void drawButton(int x, int y, int radius, bool is_left, bool is_enabled);
+
     void drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color);
     void drawRect(int x, int y, int w, int h, SDL_Color color, bool filled);
+    void drawRoundedRect(int x, int y, int w, int h, int radius, SDL_Color color);
+    void drawShadow(int x, int y, int w, int h, int offset, SDL_Color color);
+    void drawBatteryIcon(int x, int y, int percentage);
+    void drawControlKey(const char* key, const char* text, int x, int y);
 
-    // Font loading
     bool loadFonts();
+    bool loadGameCover(GameInfo& game);
+    bool loadCoverTexture(GameInfo& game);
 
 private:
     SDL_Window* window_;
     SDL_Renderer* renderer_;
     TTF_Font* font_large_;
+    TTF_Font* font_medium_;
     TTF_Font* font_small_;
+    TTF_Font* font_icon_;
 
     std::vector<GameInfo> games_;
     int selected_index_;
     int scroll_offset_;
-
+    int carousel_scroll_;
     int screen_width_;
     int screen_height_;
     int items_per_page_;
-
     bool running_;
     bool show_help_;
+    PadState pad_;
 
-    // Colors
     SDL_Color color_background_;
     SDL_Color color_text_;
-    SDL_Color color_selected_;
+    SDL_Color color_accent1_;
+    SDL_Color color_accent2_;
+    SDL_Color color_shadow_;
+    SDL_Color color_selected_border_;
     SDL_Color color_disabled_;
-    SDL_Color color_highlight_;
 
-    // Gamepad state
-    PadState pad_;
+    static constexpr int STATUS_BAR_HEIGHT = 60;
+    static constexpr int BOTTOM_BAR_HEIGHT = 80;
+    static constexpr int CAROUSEL_START_Y = 480;
+    static constexpr int CARD_WIDTH = 200;
+    static constexpr int CARD_HEIGHT = 280;
+    static constexpr int CARD_SPACING = 30;
 };
 
 #endif // SWITCH
