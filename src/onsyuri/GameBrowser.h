@@ -72,8 +72,9 @@ private:
     void renderHelpOverlay();
 
     // Drawing helpers
-    void drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color);
+    void drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color, bool centered = false);
     void drawRect(int x, int y, int w, int h, SDL_Color color, bool filled);
+    void drawBattery(int x, int y, int level);
 
     // Font loading
     bool loadFonts();
@@ -87,6 +88,9 @@ private:
     std::vector<GameInfo> games_;
     int selected_index_;
     int scroll_offset_;
+    char time_str_[8];
+    int battery_level_;
+    Uint32 last_time_update_;
 
     int screen_width_;
     int screen_height_;

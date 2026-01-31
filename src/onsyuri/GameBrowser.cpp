@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <cstring>
+#include <ctime>
 
 GameBrowser::GameBrowser()
     : window_(nullptr)
@@ -27,18 +28,20 @@ GameBrowser::GameBrowser()
     , font_small_(nullptr)
     , selected_index_(0)
     , scroll_offset_(0)
+    , battery_level_(53)
+    , last_time_update_(0)
     , screen_width_(1280)
     , screen_height_(720)
     , items_per_page_(8)
     , running_(false)
     , show_help_(false)
 {
-    // Initialize colors
-    color_background_ = {25, 30, 40, 255};       // Dark blue-gray
-    color_text_ = {230, 230, 230, 255};          // Light gray
-    color_selected_ = {45, 130, 220, 255};       // Bright blue
-    color_disabled_ = {120, 120, 120, 255};      // Gray
-    color_highlight_ = {255, 180, 50, 255};      // Orange-gold
+    time_str_[0] = '\0';
+    color_background_ = {230, 230, 230, 255};
+    color_text_ = {31, 41, 55, 255};
+    color_selected_ = {45, 130, 220, 255};
+    color_disabled_ = {107, 114, 128, 255};
+    color_highlight_ = {16, 185, 129, 255};
 }
 
 GameBrowser::~GameBrowser()
@@ -378,92 +381,91 @@ void GameBrowser::render()
 
 void GameBrowser::renderTitle()
 {
-    // Title bar background
-    drawRect(0, 0, screen_width_, 110, {15, 20, 30, 255}, true);
+    drawRect(0, 0, screen_width_, 60, {230, 230, 230, 255}, true);
 
-    // Title text
-    drawText("ONScripter Yuri - 游戏浏览器", 50, 15, font_large_, color_highlight_);
+    drawText("ONScripter-Jh for Nintendo Switch", 40, 18, font_large_, {31, 41, 55, 255});
+    drawText("版本:1.0", 430, 18, font_large_, {31, 41, 55, 255});
 
-    // Game count
-    char count_text[64];
-    snprintf(count_text, sizeof(count_text), "在 sdmc:/onsemu/ 中找到 %d 个游戏", (int)games_.size());
-    drawText(count_text, 50, 60, font_small_, color_text_);
+    Uint32 now = SDL_GetTicks();
+    if (now - last_time_update_ > 1000 || time_str_[0] == '\0') {
+        std::time_t t = std::time(nullptr);
+        std::tm* tm_info = std::localtime(&t);
+        if (tm_info) {
+            std::snprintf(time_str_, sizeof(time_str_), "%02d:%02d", tm_info->tm_hour, tm_info->tm_min);
+        } else {
+            std::snprintf(time_str_, sizeof(time_str_), "00:00");
+        }
+        last_time_update_ = now;
+    }
 
-    // Separator line
-    drawRect(0, 110, screen_width_, 3, color_highlight_, true);
+    int right_x = screen_width_ - 220;
+    drawText(time_str_, right_x, 18, font_large_, {31, 41, 55, 255});
+
+    char battery_text[8];
+    std::snprintf(battery_text, sizeof(battery_text), "%d%%", battery_level_);
+    drawText(battery_text, right_x + 70, 18, font_large_, {31, 41, 55, 255});
+    drawBattery(right_x + 120, 16, battery_level_);
+
+    drawRect(0, 60, screen_width_, 2, {209, 213, 219, 255}, true);
+
+    drawText("ONS GameBrowser created by wetor (http://www.wetor.top)",
+             screen_width_ / 2, 70, font_small_, {107, 114, 128, 255}, true);
 }
 
 void GameBrowser::renderGameList()
 {
-    int list_start_y = 130;
-    int item_height = 70;
+    int center_y = screen_height_ / 2 - 60;
+    int center_x = screen_width_ / 2;
 
-    // Calculate visible range
-    int visible_start = scroll_offset_;
-    int visible_end = std::min(scroll_offset_ + items_per_page_, (int)games_.size());
+    for (int i = 0; i < static_cast<int>(games_.size()); i++) {
+        int card_w = 210;
+        int card_h = 210;
+        int card_spacing = 40;
+        float offset = (i - static_cast<float>(scroll_offset_)) * (card_w + card_spacing);
+        int x_pos = center_x + static_cast<int>(offset) - card_w / 2;
+        int y_pos = center_y - card_h / 2;
+        float distance = std::fabs(static_cast<float>(i) - static_cast<float>(scroll_offset_));
+        bool is_active = (i == selected_index_);
 
-    // Render visible items
-    for (int i = visible_start; i < visible_end; i++) {
-        int y_pos = list_start_y + (i - scroll_offset_) * item_height;
-        renderGameItem(i, y_pos);
-    }
+        int scaled_w = card_w;
+        int scaled_h = card_h;
+        if (distance < 2.0f) {
+            float scale = 1.1f - distance * 0.1f;
+            if (scale < 0.85f) {
+                scale = 0.85f;
+            }
+            scaled_w = static_cast<int>(card_w * scale);
+            scaled_h = static_cast<int>(card_h * scale);
+            x_pos = center_x + static_cast<int>(offset) - scaled_w / 2;
+            y_pos = center_y - scaled_h / 2;
+        }
 
-    // Scroll indicator
-    if ((int)games_.size() > items_per_page_) {
-        int track_height = items_per_page_ * item_height;
-        int indicator_height = (items_per_page_ * track_height) / games_.size();
-        if (indicator_height < 30) indicator_height = 30;
-        int indicator_y = list_start_y + (scroll_offset_ * (track_height - indicator_height)) / (games_.size() - items_per_page_);
+        SDL_Color shadow = {0, 0, 0, 30};
+        drawRect(x_pos + 4, y_pos + 4, scaled_w, scaled_h, shadow, true);
 
-        // Scroll track background
-        drawRect(screen_width_ - 20, list_start_y, 10, track_height, {60, 60, 60, 255}, true);
-        // Scroll indicator
-        drawRect(screen_width_ - 20, indicator_y, 10, indicator_height, color_highlight_, true);
-    }
-}
+        SDL_Color bg = {255, 255, 255, 255};
+        drawRect(x_pos, y_pos, scaled_w, scaled_h, bg, true);
 
-void GameBrowser::renderGameItem(int index, int y_pos)
-{
-    const GameInfo& game = games_[index];
-    bool is_selected = (index == selected_index_);
+        SDL_Color border_color;
+        if (is_active) {
+            border_color = color_highlight_;
+        } else {
+            border_color = {209, 213, 219, 255};
+        }
+        drawRect(x_pos, y_pos, scaled_w, scaled_h, border_color, false);
 
-    int item_height = 65;
-    int padding = 30;
+        SDL_Rect inner = {x_pos + 12, y_pos + 12, scaled_w - 24, scaled_h - 24};
+        SDL_Color theme = {96, 165, 250, 255};
+        SDL_SetRenderDrawColor(renderer_, theme.r, theme.g, theme.b, theme.a);
+        SDL_RenderFillRect(renderer_, &inner);
 
-    // Background
-    if (is_selected) {
-        // Highlight background
-        drawRect(padding, y_pos, screen_width_ - padding * 2 - 30, item_height,
-                 color_selected_, true);
-        // Accent border
-        drawRect(padding, y_pos, 5, item_height,
-                 color_highlight_, true);
-    }
-
-    // Game name
-    SDL_Color text_color = is_selected ? SDL_Color{255, 255, 255, 255} : color_text_;
-    drawText(game.name.c_str(), padding + 20, y_pos + 8, font_large_, text_color);
-
-    // Game info
-    char info_text[256];
-    const char* font_status = game.has_font ? "Yes" : "No (using system)";
-    snprintf(info_text, sizeof(info_text), "Script: %s  |  Local Font: %s",
-             game.script_file.c_str(), font_status);
-
-    SDL_Color info_color = is_selected ? SDL_Color{200, 220, 240, 255} : color_disabled_;
-    drawText(info_text, padding + 20, y_pos + 40, font_small_, info_color);
-
-    // Index number on the right
-    char index_text[32];
-    snprintf(index_text, sizeof(index_text), "%d/%d", index + 1, (int)games_.size());
-    drawText(index_text, screen_width_ - 120, y_pos + 20, font_small_,
-             is_selected ? color_highlight_ : color_disabled_);
-
-    // Separator line (only for non-selected items)
-    if (!is_selected) {
-        drawRect(padding + 15, y_pos + item_height + 2,
-                 screen_width_ - padding * 2 - 60, 1,
-                 {50, 55, 65, 255}, true);
+        SDL_Color text_color;
+        if (is_active) {
+            text_color = {31, 41, 55, 255};
+        } else {
+            text_color = {107, 114, 128, 255};
+        }
+        drawText(games_[i].name.c_str(), x_pos + scaled_w / 2, y_pos + scaled_h + 18, font_large_, text_color, true);
     }
 }
 
@@ -540,7 +542,7 @@ void GameBrowser::renderHelpOverlay()
     drawText("按任意键关闭", box_x + 280, box_y + box_h - 40, font_small_, color_disabled_);
 }
 
-void GameBrowser::drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color)
+void GameBrowser::drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color, bool centered)
 {
     if (!font || !text || strlen(text) == 0) return;
 
@@ -559,6 +561,10 @@ void GameBrowser::drawText(const char* text, int x, int y, TTF_Font* font, SDL_C
     SDL_Rect dest = {x, y, 0, 0};
     SDL_QueryTexture(texture, nullptr, nullptr, &dest.w, &dest.h);
 
+    if (centered) {
+        dest.x -= dest.w / 2;
+    }
+
     SDL_RenderCopy(renderer_, texture, nullptr, &dest);
     SDL_DestroyTexture(texture);
 }
@@ -573,6 +579,27 @@ void GameBrowser::drawRect(int x, int y, int w, int h, SDL_Color color, bool fil
     } else {
         SDL_RenderDrawRect(renderer_, &rect);
     }
+}
+
+void GameBrowser::drawBattery(int x, int y, int level)
+{
+    SDL_Color border = {75, 85, 99, 255};
+    SDL_Color fill = {34, 197, 94, 255};
+    if (level < 30) {
+        fill = {239, 68, 68, 255};
+    }
+
+    SDL_Rect body = {x, y, 42, 18};
+    SDL_SetRenderDrawColor(renderer_, border.r, border.g, border.b, border.a);
+    SDL_RenderDrawRect(renderer_, &body);
+
+    SDL_Rect cap = {x + 42, y + 4, 4, 10};
+    SDL_RenderFillRect(renderer_, &cap);
+
+    int fill_width = (42 - 4) * level / 100;
+    SDL_Rect fill_rect = {x + 2, y + 2, fill_width, 14};
+    SDL_SetRenderDrawColor(renderer_, fill.r, fill.g, fill.b, fill.a);
+    SDL_RenderFillRect(renderer_, &fill_rect);
 }
 
 const GameInfo* GameBrowser::getGameInfo(int index) const
