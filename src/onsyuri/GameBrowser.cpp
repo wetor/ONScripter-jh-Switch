@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cmath>
+#include <cctype>
 #include <ctime>
 
 GameBrowser::GameBrowser()
@@ -32,6 +33,7 @@ GameBrowser::GameBrowser()
     , font_medium_(nullptr)
     , font_small_(nullptr)
     , font_icon_(nullptr)
+    , default_icon_texture_(nullptr)
     , selected_index_(0)
     , scroll_offset_(0)
     , carousel_scroll_(0)
@@ -40,14 +42,16 @@ GameBrowser::GameBrowser()
     , items_per_page_(8)
     , running_(false)
     , show_help_(false)
+    , show_info_(false)
+    , info_scroll_(0)
 {
-    color_background_ = {245, 245, 245, 255};
-    color_text_ = {40, 40, 40, 255};
-    color_accent1_ = {50, 200, 100, 255};
-    color_accent2_ = {100, 100, 100, 150};
+    color_background_ = {230, 230, 230, 255};
+    color_text_ = {31, 41, 55, 255};
+    color_accent1_ = {16, 185, 129, 255};
+    color_accent2_ = {156, 163, 175, 150};
     color_shadow_ = {0, 0, 0, 40};
-    color_selected_border_ = {50, 200, 100, 255};
-    color_disabled_ = {150, 150, 150, 255};
+    color_selected_border_ = {16, 185, 129, 255};
+    color_disabled_ = {107, 114, 128, 255};
 }
 
 GameBrowser::~GameBrowser()
@@ -90,12 +94,57 @@ bool GameBrowser::init(SDL_Window* window, SDL_Renderer* renderer)
         return false;
     }
 
+    loadButtonIcons();
+
     // Initialize gamepad
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&pad_);
 
     printf("GameBrowser: Initialized successfully\n");
     return true;
+}
+
+void GameBrowser::loadButtonIcons()
+{
+    const struct {
+        const char* key;
+        const char* file;
+    } icons[] = {
+        {"A", "A.png"},
+        {"B", "B.png"},
+        {"X", "X.png"},
+        {"Y", "Y.png"},
+        {"L", "L.png"},
+        {"R", "R.png"},
+        {"LEFT", "LEFT.png"},
+        {"RIGHT", "RIGHT.png"},
+        {"+", "PLUS.png"},
+        {"-", "MINUS.png"},
+        {nullptr, nullptr}
+    };
+
+    for (int i = 0; icons[i].key != nullptr; i++) {
+        char path[256];
+        std::snprintf(path, sizeof(path), "romfs:/image/%s", icons[i].file);
+        SDL_Surface* surface = IMG_Load(path);
+        if (!surface) {
+            continue;
+        }
+
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_, surface);
+        SDL_FreeSurface(surface);
+        if (!texture) {
+            continue;
+        }
+
+        button_textures_[icons[i].key] = texture;
+    }
+
+    SDL_Surface* default_surface = IMG_Load("romfs:/default_icon.png");
+    if (default_surface) {
+        default_icon_texture_ = SDL_CreateTextureFromSurface(renderer_, default_surface);
+        SDL_FreeSurface(default_surface);
+    }
 }
 
 bool GameBrowser::loadFonts()
@@ -109,13 +158,13 @@ bool GameBrowser::loadFonts()
 
     for (int i = 0; font_paths[i] != nullptr; i++) {
         printf("GameBrowser: Trying font: %s\n", font_paths[i]);
-        font_large_ = TTF_OpenFont(font_paths[i], 24);
+        font_large_ = TTF_OpenFont(font_paths[i], 28);
         if (font_large_) {
-            font_medium_ = TTF_OpenFont(font_paths[i], 20);
+            font_medium_ = TTF_OpenFont(font_paths[i], 24);
             if (font_medium_) {
-                font_small_ = TTF_OpenFont(font_paths[i], 16);
+                font_small_ = TTF_OpenFont(font_paths[i], 20);
                 if (font_small_) {
-                    font_icon_ = TTF_OpenFont(font_paths[i], 14);
+                    font_icon_ = TTF_OpenFont(font_paths[i], 18);
                     if (font_icon_) {
                         printf("GameBrowser: Loaded font from: %s\n", font_paths[i]);
                         return true;
@@ -146,9 +195,33 @@ bool GameBrowser::loadFonts()
 
 bool GameBrowser::loadGameCover(GameInfo& game)
 {
+    game.has_cover = false;
+    game.cover_file_path.clear();
+
+    for (int i = 0; i <= 9; i++) {
+        char icon_name[32];
+        if (i == 0) {
+            snprintf(icon_name, sizeof(icon_name), "icon.png");
+        } else {
+            snprintf(icon_name, sizeof(icon_name), "icon%d.png", i);
+        }
+
+        char icon_path[512];
+        snprintf(icon_path, sizeof(icon_path), "%s/%s", game.path.c_str(), icon_name);
+        struct stat st;
+        if (stat(icon_path, &st) == 0 && S_ISREG(st.st_mode)) {
+            game.cover_file_path = icon_path;
+            game.has_cover = true;
+            printf("GameBrowser: Found cover file: %s\n", icon_path);
+            return true;
+        }
+    }
+
     const char* cover_names[] = {
         "icon.jpg",
         "icon.png",
+        "logo.png",
+        "logo.jpg",
         "cover.png",
         "cover.jpg",
         "cover.jpeg",
@@ -174,7 +247,81 @@ bool GameBrowser::loadGameCover(GameInfo& game)
         }
     }
 
-    game.has_cover = false;
+    if (!game.name.empty()) {
+        const char* name_exts[] = {".png", ".jpg", ".jpeg", nullptr};
+        for (int i = 0; name_exts[i] != nullptr; i++) {
+            char cover_path[512];
+            snprintf(cover_path, sizeof(cover_path), "%s/%s%s", game.path.c_str(), game.name.c_str(), name_exts[i]);
+            struct stat st;
+            if (stat(cover_path, &st) == 0 && S_ISREG(st.st_mode)) {
+                game.cover_file_path = cover_path;
+                game.has_cover = true;
+                printf("GameBrowser: Found cover file: %s\n", cover_path);
+                return true;
+            }
+        }
+    }
+
+    DIR* dir = opendir(game.path.c_str());
+    if (dir) {
+        std::string fallback_path;
+        std::string name_lower = game.name;
+        std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+                continue;
+            }
+
+            std::string file_name = entry->d_name;
+            std::string file_lower = file_name;
+            std::transform(file_lower.begin(), file_lower.end(), file_lower.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+            if (file_lower.size() < 4) {
+                continue;
+            }
+
+            bool is_image = false;
+            if (file_lower.size() >= 4 && file_lower.compare(file_lower.size() - 4, 4, ".png") == 0) {
+                is_image = true;
+            } else if (file_lower.size() >= 4 && file_lower.compare(file_lower.size() - 4, 4, ".jpg") == 0) {
+                is_image = true;
+            } else if (file_lower.size() >= 5 && file_lower.compare(file_lower.size() - 5, 5, ".jpeg") == 0) {
+                is_image = true;
+            }
+
+            if (!is_image) {
+                continue;
+            }
+
+            if (file_lower.find("icon") != std::string::npos || file_lower.find("cover") != std::string::npos ||
+                (!name_lower.empty() && file_lower.find(name_lower) != std::string::npos)) {
+                char cover_path[512];
+                snprintf(cover_path, sizeof(cover_path), "%s/%s", game.path.c_str(), entry->d_name);
+                fallback_path = cover_path;
+                break;
+            }
+
+            if (fallback_path.empty()) {
+                char cover_path[512];
+                snprintf(cover_path, sizeof(cover_path), "%s/%s", game.path.c_str(), entry->d_name);
+                fallback_path = cover_path;
+            }
+        }
+
+        closedir(dir);
+
+        if (!fallback_path.empty()) {
+            game.cover_file_path = fallback_path;
+            game.has_cover = true;
+            printf("GameBrowser: Found cover file: %s\n", game.cover_file_path.c_str());
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -243,6 +390,9 @@ int GameBrowser::scanGames(const char* base_path)
             info.path = full_path;
             info.name = entry->d_name;
             loadGameCover(info);
+            if (info.has_cover) {
+                loadCoverTexture(info);
+            }
             games_.push_back(info);
             printf("GameBrowser: Found game: %s (%s)\n", info.name.c_str(), info.script_file.c_str());
         }
@@ -350,25 +500,60 @@ void GameBrowser::handleInput()
     padUpdate(&pad_);
     u64 kDown = padGetButtonsDown(&pad_);
 
-    // Toggle help overlay (X button)
-    if (kDown & HidNpadButton_X) {
+    if (show_info_) {
+        if (kDown & (HidNpadButton_B | HidNpadButton_A | HidNpadButton_Plus | HidNpadButton_Minus | HidNpadButton_L)) {
+            show_info_ = false;
+            return;
+        }
+        if (kDown & (HidNpadButton_X | HidNpadButton_Y)) {
+            show_info_ = false;
+            return;
+        }
+        if (kDown & (HidNpadButton_Up | HidNpadButton_StickLUp)) {
+            if (info_scroll_ > 0) {
+                info_scroll_--;
+            }
+            return;
+        }
+        if (kDown & (HidNpadButton_Down | HidNpadButton_StickLDown)) {
+            if (info_scroll_ + 1 < static_cast<int>(info_lines_.size())) {
+                info_scroll_++;
+            }
+            return;
+        }
+        return;
+    }
+
+    // Toggle help overlay (L button)
+    if (kDown & HidNpadButton_L) {
         show_help_ = !show_help_;
+        show_info_ = false;
         return;
     }
 
     // If help is showing, any other button closes it
     if (show_help_) {
-        if (kDown & (HidNpadButton_A | HidNpadButton_B | HidNpadButton_Plus)) {
+        if (kDown) {
             show_help_ = false;
         }
         return;
     }
 
-    // Exit browser (B button or PLUS)
-    if (kDown & HidNpadButton_B || kDown & HidNpadButton_Plus) {
-        printf("GameBrowser: Cancelled by user\n");
+    // Exit browser (MINUS button)
+    if (kDown & HidNpadButton_Minus) {
+        printf("GameBrowser: Reload requested\n");
         running_ = false;
         selected_index_ = -1;
+        return;
+    }
+
+    // Settings placeholder (PLUS button)
+    if (kDown & HidNpadButton_Plus) {
+        info_text_ = "设置功能尚未实现";
+        updateInfoLines();
+        info_scroll_ = 0;
+        show_info_ = true;
+        show_help_ = false;
         return;
     }
 
@@ -385,6 +570,24 @@ void GameBrowser::handleInput()
         }
     }
 
+    if (kDown & HidNpadButton_Y) {
+        info_text_ = buildInfoText(games_[selected_index_]);
+        updateInfoLines();
+        info_scroll_ = 0;
+        show_info_ = true;
+        show_help_ = false;
+        return;
+    }
+
+    if (kDown & HidNpadButton_X) {
+        info_text_ = buildResourceText(games_[selected_index_]);
+        updateInfoLines();
+        info_scroll_ = 0;
+        show_info_ = true;
+        show_help_ = false;
+        return;
+    }
+
     // Horizontal navigation for carousel
     if (kDown & HidNpadButton_Left || kDown & HidNpadButton_StickLLeft) {
         moveSelection(-1);
@@ -393,12 +596,9 @@ void GameBrowser::handleInput()
         moveSelection(1);
     }
 
-    // Fast scroll with L/R
+    // Fast scroll with R
     if (kDown & HidNpadButton_R) {
         moveSelection(3);
-    }
-    else if (kDown & HidNpadButton_L) {
-        moveSelection(-3);
     }
 
     // Page up/down with ZL/ZR
@@ -465,6 +665,11 @@ void GameBrowser::render()
 
     renderStatusBar();
 
+    const char* subtitle = "ONS GameBrowser created by wetor (http://www.wetor.top)";
+    int subtitle_width;
+    TTF_SizeText(font_small_, subtitle, &subtitle_width, nullptr);
+    drawText(subtitle, screen_width_ / 2 - subtitle_width / 2, STATUS_BAR_HEIGHT + 8, font_small_, color_disabled_);
+
     if (games_.empty()) {
         renderNoGames();
     } else {
@@ -475,6 +680,8 @@ void GameBrowser::render()
 
     if (show_help_) {
         renderHelpOverlay();
+    } else if (show_info_) {
+        renderInfoOverlay();
     }
 
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
@@ -483,27 +690,39 @@ void GameBrowser::render()
 
 void GameBrowser::renderStatusBar()
 {
-    drawRect(0, 0, screen_width_, STATUS_BAR_HEIGHT, {230, 230, 230, 255}, true);
+    drawRect(0, 0, screen_width_, STATUS_BAR_HEIGHT, color_background_, true);
     drawRect(0, STATUS_BAR_HEIGHT - 1, screen_width_, 1, {200, 200, 200, 255}, true);
 
-    drawText("ONScripter-Jh for Nintendo Switch 版本:1.0", 20, 20, font_medium_, color_text_);
+    int title_x = 20;
+    int title_y = 8;
+    drawText("ONScripter-Jh for Nintendo Switch", title_x, title_y, font_medium_, color_text_);
+
+    int title_width = 0;
+    TTF_SizeText(font_medium_, "ONScripter-Jh for Nintendo Switch", &title_width, nullptr);
+    int version_x = title_x + title_width + 16;
+    drawText("版本:1.0", version_x, title_y, font_medium_, color_text_);
 
     time_t now = time(nullptr);
     struct tm* timeinfo = localtime(&now);
     char time_str[32];
     strftime(time_str, sizeof(time_str), "%H:%M", timeinfo);
 
-    int time_width;
+    int time_width = 0;
     TTF_SizeText(font_medium_, time_str, &time_width, nullptr);
 
-    int battery_x = screen_width_ - 200 - time_width;
-    char battery_text[16];
     int battery_percent = 53;
+    char battery_text[16];
     snprintf(battery_text, sizeof(battery_text), "%d%%", battery_percent);
-    drawText(battery_text, battery_x, 20, font_medium_, color_text_);
+    int battery_text_width = 0;
+    TTF_SizeText(font_medium_, battery_text, &battery_text_width, nullptr);
 
-    drawBatteryIcon(screen_width_ - 50, 22, battery_percent);
-    drawText(time_str, screen_width_ - 140, 20, font_medium_, color_text_);
+    int battery_icon_x = screen_width_ - 8 - 42;
+    int battery_text_x = battery_icon_x - 8 - battery_text_width;
+    int time_x = battery_text_x - 16 - time_width;
+
+    drawText(time_str, time_x, title_y, font_medium_, color_text_);
+    drawText(battery_text, battery_text_x, title_y, font_medium_, color_text_);
+    drawBatteryIcon(battery_icon_x, title_y, battery_percent);
 }
 
 void GameBrowser::renderCarousel()
@@ -511,61 +730,85 @@ void GameBrowser::renderCarousel()
     if (games_.empty()) return;
 
     int center_x = screen_width_ / 2;
-    int center_y = CAROUSEL_START_Y;
+    int base_y = CAROUSEL_START_Y;
 
     int visible_left = std::max(0, selected_index_ - 3);
     int visible_right = std::min((int)games_.size() - 1, selected_index_ + 3);
 
+    float unselected_scale = 0.8f;
+    float unselected_height = CARD_HEIGHT * unselected_scale;
+    int bar_height = (int)(unselected_height + 10.0f);
+    int bar_center = (int)(base_y - unselected_height / 2.0f);
+    int bar_y = bar_center - bar_height / 2;
+    drawRect(0, bar_y, screen_width_, bar_height, {220, 220, 220, 160}, true);
+
     for (int i = visible_left; i <= visible_right; i++) {
+        if (i == selected_index_) {
+            continue;
+        }
+
         int offset = i - selected_index_;
+        float x_pos = center_x + offset * (CARD_WIDTH + CARD_SPACING);
+        float scale = unselected_scale;
+        float alpha = 0.9f;
 
-        float x_pos = center_x + offset * (CARD_WIDTH + CARD_SPACING) - CARD_WIDTH / 2;
-        float y_pos = center_y - CARD_HEIGHT / 2;
+        renderGameCard(i, x_pos, base_y, CARD_WIDTH, CARD_HEIGHT, scale, alpha);
 
-        float scale = 1.0f - std::abs(offset) * 0.15f;
-        if (scale < 0.6f) scale = 0.6f;
-
-        float alpha = 1.0f - std::abs(offset) * 0.3f;
-        if (alpha < 0.4f) alpha = 0.4f;
-
-        renderGameCard(i, x_pos, y_pos, CARD_WIDTH, CARD_HEIGHT, scale, alpha);
+        SDL_Color label_color = color_disabled_;
+        int label_width;
+        TTF_SizeText(font_medium_, games_[i].name.c_str(), &label_width, nullptr);
+        drawText(games_[i].name.c_str(),
+                 (int)(x_pos - label_width / 2),
+                 (int)(base_y - CARD_HEIGHT * unselected_scale - 22),
+                 font_medium_, label_color);
     }
-
-    drawButton(center_x - 400, center_y, 25, true, selected_index_ > 0);
-    drawButton(center_x + 400, center_y, 25, false, selected_index_ < (int)games_.size() - 1);
 
     if (selected_index_ >= 0 && selected_index_ < (int)games_.size()) {
-        int title_width;
-        TTF_SizeText(font_large_, games_[selected_index_].name.c_str(), &title_width, nullptr);
-        drawText(games_[selected_index_].name.c_str(), center_x - title_width / 2, center_y - CARD_HEIGHT / 2 - 50, font_large_, color_text_);
+        float x_pos = center_x;
+        float scale = 1.2f;
+        float alpha = 1.0f;
+
+        renderGameCard(selected_index_, x_pos, base_y, CARD_WIDTH, CARD_HEIGHT, scale, alpha);
+
+        int label_width;
+        TTF_SizeText(font_large_, games_[selected_index_].name.c_str(), &label_width, nullptr);
+        drawText(games_[selected_index_].name.c_str(),
+                 center_x - label_width / 2,
+                 (int)(base_y - CARD_HEIGHT * 1.2f - 30),
+                 font_large_, color_text_);
     }
+
+    int button_y = screen_height_ / 2 - BUTTON_HEIGHT / 2;
+    drawButton(5, button_y, BUTTON_HEIGHT, true, selected_index_ > 0);
+    drawButton(screen_width_ - BUTTON_HEIGHT - 5, button_y, BUTTON_HEIGHT, false,
+               selected_index_ < (int)games_.size() - 1);
 }
 
-void GameBrowser::renderGameCard(int index, float x, float y, float width, float height, float scale, float alpha)
+void GameBrowser::renderGameCard(int index, float center_x, float base_y, float width, float height, float scale, float alpha)
 {
     float scaled_width = width * scale;
     float scaled_height = height * scale;
-    float scaled_x = x + (width - scaled_width) / 2;
-    float scaled_y = y + (height - scaled_height) / 2;
+    float scaled_x = center_x - scaled_width / 2;
+    float scaled_y = base_y - scaled_height;
 
     bool is_selected = (index == selected_index_);
 
     SDL_Color card_color = {255, 255, 255, (Uint8)(255 * alpha)};
-    SDL_Color border_color = is_selected ? color_selected_border_ : (SDL_Color){200, 200, 200, (Uint8)(180 * alpha)};
-    int border_width = is_selected ? 4 : 1;
-
-    drawShadow(scaled_x + 5, scaled_y + 5, scaled_width, scaled_height, 8, {0, 0, 0, (Uint8)(30 * alpha)});
-    drawRoundedRect(scaled_x, scaled_y, scaled_width, scaled_height, 12, card_color);
-
-    for (int i = 0; i < border_width; i++) {
-        drawRoundedRect(scaled_x - i, scaled_y - i, scaled_width + 2 * i, scaled_height + 2 * i, 12 + i, border_color);
+    if (is_selected) {
+        drawShadow(scaled_x + 2, scaled_y + 2, scaled_width, scaled_height, 4, {0, 0, 0, (Uint8)(20 * alpha)});
+        drawRect((int)scaled_x, (int)scaled_y, (int)scaled_width, (int)scaled_height, color_selected_border_, false);
+    } else {
+        drawShadow(scaled_x + 2, scaled_y + 2, scaled_width, scaled_height, 3, {0, 0, 0, (Uint8)(18 * alpha)});
     }
 
+    drawRect((int)scaled_x, (int)scaled_y, (int)scaled_width, (int)scaled_height, card_color, true);
+
+    int content_padding = 6;
     SDL_Rect content_rect = {
-        (int)(scaled_x + border_width + 4),
-        (int)(scaled_y + border_width + 4),
-        (int)(scaled_width - (border_width + 4) * 2),
-        (int)(scaled_height - (border_width + 4) * 2)
+        (int)(scaled_x + content_padding),
+        (int)(scaled_y + content_padding),
+        (int)(scaled_width - content_padding * 2),
+        (int)(scaled_height - content_padding * 2)
     };
 
     if (index >= 0 && index < (int)games_.size()) {
@@ -577,8 +820,10 @@ void GameBrowser::renderGameCard(int index, float x, float y, float width, float
 
         if (game.has_cover && game.texture_loaded && game.cover_texture_) {
             SDL_SetTextureAlphaMod(game.cover_texture_, (Uint8)(255 * alpha));
-
             SDL_RenderCopy(renderer_, game.cover_texture_, nullptr, &content_rect);
+        } else if (default_icon_texture_) {
+            SDL_SetTextureAlphaMod(default_icon_texture_, (Uint8)(255 * alpha));
+            SDL_RenderCopy(renderer_, default_icon_texture_, nullptr, &content_rect);
         } else {
             drawRect(
                 (int)(content_rect.x + 10),
@@ -598,68 +843,32 @@ void GameBrowser::renderGameCard(int index, float x, float y, float width, float
                 false
             );
 
-            SDL_Color icon_color = {100, 180, 200, (Uint8)(200 * alpha)};
-            int icon_size = (int)(scaled_width * 0.3f);
-
-            drawRect(
-                (int)(scaled_x + scaled_width / 2 - icon_size),
-                (int)(scaled_y + scaled_height / 2 - icon_size * 1.5f),
-                icon_size * 2,
-                icon_size * 2.5f,
-                icon_color,
-                true
-            );
-
             int text_width;
             TTF_SizeText(font_medium_, "No Cover", &text_width, nullptr);
             drawText("No Cover",
                      (int)(scaled_x + scaled_width / 2 - text_width / 2),
-                     (int)(scaled_y + scaled_height / 2 + icon_size),
+                     (int)(scaled_y + scaled_height / 2),
                      font_medium_, (SDL_Color){120, 120, 130, (Uint8)(220 * alpha)});
         }
 
-        if (!is_selected && alpha > 0.5f) {
-            int text_width;
-            TTF_SizeText(font_small_, game.name.c_str(), &text_width, nullptr);
-            drawText(game.name.c_str(),
-                     (int)(scaled_x + scaled_width / 2 - text_width / 2),
-                     (int)(scaled_y + scaled_height + 10),
-                     font_small_, (SDL_Color){100, 100, 100, (Uint8)(200 * alpha)});
-        }
     }
 }
 
-void GameBrowser::drawButton(int x, int y, int radius, bool is_left, bool is_enabled)
+void GameBrowser::drawButton(int x, int y, int size, bool is_left, bool is_enabled)
 {
     if (!is_enabled) return;
 
-    SDL_Color button_color = {80, 80, 80, 180};
-
-    drawShadow(x + 3, y + 3, radius * 2, radius * 2, 6, {0, 0, 0, 30});
-
-    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer_, button_color.r, button_color.g, button_color.b, button_color.a);
-
-    for (int angle = 0; angle < 360; angle += 5) {
-        float rad = angle * M_PI / 180.0f;
-        SDL_RenderDrawPoint(renderer_, x + radius + cos(rad) * (radius - 2), y + radius + sin(rad) * (radius - 2));
+    const char* key = is_left ? "LEFT" : "RIGHT";
+    auto icon_it = button_textures_.find(key);
+    if (icon_it != button_textures_.end()) {
+        drawRect(x, y, size, size, {255, 255, 255, 128}, true);
+        SDL_Rect dst = {x, y, size, size};
+        SDL_RenderCopy(renderer_, icon_it->second, nullptr, &dst);
+        return;
     }
 
-    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 200);
-
-    for (int i = 0; i < radius - 5; i++) {
-        if (is_left) {
-            SDL_RenderDrawPoint(renderer_, x + radius - i, y + radius);
-            SDL_RenderDrawPoint(renderer_, x + radius + i, y + radius - i + 5);
-            SDL_RenderDrawPoint(renderer_, x + radius + i, y + radius + i - 5);
-        } else {
-            SDL_RenderDrawPoint(renderer_, x + radius + i, y + radius);
-            SDL_RenderDrawPoint(renderer_, x + radius - i, y + radius - i + 5);
-            SDL_RenderDrawPoint(renderer_, x + radius - i, y + radius + i - 5);
-        }
-    }
-
-    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
+    SDL_Color button_color = {30, 30, 30, 200};
+    drawCircle(x + size / 2, y + size / 2, size / 2, button_color, true);
 }
 
 void GameBrowser::renderNoGames()
@@ -688,34 +897,55 @@ void GameBrowser::renderBottomBar()
 {
     int bar_y = screen_height_ - BOTTOM_BAR_HEIGHT;
 
-    drawRect(0, bar_y, screen_width_, BOTTOM_BAR_HEIGHT, {20, 20, 20, 230}, true);
+    drawRect(0, bar_y, screen_width_, BOTTOM_BAR_HEIGHT, {255, 255, 255, 200}, true);
 
-    int key_spacing = 140;
-    int start_x = 30;
+    int left_size = 8;
+    int button_height = 32;
+    int button_width = 120;
+    int y = screen_height_ - button_height - 4;
+    int x = left_size;
 
-    drawControlKey("L", "游戏帮助", start_x, bar_y + 25);
-    drawControlKey("A", "确认/开始", start_x + key_spacing, bar_y + 25);
-    drawControlKey("B", "返回/取消", start_x + key_spacing * 2, bar_y + 25);
-    drawControlKey("Y", "详细信息", start_x + key_spacing * 3, bar_y + 25);
-    drawControlKey("X", "资源查看", start_x + key_spacing * 4, bar_y + 25);
-    drawControlKey("R", "播放器", start_x + key_spacing * 5, bar_y + 25);
-    drawControlKey("-", "重载", screen_width_ - 230, bar_y + 25);
-    drawControlKey("+", "设置", screen_width_ - 100, bar_y + 25);
+    drawControlKey("L", "游戏帮助", x, y);
+    x += button_width + button_height + left_size * 2;
+    drawControlKey("A", "确认/开始", x, y);
+    x += button_width + button_height + left_size * 2;
+    drawControlKey("B", "返回/取消", x, y);
+    x += button_width + button_height + left_size * 2;
+    drawControlKey("Y", "详细信息", x, y);
+    x += button_width + button_height + left_size * 2;
+    drawControlKey("X", "资源查看", x, y);
+    x += button_width + button_height + left_size * 2;
+    drawControlKey("R", "播放器", x, y);
+
+    int right_button_width = button_width / 2;
+    x = screen_width_ - button_height - left_size - right_button_width;
+    drawControlKey("+", "设置", x, y);
+    x -= right_button_width + button_height + left_size * 2;
+    drawControlKey("-", "重载", x, y);
 }
 
 void GameBrowser::drawControlKey(const char* key, const char* text, int x, int y)
 {
-    SDL_Color key_bg = {50, 50, 50, 255};
-    SDL_Color key_border = {80, 80, 80, 255};
+    SDL_Color text_color = {17, 24, 39, 255};
+    int icon_w = 32;
+    int icon_h = 32;
+    int icon_y = y;
 
-    drawRoundedRect(x, y, 40, 30, 6, key_bg);
-    drawRoundedRect(x, y, 40, 30, 6, key_border);
+    SDL_Texture* icon_texture = nullptr;
+    auto icon_it = button_textures_.find(key);
+    if (icon_it != button_textures_.end()) {
+        icon_texture = icon_it->second;
+    }
 
-    int key_width;
-    TTF_SizeText(font_icon_, key, &key_width, nullptr);
-    drawText(key, x + (40 - key_width) / 2, y + 6, font_icon_, {200, 200, 200, 255});
+    if (icon_texture) {
+        SDL_Rect dst = {x, icon_y, icon_w, icon_h};
+        SDL_RenderCopy(renderer_, icon_texture, nullptr, &dst);
+        drawText(text, x + icon_w + 8, y + 6, font_small_, text_color);
+        return;
+    }
 
-    drawText(text, x + 50, y + 5, font_small_, {180, 180, 180, 255});
+    drawText(key, x, y + 4, font_medium_, text_color);
+    drawText(text, x + icon_w + 8, y + 6, font_small_, text_color);
 }
 
 void GameBrowser::renderHelpOverlay()
@@ -749,11 +979,105 @@ void GameBrowser::renderHelpOverlay()
 
     int line_y = box_y + 80;
     for (int i = 0; i < 11; i++) {
-        drawText(help_lines[i], box_x + 50, line_y, font_small_, color_text_);
+        drawText(help_lines[i], box_x + 50, line_y, font_small_, {235, 235, 235, 255});
         line_y += 35;
     }
 
-    drawText("按任意键关闭", box_x + 280, box_y + box_h - 40, font_small_, color_disabled_);
+    drawText("按任意键关闭", box_x + 280, box_y + box_h - 40, font_small_, {200, 200, 200, 255});
+}
+
+void GameBrowser::renderInfoOverlay()
+{
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
+    drawRect(0, 0, screen_width_, screen_height_, {0, 0, 0, 200}, true);
+
+    int box_w = 560;
+    int box_h = 300;
+    int box_x = (screen_width_ - box_w) / 2;
+    int box_y = (screen_height_ - box_h) / 2;
+
+    drawRect(box_x, box_y, box_w, box_h, {30, 35, 50, 255}, true);
+    drawRect(box_x, box_y, box_w, 60, color_accent1_, true);
+
+    drawText("提示", box_x + 230, box_y + 15, font_large_, {255, 255, 255, 255});
+
+    int line_gap = 26;
+    int content_top = box_y + 90;
+    int content_bottom = box_y + box_h - 60;
+    int max_lines = (content_bottom - content_top) / line_gap;
+
+    for (int i = 0; i < max_lines; i++) {
+        int index = info_scroll_ + i;
+        if (index >= static_cast<int>(info_lines_.size())) {
+            break;
+        }
+        drawText(info_lines_[index].c_str(), box_x + 40, content_top + i * line_gap,
+                 font_small_, {235, 235, 235, 255});
+    }
+
+    drawText("上/下滚动  B关闭", box_x + 180, box_y + box_h - 40, font_small_, {200, 200, 200, 255});
+}
+
+void GameBrowser::updateInfoLines()
+{
+    info_lines_.clear();
+    size_t start = 0;
+    while (start < info_text_.size()) {
+        size_t end = info_text_.find('\n', start);
+        std::string line = (end == std::string::npos) ? info_text_.substr(start)
+                                                      : info_text_.substr(start, end - start);
+        info_lines_.push_back(line);
+        if (end == std::string::npos) {
+            break;
+        }
+        start = end + 1;
+    }
+}
+
+std::string GameBrowser::buildInfoText(const GameInfo& game) const
+{
+    std::string text = "游戏: " + game.name;
+    text += "\n脚本: " + game.script_file;
+    text += "\n路径: " + game.path;
+    if (game.has_cover) {
+        text += "\n封面: " + game.cover_file_path;
+    } else {
+        text += "\n封面: 默认";
+    }
+    return text;
+}
+
+std::string GameBrowser::buildResourceText(const GameInfo& game) const
+{
+    std::string text = "资源列表:";
+
+    DIR* dir = opendir(game.path.c_str());
+    if (!dir) {
+        text += "\n(无法打开目录)";
+        return text;
+    }
+
+    struct dirent* entry;
+    int count = 0;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        text += "\n";
+        text += entry->d_name;
+        count++;
+        if (count >= 8) {
+            break;
+        }
+    }
+
+    closedir(dir);
+    if (count == 0) {
+        text += "\n(空)";
+    }
+
+    return text;
 }
 
 void GameBrowser::drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color)
@@ -821,6 +1145,26 @@ void GameBrowser::drawRoundedRect(int x, int y, int w, int h, int radius, SDL_Co
     SDL_RenderFillRect(renderer_, &rects[2]);
 }
 
+void GameBrowser::drawCircle(int x, int y, int radius, SDL_Color color, bool filled)
+{
+    SDL_SetRenderDrawColor(renderer_, color.r, color.g, color.b, color.a);
+
+    for (int w = -radius; w <= radius; w++) {
+        for (int h = -radius; h <= radius; h++) {
+            int dist = w * w + h * h;
+            if (filled) {
+                if (dist <= radius * radius) {
+                    SDL_RenderDrawPoint(renderer_, x + w, y + h);
+                }
+            } else {
+                if (dist >= (radius - 1) * (radius - 1) && dist <= radius * radius) {
+                    SDL_RenderDrawPoint(renderer_, x + w, y + h);
+                }
+            }
+        }
+    }
+}
+
 void GameBrowser::drawShadow(int x, int y, int w, int h, int offset, SDL_Color color)
 {
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
@@ -841,10 +1185,10 @@ void GameBrowser::drawShadow(int x, int y, int w, int h, int offset, SDL_Color c
 
 void GameBrowser::drawBatteryIcon(int x, int y, int percentage)
 {
-    int width = 30;
-    int height = 16;
-    int tip_width = 4;
-    int tip_height = 6;
+    int width = 42;
+    int height = 24;
+    int tip_width = 6;
+    int tip_height = 8;
 
     SDL_Color battery_color = (percentage > 20) ? (SDL_Color){50, 200, 100, 255} : (SDL_Color){255, 100, 100, 255};
 
@@ -894,6 +1238,26 @@ void GameBrowser::cleanup()
     if (font_icon_) {
         TTF_CloseFont(font_icon_);
         font_icon_ = nullptr;
+    }
+
+    if (default_icon_texture_) {
+        SDL_DestroyTexture(default_icon_texture_);
+        default_icon_texture_ = nullptr;
+    }
+
+    for (auto& entry : button_textures_) {
+        if (entry.second) {
+            SDL_DestroyTexture(entry.second);
+        }
+    }
+    button_textures_.clear();
+
+    for (auto& game : games_) {
+        if (game.cover_texture_) {
+            SDL_DestroyTexture(game.cover_texture_);
+            game.cover_texture_ = nullptr;
+        }
+        game.texture_loaded = false;
     }
 
     games_.clear();
