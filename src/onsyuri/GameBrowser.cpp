@@ -609,35 +609,7 @@ void GameBrowser::handleInput()
         moveSelection(-6);
     }
 
-    HidTouchScreenState touch_state;
-    memset(&touch_state, 0, sizeof(touch_state));
-    if (hidGetTouchScreenStates(&touch_state, 1) > 0) {
-        if (touch_state.count > 0) {
-            int touch_x = touch_state.touches[0].x;
-            int touch_y = touch_state.touches[0].y;
-
-            int center_x = screen_width_ / 2;
-
-            if (touch_y >= CAROUSEL_START_Y - CARD_HEIGHT / 2 && touch_y <= CAROUSEL_START_Y + CARD_HEIGHT / 2) {
-                int touch_offset = (touch_x - center_x) / (CARD_WIDTH + CARD_SPACING);
-
-                if (abs(touch_offset) <= 3) {
-                    int touched_index = selected_index_ + touch_offset;
-                    if (touched_index >= 0 && touched_index < (int)games_.size()) {
-                        selected_index_ = touched_index;
-
-                        static Uint32 last_touch_time = 0;
-                        Uint32 current_time = SDL_GetTicks();
-                        if (current_time - last_touch_time < 300) {
-                            printf("GameBrowser: Touch selected game: %s\n", games_[selected_index_].name.c_str());
-                            running_ = false;
-                        }
-                        last_touch_time = current_time;
-                    }
-                }
-            }
-        }
-    }
+    (void)0;
 }
 
 void GameBrowser::moveSelection(int delta)

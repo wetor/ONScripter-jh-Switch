@@ -385,7 +385,7 @@ void ONScripter::initSDL()
 
 #ifdef SWITCH
     // Initialize Switch mouse cursor
-    draw_mouse_flag = true;
+    draw_mouse_flag = false;
     current_mouse_x = screen_width / 2;
     current_mouse_y = screen_height / 2;
 

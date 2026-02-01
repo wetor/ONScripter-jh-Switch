@@ -161,7 +161,7 @@ ONS_Key transControllerButton(Uint8 button)
         SDLK_0,                 /* BACK */
         SDLK_F10,               /* GUIDE */
         SDLK_a,                 /* START */
-        SDLK_RCTRL,             /* LEFTSTICK */
+        SDLK_TAB,               /* LEFTSTICK */
         SDLK_RETURN,            /* RIGHTSTICK */
         SDLK_o,                 /* LEFTSHOULDER */
         SDLK_s,                 /* RIGHTSHOULDER */
@@ -222,8 +222,7 @@ void pollSwitchInput()
         { HidNpadButton_Down,      SDLK_DOWN },     // D-Pad Down
         { HidNpadButton_Left,      SDLK_LEFT },     // D-Pad Left
         { HidNpadButton_Right,     SDLK_RIGHT },    // D-Pad Right
-        // Left stick press -> left click
-        { HidNpadButton_StickL,    SDLK_RETURN },   // L3 -> Confirm (like left click)
+        { HidNpadButton_StickL,    SDLK_UNKNOWN },  // L3 unused
     };
 
     const int num_mappings = sizeof(mappings) / sizeof(mappings[0]);
@@ -249,103 +248,7 @@ void pollSwitchInput()
         }
     }
 
-    // Handle left stick as mouse movement
-    HidAnalogStickState left_stick = padGetStickPos(&g_pad, 0);
-
-    float stick_x = (float)left_stick.x;
-    float stick_y = (float)left_stick.y;
-
-    // Apply deadzone
-    if (stick_x > -STICK_DEADZONE && stick_x < STICK_DEADZONE) stick_x = 0;
-    if (stick_y > -STICK_DEADZONE && stick_y < STICK_DEADZONE) stick_y = 0;
-
-    if (stick_x != 0 || stick_y != 0) {
-        // Normalize and apply speed (stick range is roughly -32768 to 32767)
-        float norm_x = stick_x / 32768.0f;
-        float norm_y = -stick_y / 32768.0f;  // Y is inverted on Switch
-
-        // Acceleration curve for precision and speed
-        float magnitude = sqrtf(norm_x * norm_x + norm_y * norm_y);
-        if (magnitude > 1.0f) magnitude = 1.0f;
-        float speed = MOUSE_SPEED * magnitude * magnitude;  // Quadratic for better control
-
-        float old_x = g_mouse_x, old_y = g_mouse_y;
-        g_mouse_x += norm_x * speed;
-        g_mouse_y += norm_y * speed;
-
-        // Clamp to view bounds (the actual game render area within device screen)
-        if (g_mouse_x < g_view_x) g_mouse_x = g_view_x;
-        if (g_mouse_x >= g_view_x + g_view_w) g_mouse_x = g_view_x + g_view_w - 1;
-        if (g_mouse_y < g_view_y) g_mouse_y = g_view_y;
-        if (g_mouse_y >= g_view_y + g_view_h) g_mouse_y = g_view_y + g_view_h - 1;
-
-        printf("[STICK] raw=(%d,%d) norm=(%.2f,%.2f) speed=%.2f dev_pos=(%.0f,%.0f)->(%.0f,%.0f) view=(%d,%d,%d,%d)\n",
-               left_stick.x, left_stick.y, norm_x, norm_y, speed, old_x, old_y, g_mouse_x, g_mouse_y,
-               g_view_x, g_view_y, g_view_w, g_view_h);
-
-        // Inject mouse motion event with DEVICE coordinates
-        // The SDL_MOUSEMOTION handler will convert to game coordinates using screen_scale_ratio
-        SDL_Event event;
-        event.type = SDL_MOUSEMOTION;
-        event.motion.x = (int)g_mouse_x;
-        event.motion.y = (int)g_mouse_y;
-        event.motion.xrel = (int)(norm_x * speed);
-        event.motion.yrel = (int)(norm_y * speed);
-        event.motion.state = 0;
-        SDL_PushEvent(&event);
-    }
-
-    // Handle touch screen as mouse
-    HidTouchScreenState touch_state;
-    static bool was_touching = false;
-    static int last_touch_x = 0, last_touch_y = 0;
-
-    if (hidGetTouchScreenStates(&touch_state, 1) > 0) {
-        if (touch_state.count > 0) {
-            int touch_x = touch_state.touches[0].x;
-            int touch_y = touch_state.touches[0].y;
-
-            // Touch coordinates are in device space (1280x720)
-            // Keep g_mouse in device space for touch, conversion happens in event handler
-
-            if (!was_touching) {
-                // Touch down -> mouse button down
-                printf("[TOUCH] DOWN at device=(%d,%d)\n", touch_x, touch_y);
-                SDL_Event event;
-                event.type = SDL_MOUSEBUTTONDOWN;
-                event.button.button = SDL_BUTTON_LEFT;
-                event.button.x = touch_x;
-                event.button.y = touch_y;
-                event.button.state = SDL_PRESSED;
-                event.button.clicks = 1;
-                SDL_PushEvent(&event);
-            } else if (touch_x != last_touch_x || touch_y != last_touch_y) {
-                // Touch move -> mouse motion
-                SDL_Event event;
-                event.type = SDL_MOUSEMOTION;
-                event.motion.x = touch_x;
-                event.motion.y = touch_y;
-                event.motion.state = SDL_BUTTON_LMASK;
-                SDL_PushEvent(&event);
-            }
-
-            last_touch_x = touch_x;
-            last_touch_y = touch_y;
-            was_touching = true;
-        } else if (was_touching) {
-            // Touch up -> mouse button up
-            printf("[TOUCH] UP at device=(%d,%d)\n", last_touch_x, last_touch_y);
-            SDL_Event event;
-            event.type = SDL_MOUSEBUTTONUP;
-            event.button.button = SDL_BUTTON_LEFT;
-            event.button.x = last_touch_x;
-            event.button.y = last_touch_y;
-            event.button.state = SDL_RELEASED;
-            event.button.clicks = 1;
-            SDL_PushEvent(&event);
-            was_touching = false;
-        }
-    }
+    (void)0;
 }
 
 // Get current virtual mouse position for cursor rendering
@@ -1040,6 +943,9 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
         return true;
       }
 #endif
+        if (event->keysym.sym == SDLK_TAB) {
+            return true;
+        }
         if ( variable_edit_mode ){
             variableEditMode( event );
             return false;
