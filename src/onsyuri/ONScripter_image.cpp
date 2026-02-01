@@ -382,7 +382,7 @@ static void alphaBlend32(Uint32 *src1_buffer, Uint32 *src2_buffer, Uint32 *dst_b
         }
         BLEND_PIXEL_MASK();
         src1_buffer++; src2_buffer++; dst_buffer++;
-        j2 = j2 >= mask_surface_w ? 0 : j2 + 1;
+        j2 = j2 >= (int)mask_surface_w ? 0 : j2 + 1;
     }
 #endif
 }

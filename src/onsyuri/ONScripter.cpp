@@ -233,18 +233,18 @@ void ONScripter::initSDL()
 
 #if defined(USE_GLES)
     if (!isnan(sharpness)) {
-        int res = 0; // SDL2 can not be configure --disable-video-opengles
-        res = SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-        res = SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-        res = SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-        res = SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-        res = SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-        res = SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-        res = SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        res = SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-        res = SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-        res = SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-        res = SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+        // SDL2 can not be configure --disable-video-opengles
+        (void)SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        (void)SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        (void)SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        (void)SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+        (void)SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+        (void)SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+        (void)SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        (void)SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        (void)SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        (void)SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+        (void)SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
     }
 #endif
     int window_flag = SDL_WINDOW_SHOWN;
@@ -1052,6 +1052,7 @@ void ONScripter::flushDirect( SDL_Rect &rect, int refresh_mode )
 #else
     SDL_Rect *rect_ptr = &dst_rect;
 #endif
+    (void)rect_ptr;
 
 #if defined(USE_GLES)
     if (isnan(sharpness)) {

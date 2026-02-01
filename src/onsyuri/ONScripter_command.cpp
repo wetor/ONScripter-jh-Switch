@@ -970,10 +970,8 @@ int ONScripter::savetimeCommand()
 
 int ONScripter::savescreenshotCommand()
 {
-    bool delete_flag = true;
-    if      ( script_h.isName( "savescreenshot2" ) ){
-        delete_flag = false;
-    }
+<<<<<<< HEAD
+    (void)script_h.isName( "savescreenshot2" );
 
     if (!screenshot_surface){
          screenshot_surface = AnimationInfo::alloc32bitSurface(screen_width, screen_height, texture_format);

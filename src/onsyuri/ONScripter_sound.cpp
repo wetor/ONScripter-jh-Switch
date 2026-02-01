@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ONScripter_sound.cpp - Methods for playing sound
  *
  *  Copyright (c) 2001-2018 Ogapee. All rights reserved.
@@ -83,7 +83,7 @@ int ONScripter::playSound(const char *filename, int format, bool loop_flag, int 
 
     unsigned char *buffer;
 
-    if (format & SOUND_MUSIC && 
+    if (format & SOUND_MUSIC &&
         length == music_buffer_length &&
         music_buffer ){
         buffer = music_buffer;
@@ -96,7 +96,7 @@ int ONScripter::playSound(const char *filename, int format, bool loop_flag, int 
         }
         script_h.cBR->getFile( filename, buffer );
     }
-    
+
     if (format & SOUND_MUSIC){
 #if SDL_MIXER_MAJOR_VERSION >= 2
         music_info = Mix_LoadMUS_RW( SDL_RWFromMem( buffer, length ), 0);
@@ -114,7 +114,7 @@ int ONScripter::playSound(const char *filename, int format, bool loop_flag, int 
         }
         Mix_HookMusicFinished(musicFinishCallback);
     }
-    
+
     if (format & SOUND_CHUNK){
         Mix_Chunk *chunk = Mix_LoadWAV_RW(SDL_RWFromMem(buffer, length), 1);
         if (chunk == NULL) {
@@ -150,7 +150,7 @@ int ONScripter::playSound(const char *filename, int format, bool loop_flag, int 
     }
 
     delete[] buffer;
-    
+
     return SOUND_OTHER;
 }
 
@@ -201,7 +201,7 @@ int ONScripter::playWave(Mix_Chunk *chunk, int format, bool loop_flag, int chann
 int ONScripter::playMIDI(bool loop_flag)
 {
     Mix_SetMusicCMD(midi_cmd);
-    
+
     char midi_filename[256];
     sprintf(midi_filename, "%s%s", save_dir?save_dir:archive_path, TMP_MUSIC_FILE);
 #if defined(ANDROID) || defined(WEB)
@@ -220,11 +220,11 @@ int ONScripter::playMIDI(bool loop_flag)
     signal(SIGCHLD, midiCallback);
     if (midi_cmd) midi_looping = 0;
 #endif
-    
+
     Mix_VolumeMusic(music_volume);
     Mix_PlayMusic(midi_info, midi_looping);
-    current_cd_track = -2; 
-    
+    current_cd_track = -2;
+
     return 0;
 }
 
@@ -259,7 +259,7 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
         utils::printInfo( "playMPEG: skip %s with --no-video option \n", filename);
         return 0;
     }
-    
+
     unsigned long length = script_h.cBR->getFileLength( filename );
     if (length == 0){
         utils::printError(" *** can't find file [%s] ***\n", filename );
@@ -287,14 +287,14 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
                &mpegversion, &layer, &bitrate, &frequency, mode);
         printf("MPEG-%d Layer %d %dkbit/s %dHz %s\n",
                mpegversion, layer, bitrate, frequency, mode);
-        
+
         openAudio(frequency);
 
         SMPEG_actualSpec( layer_smpeg_sample, &audio_format );
         SMPEG_enableaudio( layer_smpeg_sample, 1 );
     }
     SMPEG_enablevideo( layer_smpeg_sample, 1 );
-    
+
     SMPEG_setdisplay( layer_smpeg_sample, accumulation_surface, NULL,  NULL );
 
     OverlayInfo oi;
@@ -340,7 +340,7 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
                     done_flag = true;
                 if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_RCTRL)
                     ctrl_pressed_status &= ~0x01;
-                    
+
                 if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_LCTRL)
                     ctrl_pressed_status &= ~0x02;
                 break;
@@ -367,7 +367,7 @@ int ONScripter::playMPEG(const char *filename, bool click_flag, bool loop_flag)
 #else
     char *absolute_filename = new char[ strlen(archive_path) + strlen(filename) + 1 ];
     sprintf( absolute_filename, "%s%s", archive_path, filename );
-    for (int i=0;i<strlen( absolute_filename );i++) {
+    for (size_t i=0;i<strlen( absolute_filename );i++) {
         if ( absolute_filename[i] == '/' || absolute_filename[i] == '\\' )
             absolute_filename[i] = DELIMITER;
     }
@@ -403,7 +403,7 @@ int ONScripter::playAVI( const char *filename, bool click_flag )
     int ret = 0;
     char *absolute_filename = new char[ strlen(archive_path) + strlen(filename) + 1 ];
     sprintf( absolute_filename, "%s%s", archive_path, filename );
-    for (int i=0;i<strlen( absolute_filename );i++) {
+    for (size_t i=0;i<strlen( absolute_filename );i++) {
         if ( absolute_filename[i] == '/' || absolute_filename[i] == '\\' )
             absolute_filename[i] = DELIMITER;
     }
@@ -489,12 +489,12 @@ void ONScripter::playClickVoice()
 {
     if      ( clickstr_state == CLICK_NEWPAGE ){
         if ( clickvoice_file_name[CLICKVOICE_NEWPAGE] )
-            playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE], 
+            playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE],
                       SOUND_CHUNK, false, MIX_WAVE_CHANNEL);
     }
     else if ( clickstr_state == CLICK_WAIT ){
         if ( clickvoice_file_name[CLICKVOICE_NORMAL] )
-            playSound(clickvoice_file_name[CLICKVOICE_NORMAL], 
+            playSound(clickvoice_file_name[CLICKVOICE_NORMAL],
                       SOUND_CHUNK, false, MIX_WAVE_CHANNEL);
     }
 }

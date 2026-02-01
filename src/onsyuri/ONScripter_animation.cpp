@@ -142,7 +142,7 @@ void ONScripter::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         anim->file_name && anim->surface_name &&
         strcmp(anim->file_name, anim->surface_name) == 0 &&
         ((!anim->mask_file_name && !anim->mask_surface_name) ||
-         (anim->mask_file_name && !anim->mask_surface_name &&
+         (anim->mask_file_name && anim->mask_surface_name &&
           strcmp(anim->mask_file_name, anim->mask_surface_name) == 0))) return;
 
     anim->deleteSurface();
@@ -474,6 +474,7 @@ void ONScripter::stopAnimation( int click )
 
 void ONScripter::loadCursor(int no, const char *str, int x, int y, bool abs_flag)
 {
+<<<<<<< HEAD
     AnimationInfo *ai;
 #ifdef SWITCH
     if (no < 0)

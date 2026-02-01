@@ -201,7 +201,7 @@ all	:	$(OUTPUT).nro
 
 $(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
 	@echo creating $(notdir $@)
-	@elf2nro $< $@ --icon=$(APP_ICON) --nacp=$(OUTPUT).nacp --romfsdir=$(TOPDIR)/$(ROMFS)
+	@elf2nro $< $@ $(NROFLAGS)
 
 $(OUTPUT).elf	:	$(OFILES)
 
