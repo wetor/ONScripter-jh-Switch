@@ -29,6 +29,9 @@
 #ifdef USE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
 #endif
+#ifdef SWITCH
+#include <SDL2/SDL_image.h>
+#endif
 #ifdef USE_SIMD
 #include "simd/simd.h"
 #endif
@@ -142,7 +145,12 @@ void ONScripter::initSDL()
     utils::printInfo("Initializing SDL for Nintendo Switch...\n");
 #endif
 
+#ifdef SWITCH
+    // Switch needs JOYSTICK for controller support
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK ) < 0 ){
+#else
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER  ) < 0 ){
+#endif
         utils::printError("Couldn't initialize SDL: %s\n", SDL_GetError());
 #ifdef SWITCH
         FILE *crashlog = fopen("sdmc:/switch/onsyuri/crash.log", "w");
@@ -374,7 +382,105 @@ void ONScripter::initSDL()
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 #endif
+
+#ifdef SWITCH
+    // Initialize Switch mouse cursor
+    draw_mouse_flag = false;
+    current_mouse_x = screen_width / 2;
+    current_mouse_y = screen_height / 2;
+
+    // Load mouse cursor image using AnimationInfo (will be loaded after surfaces are created)
+    SDL_ShowCursor(SDL_DISABLE);
+#endif
 }
+
+#ifdef SWITCH
+void ONScripter::loadSwitchMouseCursor()
+{
+    // Load mouse cursor directly from romfs using SDL_image
+    const char* cursor_path = "romfs:/cursor/mouse.png";
+
+    mouse_cursor_texture = NULL;
+
+    SDL_Surface *tmp = IMG_Load(cursor_path);
+    if (tmp) {
+        // Store cursor size in mouse_info
+        mouse_info.pos.w = tmp->w;
+        mouse_info.pos.h = tmp->h;
+        mouse_info.visible = true;
+
+        // Create hardware texture for efficient rendering
+        mouse_cursor_texture = SDL_CreateTextureFromSurface(renderer, tmp);
+        if (mouse_cursor_texture) {
+            SDL_SetTextureBlendMode(mouse_cursor_texture, SDL_BLENDMODE_BLEND);
+            utils::printInfo("Switch mouse cursor texture created (%dx%d)\n", tmp->w, tmp->h);
+        } else {
+            utils::printError("Failed to create mouse cursor texture: %s\n", SDL_GetError());
+        }
+
+        SDL_FreeSurface(tmp);
+    } else {
+        utils::printError("Failed to load Switch mouse cursor from %s: %s\n", cursor_path, IMG_GetError());
+    }
+}
+
+void ONScripter::renderSwitchMouseCursor()
+{
+    if (!mouse_cursor_texture || !draw_mouse_flag) return;
+
+    // Convert game coordinates to device coordinates
+    int dst_x = current_mouse_x * screen_device_width / screen_width + render_view_rect.x;
+    int dst_y = current_mouse_y * screen_device_height / screen_height + render_view_rect.y;
+
+    // Scale cursor size proportionally to screen resolution
+    int scaled_w = mouse_info.pos.w * screen_device_width / screen_width;
+    int scaled_h = mouse_info.pos.h * screen_device_height / screen_height;
+
+    SDL_Rect dst_rect = { dst_x, dst_y, scaled_w, scaled_h };
+    SDL_RenderCopy(renderer, mouse_cursor_texture, NULL, &dst_rect);
+
+    static int render_log_count = 0;
+    if (render_log_count++ % 60 == 0) {  // Log every 60 frames
+        printf("[CURSOR] game=(%d,%d) -> device=(%d,%d) size=%dx%d view=(%d,%d,%d,%d)\n",
+               current_mouse_x, current_mouse_y, dst_x, dst_y,
+               mouse_info.pos.w, mouse_info.pos.h,
+               render_view_rect.x, render_view_rect.y, render_view_rect.w, render_view_rect.h);
+    }
+}
+
+bool ONScripter::axisMouseMoveEvent(SDL_JoyAxisEvent jaxis)
+{
+    if (jaxis.axis >= 2)  // Only handle left stick (axis 0 and 1)
+        return false;
+
+    float x = (float)current_mouse_x * screen_device_width / screen_width;
+    float y = (float)current_mouse_y * screen_device_height / screen_height;
+
+    float level = jaxis.value >> 12;  // -8 to 7
+    if (level >= 0) level++;  // -8 to 8
+
+    bool moved = false;
+
+    if (level > 1 || level < -1) {
+        if (jaxis.axis == 0) {  // Left/Right
+            x += 0.2f * abs((int)level) * level + 2.0f;
+            moved = true;
+            if (level < 0) x -= 0.5f;
+        }
+        if (jaxis.axis == 1) {  // Up/Down
+            y += 0.2f * abs((int)level) * level + 2.0f;
+            moved = true;
+            if (level < 0) y -= 0.5f;
+        }
+    }
+
+    if (moved) {
+        warpMouse((int)(x + 0.5f), (int)(y + 0.5f));
+    }
+
+    return moved;
+}
+#endif
 
 void ONScripter::openAudio(int freq)
 {
@@ -448,10 +554,17 @@ ONScripter::ONScripter()
 
 ONScripter::~ONScripter()
 {
+    delete[] wm_title_string;
+    delete[] wm_icon_string;
+    wm_title_string = nullptr;
+    wm_icon_string = nullptr;
+
     reset();
 
     delete[] sprite_info;
+    sprite_info = nullptr;
     delete[] sprite2_info;
+    sprite2_info = nullptr;
 }
 
 void ONScripter::enableCDAudio(){
@@ -733,6 +846,17 @@ int ONScripter::init()
         return -1;
     }
 
+#ifdef SWITCH
+    // Load mouse cursor after surfaces and font are initialized
+    loadSwitchMouseCursor();
+
+    // Set device bounds for stick mouse movement
+    extern void setSwitchDeviceBounds(int device_w, int device_h, int view_x, int view_y, int view_w, int view_h);
+    setSwitchDeviceBounds(device_width, device_height,
+                          render_view_rect.x, render_view_rect.y,
+                          render_view_rect.w, render_view_rect.h);
+#endif
+
     return 0;
 }
 
@@ -951,6 +1075,11 @@ void ONScripter::flushDirect( SDL_Rect &rect, int refresh_mode )
         SDL_RenderCopy(renderer, texture, NULL, &render_view_rect);
     }
 #endif
+
+#ifdef SWITCH
+    renderSwitchMouseCursor();
+#endif
+
     SDL_RenderPresent(renderer);
 }
 

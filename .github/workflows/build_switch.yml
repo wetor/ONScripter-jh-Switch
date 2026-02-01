@@ -76,7 +76,7 @@ jobs:
           mkdir -p release
           cp onsyuri.nro release/ONScripter_Switch.nro
           cp README.md release/
-          cp COPYING release/
+          cp src/onsyuri/COPYING release/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -88,22 +88,22 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "release/ONScripter_Switch.nro"
+          artifacts: 'release/ONScripter_Switch.nro'
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             ## ONScripter Yuri for Nintendo Switch
-            
+
             ### 安装说明
             1. 将 `ONScripter_Switch.nro` 复制到 `sdmc:/switch/ONScripter/` 目录
             2. 将游戏文件夹放入 `sdmc:/onsemu/` 目录
             3. 从 HBMenu 启动 ONScripter
-            
+
             ### 系统要求
             - Nintendo Switch (破解机)
             - Atmosphere 自制固件
             - 系统版本 9.0.0+
-            
+
             ### 操作说明
             - A: 确认 | B: 取消 | +: 菜单
             - 左摇杆: 移动光标 (按下L3切换鼠标模式)

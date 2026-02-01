@@ -51,6 +51,7 @@ ROMFS		:=	romfs
 APP_TITLE	:=	ONScripter Yuri
 APP_AUTHOR	:=	ONScripter Team
 APP_VERSION	:=	1.0.0
+ICON		:=	icon.jpg
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -200,7 +201,7 @@ all	:	$(OUTPUT).nro
 
 $(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
 	@echo creating $(notdir $@)
-	@elf2nro $< $@ --nacp=$(OUTPUT).nacp --romfsdir=$(TOPDIR)/$(ROMFS)
+	@elf2nro $< $@ --icon=$(APP_ICON) --nacp=$(OUTPUT).nacp --romfsdir=$(TOPDIR)/$(ROMFS)
 
 $(OUTPUT).elf	:	$(OFILES)
 

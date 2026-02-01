@@ -19,16 +19,21 @@
 #include <SDL2/SDL_ttf.h>
 #include <switch.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct GameInfo {
     std::string path;
     std::string name;
     std::string script_file;
+    std::string cover_file_path;
+    SDL_Texture* cover_texture_;
     bool has_script;
     bool has_font;
+    bool has_cover;
+    bool texture_loaded;
 
-    GameInfo() : has_script(false), has_font(false) {}
+    GameInfo() : cover_texture_(nullptr), has_script(false), has_font(false), has_cover(false), texture_loaded(false) {}
 };
 
 class GameBrowser {
@@ -62,52 +67,74 @@ private:
     void handleInput();
     void moveSelection(int delta);
 
-    // Rendering
     void render();
-    void renderTitle();
-    void renderGameList();
-    void renderGameItem(int index, int y_pos);
-    void renderHelp();
+    void renderStatusBar();
+    void renderCarousel();
+    void renderBottomBar();
     void renderNoGames();
     void renderHelpOverlay();
+    void renderInfoOverlay();
 
-    // Drawing helpers
-    void drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color, bool centered = false);
+    std::string buildInfoText(const GameInfo& game) const;
+    std::string buildResourceText(const GameInfo& game) const;
+    void updateInfoLines();
+
+    void renderGameCard(int index, float center_x, float base_y, float width, float height, float scale, float alpha);
+    void drawButton(int x, int y, int size, bool is_left, bool is_enabled);
+
+    void drawText(const char* text, int x, int y, TTF_Font* font, SDL_Color color);
     void drawRect(int x, int y, int w, int h, SDL_Color color, bool filled);
-    void drawBattery(int x, int y, int level);
+    void drawRoundedRect(int x, int y, int w, int h, int radius, SDL_Color color);
+    void drawShadow(int x, int y, int w, int h, int offset, SDL_Color color);
+    void drawBatteryIcon(int x, int y, int percentage);
+    void drawCircle(int x, int y, int radius, SDL_Color color, bool filled);
+    void drawControlKey(const char* key, const char* text, int x, int y);
 
-    // Font loading
     bool loadFonts();
+    void loadButtonIcons();
+    bool loadGameCover(GameInfo& game);
+    bool loadCoverTexture(GameInfo& game);
 
 private:
     SDL_Window* window_;
     SDL_Renderer* renderer_;
     TTF_Font* font_large_;
+    TTF_Font* font_medium_;
     TTF_Font* font_small_;
+    TTF_Font* font_icon_;
+    SDL_Texture* default_icon_texture_;
 
     std::vector<GameInfo> games_;
     int selected_index_;
     int scroll_offset_;
-    char time_str_[8];
-    int battery_level_;
-    Uint32 last_time_update_;
-
+    int carousel_scroll_;
     int screen_width_;
     int screen_height_;
     int items_per_page_;
-
     bool running_;
     bool show_help_;
+    bool show_info_;
+    std::string info_text_;
+    std::vector<std::string> info_lines_;
+    int info_scroll_;
+    PadState pad_;
+    std::unordered_map<std::string, SDL_Texture*> button_textures_;
 
-    // Colors
     SDL_Color color_background_;
     SDL_Color color_text_;
-    SDL_Color color_selected_;
+    SDL_Color color_accent1_;
+    SDL_Color color_accent2_;
+    SDL_Color color_shadow_;
+    SDL_Color color_selected_border_;
     SDL_Color color_disabled_;
-    SDL_Color color_highlight_;
 
-    // Gamepad state
-    PadState pad_;
+    static constexpr int STATUS_BAR_HEIGHT = 40;
+    static constexpr int BOTTOM_BAR_HEIGHT = 40;
+    static constexpr int CAROUSEL_START_Y = 620;
+    static constexpr int CARD_WIDTH = 220;
+    static constexpr int CARD_HEIGHT = 260;
+    static constexpr int CARD_SPACING = 0;
+    static constexpr int BUTTON_HEIGHT = 32;
 };
 
 #endif // SWITCH
