@@ -95,6 +95,8 @@ private:
     bool loadGameCover(GameInfo& game);
     bool loadCoverTexture(GameInfo& game);
 
+    std::string convertToUTF8(const char* filename);
+
 private:
     SDL_Window* window_;
     SDL_Renderer* renderer_;
