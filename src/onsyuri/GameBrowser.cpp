@@ -13,6 +13,10 @@
 #ifdef SWITCH
 
 #include "GameBrowser.h"
+#include "DirectReader.h"
+#include "gbk2utf16.h"
+#include "sjis2utf16.h"
+#include "coding2utf16.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
@@ -25,6 +29,8 @@
 #include <cmath>
 #include <cctype>
 #include <ctime>
+
+extern Coding2UTF16 *coding2utf16;
 
 GameBrowser::GameBrowser()
     : window_(nullptr)
@@ -191,6 +197,70 @@ bool GameBrowser::loadFonts()
 
     printf("GameBrowser: No valid font found!\n");
     return false;
+}
+
+std::string GameBrowser::convertToUTF8(const char* filename)
+{
+    if (!filename || filename[0] == '\0') {
+        return std::string();
+    }
+
+    auto is_valid_utf8 = [](const char* str) {
+        for (size_t i = 0; str[i] != '\0'; ) {
+            unsigned char c = static_cast<unsigned char>(str[i]);
+            if (c < 0x80) {
+                i++;
+                continue;
+            }
+
+            int remaining = 0;
+            if ((c & 0xE0) == 0xC0) {
+                remaining = 1;
+            } else if ((c & 0xF0) == 0xE0) {
+                remaining = 2;
+            } else if ((c & 0xF8) == 0xF0) {
+                remaining = 3;
+            } else {
+                return false;
+            }
+
+            for (int j = 0; j < remaining; j++) {
+                i++;
+                unsigned char cont = static_cast<unsigned char>(str[i]);
+                if (cont == '\0' || (cont & 0xC0) != 0x80) {
+                    return false;
+                }
+            }
+            i++;
+        }
+        return true;
+    };
+
+    if (is_valid_utf8(filename)) {
+        return std::string(filename);
+    }
+
+    char utf8_buffer[MAX_FILE_NAME_LENGTH * 3 + 1];
+
+    static GBK2UTF16 gbk_converter;
+    gbk_converter.init();
+    coding2utf16 = &gbk_converter;
+    DirectReader::convertCodingToUTF8(utf8_buffer, filename);
+    if (is_valid_utf8(utf8_buffer)) {
+        printf("GameBrowser: Converted GBK filename to UTF-8: %s -> %s\n", filename, utf8_buffer);
+        return std::string(utf8_buffer);
+    }
+
+    static SJIS2UTF16 sjis_converter;
+    sjis_converter.init();
+    coding2utf16 = &sjis_converter;
+    DirectReader::convertCodingToUTF8(utf8_buffer, filename);
+    if (is_valid_utf8(utf8_buffer)) {
+        printf("GameBrowser: Converted SJIS filename to UTF-8: %s -> %s\n", filename, utf8_buffer);
+        return std::string(utf8_buffer);
+    }
+
+    return std::string(filename);
 }
 
 bool GameBrowser::loadGameCover(GameInfo& game)
@@ -388,7 +458,7 @@ int GameBrowser::scanGames(const char* base_path)
         GameInfo info;
         if (isValidGameFolder(full_path, info)) {
             info.path = full_path;
-            info.name = entry->d_name;
+            info.name = convertToUTF8(entry->d_name);
             loadGameCover(info);
             if (info.has_cover) {
                 loadCoverTexture(info);
@@ -728,7 +798,7 @@ void GameBrowser::renderCarousel()
 
         SDL_Color label_color = color_disabled_;
         int label_width;
-        TTF_SizeText(font_medium_, games_[i].name.c_str(), &label_width, nullptr);
+        TTF_SizeUTF8(font_medium_, games_[i].name.c_str(), &label_width, nullptr);
         drawText(games_[i].name.c_str(),
                  (int)(x_pos - label_width / 2),
                  (int)(base_y - CARD_HEIGHT * unselected_scale - 22),
@@ -743,7 +813,7 @@ void GameBrowser::renderCarousel()
         renderGameCard(selected_index_, x_pos, base_y, CARD_WIDTH, CARD_HEIGHT, scale, alpha);
 
         int label_width;
-        TTF_SizeText(font_large_, games_[selected_index_].name.c_str(), &label_width, nullptr);
+        TTF_SizeUTF8(font_large_, games_[selected_index_].name.c_str(), &label_width, nullptr);
         drawText(games_[selected_index_].name.c_str(),
                  center_x - label_width / 2,
                  (int)(base_y - CARD_HEIGHT * 1.2f - 30),
