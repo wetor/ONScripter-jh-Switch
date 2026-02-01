@@ -970,7 +970,6 @@ int ONScripter::savetimeCommand()
 
 int ONScripter::savescreenshotCommand()
 {
-<<<<<<< HEAD
     (void)script_h.isName( "savescreenshot2" );
 
     if (!screenshot_surface){

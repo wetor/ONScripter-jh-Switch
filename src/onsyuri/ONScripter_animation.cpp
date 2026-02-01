@@ -474,7 +474,6 @@ void ONScripter::stopAnimation( int click )
 
 void ONScripter::loadCursor(int no, const char *str, int x, int y, bool abs_flag)
 {
-<<<<<<< HEAD
     AnimationInfo *ai;
 #ifdef SWITCH
     if (no < 0)
