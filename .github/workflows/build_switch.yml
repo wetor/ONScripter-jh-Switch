@@ -40,26 +40,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Switch dependencies
-        run: |
-          dkp-pacman -Sy --noconfirm \
-            switch-sdl2 \
-            switch-sdl2_ttf \
-            switch-sdl2_image \
-            switch-sdl2_mixer \
-            switch-libpng \
-            switch-libjpeg-turbo \
-            switch-libwebp \
-            switch-freetype \
-            switch-harfbuzz \
-            switch-zlib \
-            switch-bzip2 \
-            switch-libogg \
-            switch-libvorbisidec \
-            switch-libmodplug \
-            switch-mpg123 \
-            switch-opusfile \
-            switch-liblua51
+      # devkitpro/devkita64:latest ships the full devkitA64 toolchain
+      # (switch-sdl2, libnx, ...) so no online package install is needed.
+      # The old dkp-pacman step hits pkg.devkitpro.org which is frequently
+      # blocked by Cloudflare (HTTP 403), so it was removed.
 
       - name: Update version in source
         if: startsWith(github.ref, 'refs/tags/')
