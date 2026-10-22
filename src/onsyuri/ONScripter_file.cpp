@@ -24,6 +24,7 @@
 
 #include "ONScripter.h"
 #include "Utils.h"
+#include "mkdir_switch.h"
 
 #if defined(LINUX) || defined(MACOSX) || defined(IOS) || defined(ANDROID)
 #include <sys/types.h>
@@ -283,6 +284,13 @@ int ONScripter::writeSaveFile( int no, const char *savestr )
 #else
     size_t magic_len = strlen(SAVEFILE_MAGIC_NUMBER)+2;
     sprintf( filename, RELATIVEPATH "sav%csave%d.dat", DELIMITER, no );
+    if (save_dir){  // 备份写到 save_dir/sav/ 下，先确保目录存在
+        char backup_dir[256];
+        snprintf( backup_dir, sizeof(backup_dir), "%s/sav", save_dir );
+        mkdir( backup_dir, 0777 );
+    } else {
+        mkdir( RELATIVEPATH "sav", 0777 );
+    }
     if (saveFileIOBuf( filename, magic_len, savestr ))
         utils::printError("can't open save file %s for writing (not an error)\n", filename );
 #endif

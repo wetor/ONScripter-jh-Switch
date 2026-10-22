@@ -28,6 +28,7 @@
 #include "gbk2utf16.h"
 #include "sjis2utf16.h"
 #include "version.h"
+#include "mkdir_switch.h"
 #include "stdlib.h"
 #include <sys/stat.h>
 

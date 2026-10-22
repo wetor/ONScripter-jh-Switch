@@ -428,9 +428,13 @@ void ONScripter::renderSwitchMouseCursor()
 {
     if (!mouse_cursor_texture || !draw_mouse_flag) return;
 
-    // Convert game coordinates to device coordinates
-    int dst_x = current_mouse_x * screen_device_width / screen_width + render_view_rect.x;
-    int dst_y = current_mouse_y * screen_device_height / screen_height + render_view_rect.y;
+    // Use the authoritative virtual-mouse position from the Switch input
+    // poller (in device coordinates).  Falls back to current_mouse_x/y
+    // (converted to device space) when it has been updated by a real SDL
+    // mouse event.
+    extern float g_mouse_x, g_mouse_y;
+    int dst_x = (int)g_mouse_x;
+    int dst_y = (int)g_mouse_y;
 
     // Scale cursor size proportionally to screen resolution
     int scaled_w = mouse_info.pos.w * screen_device_width / screen_width;
@@ -441,10 +445,10 @@ void ONScripter::renderSwitchMouseCursor()
 
     static int render_log_count = 0;
     if (render_log_count++ % 60 == 0) {  // Log every 60 frames
-        printf("[CURSOR] game=(%d,%d) -> device=(%d,%d) size=%dx%d view=(%d,%d,%d,%d)\n",
-               current_mouse_x, current_mouse_y, dst_x, dst_y,
-               mouse_info.pos.w, mouse_info.pos.h,
-               render_view_rect.x, render_view_rect.y, render_view_rect.w, render_view_rect.h);
+        printf("[CURSOR] device=(%d,%d) size=%dx%d view=(%d,%d,%d,%d) draw=%d\n",
+               dst_x, dst_y, scaled_w, scaled_h,
+               render_view_rect.x, render_view_rect.y, render_view_rect.w, render_view_rect.h,
+               (int)draw_mouse_flag);
     }
 }
 
@@ -855,6 +859,11 @@ int ONScripter::init()
     setSwitchDeviceBounds(device_width, device_height,
                           render_view_rect.x, render_view_rect.y,
                           render_view_rect.w, render_view_rect.h);
+
+    // Pass the game-logical screen size so stick-mouse device coords can be
+    // converted back for menus / button click detection.
+    extern void setSwitchScreenSize(int screen_w, int screen_h);
+    setSwitchScreenSize(screen_width, screen_height);
 #endif
 
     return 0;

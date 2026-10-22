@@ -34,8 +34,10 @@
 #include <switch.h>
 static PadState g_pad;
 static bool g_pad_initialized = false;
-static float g_mouse_x = 640.0f;  // Virtual mouse position in DEVICE coordinates
-static float g_mouse_y = 360.0f;
+float g_mouse_x = 640.0f;  // Virtual mouse position in DEVICE coordinates (non-static: referenced by ONScripter.cpp)
+float g_mouse_y = 360.0f;
+static int g_screen_w = 0;   // game logical resolution, set by setSwitchScreenSize()
+static int g_screen_h = 0;
 static int g_device_width = 1280;   // Will be updated when engine initializes
 static int g_device_height = 720;
 static int g_view_x = 0;            // render_view_rect offset
@@ -248,7 +250,57 @@ void pollSwitchInput()
         }
     }
 
-    (void)0;
+    // Left stick → virtual mouse cursor movement (on Switch)
+    // This is necessary because on Switch we poll HID directly rather than
+    // relying on SDL's joystick/mouse subsystem.  StickL also controls the
+    // cursor once the user has pressed L to show it.
+    {
+        HidAnalogStickState stick = padGetStickPos(&g_pad, 0);
+        float sx = (float)stick.x;
+        float sy = (float)stick.y;
+        float mag = sqrtf(sx * sx + sy * sy);
+        if (mag > STICK_DEADZONE) {
+            float nx = sx / 32768.0f;
+            float ny = sy / 32768.0f;
+            // Keep mouse position in DEVICE coordinates (matches
+            // renderSwitchMouseCursor).
+            g_mouse_x += nx * MOUSE_SPEED;
+            g_mouse_y -= ny * MOUSE_SPEED;  // invert Y so up-stick = up-cursor
+            if (g_mouse_x < 0) g_mouse_x = 0;
+            if (g_mouse_x > g_device_width - 1) g_mouse_x = (float)(g_device_width - 1);
+            if (g_mouse_y < 0) g_mouse_y = 0;
+            if (g_mouse_y > g_device_height - 1) g_mouse_y = (float)(g_device_height - 1);
+
+            // Push an SDL_MOUSEMOTION so the engine's mouseMoveEvent updates
+            // current_button_state.x/y and current_mouse_x/y.
+            // event->x/y must be in SCREEN (game-logical) coordinates.  The
+            // conversion mirrors the forward transform in mouseMoveEvent():
+            //   g_mouse_x = current_mouse_x * screen_device_width / screen_width + view_x
+            // so the inverse is:
+            //   screen_x = (g_mouse_x - view_x) * g_screen_w / g_view_w
+            // (g_view_w == screen_device_width by construction; the
+            //  g_screen_w/g_view_w ratio makes the result game-logical.)
+            int dev_w = g_view_w > 0 ? g_view_w : 1;
+            int dev_h = g_view_h > 0 ? g_view_h : 1;
+            int sw = g_screen_w > 0 ? g_screen_w : dev_w;
+            int sh = g_screen_h > 0 ? g_screen_h : dev_h;
+            int screen_x = (int)((g_mouse_x - (float)g_view_x) * (float)sw / (float)dev_w);
+            int screen_y = (int)((g_mouse_y - (float)g_view_y) * (float)sh / (float)dev_h);
+            if (screen_x < 0) screen_x = 0;
+            if (screen_y < 0) screen_y = 0;
+            if (screen_x > sw - 1) screen_x = sw - 1;
+            if (screen_y > sh - 1) screen_y = sh - 1;
+
+            SDL_Event motion;
+            motion.type = SDL_MOUSEMOTION;
+            motion.motion.x = screen_x;
+            motion.motion.y = screen_y;
+            motion.motion.xrel = 0;
+            motion.motion.yrel = 0;
+            motion.motion.state = 0;
+            SDL_PushEvent(&motion);
+        }
+    }
 }
 
 // Get current virtual mouse position for cursor rendering
@@ -271,6 +323,15 @@ void setSwitchDeviceBounds(int device_w, int device_h, int view_x, int view_y, i
     g_mouse_y = view_y + view_h / 2.0f;
     printf("[SWITCH] Device bounds set: device=%dx%d view=(%d,%d,%d,%d) mouse centered at (%.0f,%.0f)\n",
            device_w, device_h, view_x, view_y, view_w, view_h, g_mouse_x, g_mouse_y);
+}
+
+// Extra setter so the ONScripter instance can pass the game-screen size
+// (screen_width/screen_height) used for converting device-pixel mouse coords
+// back to the logical game coordinates used by menus / button click detection.
+void setSwitchScreenSize(int screen_w, int screen_h)
+{
+    g_screen_w = screen_w;
+    g_screen_h = screen_h;
 }
 
 #endif
@@ -926,6 +987,32 @@ bool ONScripter::keyPressEvent( SDL_KeyboardEvent *event )
 {
     current_button_state.button = 0;
     current_button_state.down_flag = false;
+
+#ifdef SWITCH
+    // L button / SDLK_o toggles mouse cursor on Switch.
+    // This must run early so the cursor appears before the existing SDLK_o
+    // "skip to next page" logic runs (which requires event_mode & WAIT_INPUT_MODE).
+    if (event->type == SDL_KEYDOWN && event->keysym.sym == SDLK_o) {
+        draw_mouse_flag = !draw_mouse_flag;
+        // Hide the system hardware cursor; we render our own.
+        SDL_ShowCursor(draw_mouse_flag ? SDL_DISABLE : SDL_DISABLE);
+        if (draw_mouse_flag) {
+            // Snap custom cursor to last known position or screen center
+            if (current_mouse_x < 0 || current_mouse_x >= screen_width)
+                current_mouse_x = screen_width / 2;
+            if (current_mouse_y < 0 || current_mouse_y >= screen_height)
+                current_mouse_y = screen_height / 2;
+            utils::printInfo("[SWITCH] Mouse cursor shown (L button)\n");
+        } else {
+            utils::printInfo("[SWITCH] Mouse cursor hidden (L button)\n");
+        }
+    }
+    // D-Pad/Stick mouse click: StickL click (L3) = left click, StickR click (R3) = right click
+    if (event->type == SDL_KEYDOWN && event->keysym.sym == SDLK_UNKNOWN) {
+        // Reserved for future extension; do nothing by default.
+    }
+#endif
+
     if ( automode_flag ){
         automode_flag = false;
         return false;
@@ -1262,7 +1349,7 @@ void ONScripter::timerEvent(bool init_flag)
     }
 }
 
-#if (defined(IOS) || defined(ANDROID) || defined(WINRT))
+#if defined(SWITCH) || defined(IOS) || defined(ANDROID) || defined(WINRT)
 SDL_MouseWheelEvent transTouchKey(SDL_TouchFingerEvent &finger) {
     static struct FingerPoint {
         float x, y;
@@ -1333,7 +1420,7 @@ void ONScripter::runEventLoop()
         }
 
         switch (event.type) {
-#if defined(IOS) || defined(ANDROID) || defined(WINRT)
+#if defined(SWITCH) || defined(IOS) || defined(ANDROID) || defined(WINRT)
         case SDL_FINGERMOTION:
         {
             if (!btndown_flag && convTouchKey(event.tfinger)) return;
